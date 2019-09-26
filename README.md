@@ -480,118 +480,80 @@ const optimizely = createInstance({
 
 # Credits
 
-First-party code (under lib/ and dist/) is copyright Optimizely, Inc. and contributors, licensed under Apache 2.0.
+First-party code subject to copyrights held by Optimizely, Inc. and its contributors and licensed to you under the terms of the Apache 2.0 license.
 
 # Additional code
 
-Prod dependencies are as follows:
+This repository includes the following third party open source code:
 
-```json
-{
-  "@optimizely/js-sdk-datafile-manager@0.3.0": {
-    "licenses": "Apache-2.0"
-  },
-  "@optimizely/js-sdk-event-processor@0.2.1": {
-    "licenses": "MIT",
-    "publisher": "Optimizely",
-    "repository": "https://github.com/optimizely/javascript-sdk"
-  },
-  "@optimizely/js-sdk-logging@0.1.0": {
-    "licenses": "MIT",
-    "publisher": "Optimizely",
-    "repository": "https://github.com/optimizely/javascript-sdk"
-  },
-  "@optimizely/js-sdk-utils@0.1.0": {
-    "licenses": "MIT",
-    "publisher": "Optimizely",
-    "repository": "https://github.com/optimizely/javascript-sdk"
-  },
-  "@optimizely/optimizely-sdk@3.2.0": {
-    "licenses": "Apache-2.0",
-    "repository": "https://github.com/optimizely/javascript-sdk"
-  },
-  "hoist-non-react-statics@3.3.0": {
-    "licenses": "BSD-3-Clause",
-    "publisher": "Michael Ridgway",
-    "repository": "https://github.com/mridgway/hoist-non-react-statics"
-  },
-  "js-tokens@4.0.0": {
-    "licenses": "MIT",
-    "publisher": "Simon Lydell",
-    "repository": "https://github.com/lydell/js-tokens"
-  },
-  "json-schema@0.2.3": {
-    "licenses": [
-      "AFLv2.1",
-      "BSD"
-    ],
-    "publisher": "Kris Zyp",
-    "repository": "https://github.com/kriszyp/json-schema"
-  },
-  "lodash@4.17.11": {
-    "licenses": "MIT",
-    "publisher": "John-David Dalton",
-    "repository": "https://github.com/lodash/lodash"
-  },
-  "loose-envify@1.4.0": {
-    "licenses": "MIT",
-    "publisher": "Andres Suarez",
-    "repository": "https://github.com/zertosh/loose-envify"
-  },
-  "murmurhash@0.0.2": {
-    "licenses": "MIT*",
-    "repository": "https://github.com/perezd/node-murmurhash"
-  },
-  "object-assign@4.1.1": {
-    "licenses": "MIT",
-    "publisher": "Sindre Sorhus",
-    "repository": "https://github.com/sindresorhus/object-assign"
-  },
-  "promise-polyfill@8.1.0": {
-    "licenses": "MIT",
-    "publisher": "Taylor Hakes",
-    "repository": "https://github.com/taylorhakes/promise-polyfill"
-  },
-  "prop-types@15.7.2": {
-    "licenses": "MIT",
-    "repository": "https://github.com/facebook/prop-types"
-  },
-  "react-broadcast@0.7.1": {
-    "licenses": "MIT",
-    "publisher": "Michael Jackson",
-    "repository": "https://github.com/ReactTraining/react-broadcast"
-  },
-  "react-is@16.8.6": {
-    "licenses": "MIT",
-    "repository": "https://github.com/facebook/react"
-  },
-  "react@16.8.6": {
-    "licenses": "MIT",
-    "repository": "https://github.com/facebook/react"
-  },
-  "scheduler@0.13.6": {
-    "licenses": "MIT",
-    "repository": "https://github.com/facebook/react"
-  },
-  "utility-types@2.1.0": {
-    "licenses": "MIT",
-    "publisher": "Piotr Witek",
-    "repository": "https://github.com/piotrwitek/utility-types"
-  },
-  "uuid@3.3.2": {
-    "licenses": "MIT",
-    "repository": "https://github.com/kelektiv/node-uuid"
-  },
-  "warning@3.0.0": {
-    "licenses": "BSD-3-Clause",
-    "publisher": "Berkeley Martinez",
-    "repository": "https://github.com/BerkeleyTrue/warning"
-  }
-}
+[**hoist-non-react-statics**](https://github.com/mridgway/hoist-non-react-statics)  
+Copyright &copy; 2015 Yahoo!, Inc.
+License: [BSD](https://github.com/mridgway/hoist-non-react-statics/blob/master/LICENSE.md)
 
-```
+[**js-tokens**](https://github.com/lydell/js-tokens)  
+Copyright &copy; 2014, 2015, 2016, 2017, 2018, 2019 Simon Lydell
+License: [MIT](https://github.com/lydell/js-tokens/blob/master/LICENSE)
 
-To regenerate the dependencies, run the following command:
+[**json-schema**](https://github.com/kriszyp/json-schema)  
+Copyright &copy; 2005-2015, The Dojo Foundation
+License: [BSD](https://github.com/kriszyp/json-schema/blob/master/LICENSE)
+
+[**lodash**](https://github.com/lodash/lodash/)  
+Copyright &copy; JS Foundation and other contributors
+License: [MIT](https://github.com/lodash/lodash/blob/master/LICENSE)
+
+[**loose-envify**](https://github.com/zertosh/loose-envify)  
+Copyright &copy; 2015 Andres Suarez <zertosh@gmail.com>
+License: [MIT](https://github.com/zertosh/loose-envify/blob/master/LICENSE)
+
+[**node-murmurhash**](https://github.com/perezd/node-murmurhash)  
+Copyright &copy; 2012 Gary Court, Derek Perez
+License: [MIT](https://github.com/perezd/node-murmurhash/blob/master/README.md)
+
+[**object-assign**](https://github.com/sindresorhus/object-assign)  
+Copyright &copy; Sindre Sorhus (sindresorhus.com)
+License: [MIT](https://github.com/sindresorhus/object-assign/blob/master/license)
+
+[**promise-polyfill**](https://github.com/taylorhakes/promise-polyfill)  
+Copyright &copy; 2014 Taylor Hakes
+Copyright &copy; 2014 Forbes Lindesay
+License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICENSE)
+
+[**prop-types**](https://github.com/facebook/prop-types)  
+Copyright &copy; 2013-present, Facebook, Inc.
+License: [MIT](https://github.com/facebook/prop-types/blob/master/LICENSE)
+
+[**react-broadcast**](https://github.com/ReactTraining/react-broadcast)  
+Copyright &copy; React Training 2016-2018
+License: [MIT](https://github.com/ReactTraining/react-broadcast/blob/master/LICENSE)
+
+[**react-is**](https://github.com/facebook/react)  
+Copyright &copy; Facebook, Inc. and its affiliates.
+License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
+
+[**react**](https://github.com/facebook/react)  
+Copyright &copy; Facebook, Inc. and its affiliates.
+License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
+
+[**scheduler**](https://github.com/facebook/react)  
+Copyright &copy; Facebook, Inc. and its affiliates.
+License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
+
+[**utility-types**](https://github.com/piotrwitek/utility-types)  
+Copyright &copy; 2016 Piotr Witek <piotrek.witek@gmail.com>
+License: [MIT](https://github.com/piotrwitek/utility-types/blob/master/LICENSE)
+
+[**node-uuid**](https://github.com/kelektiv/node-uuid)  
+Copyright &copy; 2010-2016 Robert Kieffer and other contributors
+License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)
+
+[**warning**](https://github.com/BerkeleyTrue/warning)  
+Copyright &copy; 2013-present, Facebook, Inc.
+License: [MIT](https://github.com/BerkeleyTrue/warning/blob/master/LICENSE.md)
+
+
+
+To regenerate the dependencies use by this package, run the following command:
 
 ```sh
 npx license-checker --production --json | jq 'map_values({ licenses, publisher, repository }) | del(.[][] | nulls)'
