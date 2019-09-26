@@ -599,5 +599,5 @@ npx license-checker --production --json | jq 'map_values({ licenses, publisher, 
 
 # Contribute to this repo
 
-Please see [CONTRIBUTING](../../CONTRIBUTING.md) for more information.
+Please see [CONTRIBUTING](./CONTRIBUTING.md) for more information.
 

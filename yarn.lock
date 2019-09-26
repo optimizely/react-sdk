@@ -18,21 +18,21 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@optimizely/js-sdk-datafile-manager@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.3.0.tgz#f014b52e0460a7529ed34286c98740bfb7c44344"
-  integrity sha512-Jidj/T30Me8TdmPiAx3dGY7xan2eN/EFgmfCwxMXuLoxtHI1dAKAi5PvCOYNHzFUOadhl0WN9KBIFmZVrXsLAg==
+"@optimizely/js-sdk-datafile-manager@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.4.0.tgz#fe5e3cdf1f2b80260cd4727f12ae9b3524edc603"
+  integrity sha512-olkXopZBaf6CPOfd9AKFEPjJ422S0IRnPa8S7Xx6EVoXYFvi+ButzJLHbHopFnMfAxKYPPs3owAW6V5feGnaVQ==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.1.0"
 
-"@optimizely/js-sdk-event-processor@^0.2.0":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-event-processor/-/js-sdk-event-processor-0.2.1.tgz#112dd4b53c8f1096b296e5f40f97795d4980ef15"
-  integrity sha512-0EobW13tOdvz6K9ypYzPONc4sp490r+HrUNzFsXx+S20oXGXD/T0wv36TEWueJ0uNICxUFv7owQ9vVyWZ1NM6g==
+"@optimizely/js-sdk-event-processor@^0.3.0":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-event-processor/-/js-sdk-event-processor-0.3.1.tgz#759cccbc59f62260f893bbf265cb66395c5539f3"
+  integrity sha512-JL4AuGhV2HqoETj9wTiezm20qSe1m4f7istEx78CtnWRmXMKhcudJRDSeOF3fLsZ4i+ZcNwtHALHfiiq13A6SQ==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.1.0"
-    "@optimizely/js-sdk-utils" "^0.1.0"
+    "@optimizely/js-sdk-utils" "^0.2.0"
 
 "@optimizely/js-sdk-logging@^0.1.0":
   version "0.1.0"
@@ -48,17 +48,24 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-3.2.0.tgz#5a8aeff7501e4567831597f2e916ce001377d47c"
-  integrity sha512-KnkR2ycLnemiVwIAfp3/8uzeSOnN7lx4SZ/QfdbgUVqfSnXHQR2sgxRONamLdUh9hnWfmiSxnfMqxUCq5z4tzg==
+"@optimizely/js-sdk-utils@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-utils/-/js-sdk-utils-0.2.0.tgz#f24c971f09c3c63f7a4b9eb4da6ba9642bf61cd0"
+  integrity sha512-aHEccRVc5YjWAdIVtniKfUE3tuzHriIWZTS4sLEq/lXkNTITSL1jrBEJD91CVY5BahWu/aG/aOafrA7XGH3sDQ==
   dependencies:
-    "@optimizely/js-sdk-datafile-manager" "^0.3.0"
-    "@optimizely/js-sdk-event-processor" "^0.2.0"
+    uuid "^3.3.2"
+
+"@optimizely/optimizely-sdk@3.3.0":
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-3.3.0.tgz#77e578877b7d80d16b453b312216561b56ee192b"
+  integrity sha512-ct034R9qOhCjxnQnVpvcvuZKNOJsWs1pliGS8fEud3re3NvincnOCUwkv91yv8cPaySJeT2bKLIg5pocmlh2Aw==
+  dependencies:
+    "@optimizely/js-sdk-datafile-manager" "^0.4.0"
+    "@optimizely/js-sdk-event-processor" "^0.3.0"
     "@optimizely/js-sdk-logging" "^0.1.0"
-    "@optimizely/js-sdk-utils" "^0.1.0"
+    "@optimizely/js-sdk-utils" "^0.2.0"
     json-schema "^0.2.3"
-    lodash "^4.0.0"
+    lodash "^4.17.11"
     murmurhash "0.0.2"
     promise-polyfill "8.1.0"
     uuid "^3.3.2"
@@ -2552,7 +2559,7 @@ lodash.sortby@^4.7.0:
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
   integrity sha1-7dFMgk4sycHgsKG0K7UhBRakJDg=
 
-lodash@^4.0.0, lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.4:
+lodash@^4.15.0, lodash@^4.17.11, lodash@^4.17.4:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
