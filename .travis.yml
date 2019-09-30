@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+- '6'
+- '8'
+- '9'
+- '10'
+branches:
+  only:
+  - master
+  - /^\d+\.\d+\.(\d|[x])
+install: npm install
+addons:
+  srcclr: true
+script: npm test
+after_success: npm run coveralls
