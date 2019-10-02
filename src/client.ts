@@ -33,6 +33,7 @@ export type OnReadyResult = {
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk'
+const REACT_SDK_CLIENT_VERSION = '1.0.0'
 
 export interface ReactSDKClient extends optimizely.Client {
   user: UserContext
@@ -146,11 +147,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this.userPromiseResovler = () => {}
 
-    const configWithClientEngine = {
+    const configWithClientInfo = {
       ...config,
       clientEngine: REACT_SDK_CLIENT_ENGINE,
+      clientVersion: REACT_SDK_CLIENT_VERSION,
     }
-    this._client = optimizely.createInstance(configWithClientEngine)
+    this._client = optimizely.createInstance(configWithClientInfo)
 
     this.userPromise = new Promise(resolve => {
       this.userPromiseResovler = resolve
