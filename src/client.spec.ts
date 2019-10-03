@@ -79,12 +79,13 @@ describe('ReactSDKClient', () => {
     expect(createInstanceSpy.mock.results[0].value).toBe(instance.client)
   })
 
-  it('adds clientEngine react-sdk the config, and passed the config to createInstance', () => {
+  it('adds react-sdk clientEngine and clientVersion to the config, and passed the config to createInstance', () => {
     createInstance(config)
     expect(createInstanceSpy).toBeCalledTimes(1)
     expect(createInstanceSpy).toBeCalledWith({
       ...config,
       clientEngine: 'react-sdk',
+      clientVersion: '1.0.0',
     })
   })
 
