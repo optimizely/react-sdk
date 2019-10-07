@@ -3,3 +3,5 @@ node_js:
 - '10'
 install: yarn
 script: yarn test
+addons:
+  srcclr: true
