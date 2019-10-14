@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export { OptimizelyContextConsumer, OptimizelyContextProvider } from './Context'
 export { OptimizelyProvider } from './Provider'
 export { OptimizelyFeature } from './Feature'
 export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely'
