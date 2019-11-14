@@ -523,10 +523,6 @@ License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICEN
 Copyright &copy; 2013-present, Facebook, Inc.
 License: [MIT](https://github.com/facebook/prop-types/blob/master/LICENSE)
 
-[**react-broadcast**](https://github.com/ReactTraining/react-broadcast)  
-Copyright &copy; React Training 2016-2018
-License: [MIT](https://github.com/ReactTraining/react-broadcast/blob/master/LICENSE)
-
 [**react-is**](https://github.com/facebook/react)  
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)

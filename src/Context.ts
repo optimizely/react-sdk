@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 // @ts-ignore
-import { createContext } from 'react-broadcast'
+import { createContext } from 'react'
 
 const { Consumer, Provider } = createContext({
   optimizely: null,
