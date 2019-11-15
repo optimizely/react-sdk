@@ -543,11 +543,6 @@ License: [MIT](https://github.com/piotrwitek/utility-types/blob/master/LICENSE)
 Copyright &copy; 2010-2016 Robert Kieffer and other contributors
 License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)
 
-[**warning**](https://github.com/BerkeleyTrue/warning)  
-Copyright &copy; 2013-present, Facebook, Inc.
-License: [MIT](https://github.com/BerkeleyTrue/warning/blob/master/LICENSE.md)
-
-
 
 To regenerate the dependencies use by this package, run the following command:
 
