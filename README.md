@@ -523,10 +523,6 @@ License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICEN
 Copyright &copy; 2013-present, Facebook, Inc.
 License: [MIT](https://github.com/facebook/prop-types/blob/master/LICENSE)
 
-[**react-broadcast**](https://github.com/ReactTraining/react-broadcast)  
-Copyright &copy; React Training 2016-2018
-License: [MIT](https://github.com/ReactTraining/react-broadcast/blob/master/LICENSE)
-
 [**react-is**](https://github.com/facebook/react)  
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
@@ -546,11 +542,6 @@ License: [MIT](https://github.com/piotrwitek/utility-types/blob/master/LICENSE)
 [**node-uuid**](https://github.com/kelektiv/node-uuid)  
 Copyright &copy; 2010-2016 Robert Kieffer and other contributors
 License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)
-
-[**warning**](https://github.com/BerkeleyTrue/warning)  
-Copyright &copy; 2013-present, Facebook, Inc.
-License: [MIT](https://github.com/BerkeleyTrue/warning/blob/master/LICENSE.md)
-
 
 
 To regenerate the dependencies use by this package, run the following command:

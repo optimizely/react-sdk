@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// @ts-ignore
-import { createContext } from 'react-broadcast'
+import { createContext } from 'react'
+import { ReactSDKClient } from './client'
 
-const { Consumer, Provider } = createContext({
+export interface OptimizelyContext {
+  optimizely: ReactSDKClient | null,
+  isServerSide: boolean,
+  timeout: number | undefined,
+}
+
+const { Consumer, Provider } = createContext<OptimizelyContext>({
   optimizely: null,
   isServerSide: false,
   timeout: 0,
