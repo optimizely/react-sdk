@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, Optimizely
+ * Copyright 2019-2020, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,8 @@ export interface ReactSDKClient extends optimizely.Client {
     overrideAttributes?: optimizely.UserAttributes,
   ): Array<string>
 
+  getOptimizelyConfig(): optimizely.OptimizelyConfig | null;
+
   track(
     eventKey: string,
     overrideUserId?: string | optimizely.EventTags,
@@ -112,9 +114,7 @@ export interface ReactSDKClient extends optimizely.Client {
     variationKey?: string | null,
   ): boolean
 
-  getForcedVariation(experiment: string, overrideUserId?: string): string | null
-
-  getOptimizelyConfig(): optimizely.OptimizelyConfig
+  getForcedVariation(experiment: string, overrideUserId?: string): string | null  
 }
 
 type UserContext = {
@@ -582,9 +582,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   /**
    *  Returns OptimizelyConfig object containing experiments and features data
-   *  @returns {optimizely.OptimizelyConfig} optimizely config
+   *  @returns {optimizely.OptimizelyConfig | null} optimizely config
    */
-  public getOptimizelyConfig(): optimizely.OptimizelyConfig  {
+  public getOptimizelyConfig(): optimizely.OptimizelyConfig | null {
     return this._client.getOptimizelyConfig()
   }
 
