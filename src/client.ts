@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, Optimizely
+ * Copyright 2019-2020, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,6 +98,8 @@ export interface ReactSDKClient extends optimizely.Client {
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes,
   ): Array<string>
+
+  getOptimizelyConfig(): optimizely.OptimizelyConfig | null;
 
   track(
     eventKey: string,
@@ -576,6 +578,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false
     }
     return this._client.setForcedVariation(experiment, finalUserId, finalVariationKey)
+  }
+
+  /**
+   *  Returns OptimizelyConfig object containing experiments and features data
+   *  @returns {optimizely.OptimizelyConfig | null} optimizely config
+   */
+  public getOptimizelyConfig(): optimizely.OptimizelyConfig | null {
+    return this._client.getOptimizelyConfig()
   }
 
   /**

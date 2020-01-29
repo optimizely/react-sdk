@@ -40,6 +40,7 @@ describe('ReactSDKClient', () => {
       getFeatureVariableDouble: jest.fn(() => null),
       getFeatureVariableInteger: jest.fn(() => null),
       getFeatureVariableString: jest.fn(() => null),
+      getOptimizelyConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
       notificationCenter: {
