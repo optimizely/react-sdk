@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext } from 'react'
+import { createContext, useContext } from 'react'
 import { ReactSDKClient } from './client'
 
 export interface OptimizelyContext {
@@ -22,11 +22,13 @@ export interface OptimizelyContext {
   timeout: number | undefined,
 }
 
-const { Consumer, Provider } = createContext<OptimizelyContext>({
+const context = createContext<OptimizelyContext>({
   optimizely: null,
   isServerSide: false,
   timeout: 0,
 })
 
-export const OptimizelyContextConsumer = Consumer
-export const OptimizelyContextProvider = Provider
+export const OptimizelyContextConsumer = context.Consumer
+export const OptimizelyContextProvider = context.Provider
+
+export const useOptimizely = () => useContext(context)
