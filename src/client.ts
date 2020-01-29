@@ -113,6 +113,8 @@ export interface ReactSDKClient extends optimizely.Client {
   ): boolean
 
   getForcedVariation(experiment: string, overrideUserId?: string): string | null
+
+  getOptimizelyConfig(): optimizely.OptimizelyConfig
 }
 
 type UserContext = {
@@ -576,6 +578,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false
     }
     return this._client.setForcedVariation(experiment, finalUserId, finalVariationKey)
+  }
+
+  /**
+   *  Returns OptimizelyConfig object containing experiments and features data
+   *  @returns {optimizely.OptimizelyConfig} optimizely config
+   */
+  public getOptimizelyConfig(): optimizely.OptimizelyConfig  {
+    return this._client.getOptimizelyConfig()
   }
 
   /**
