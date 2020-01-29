@@ -114,7 +114,7 @@ export interface ReactSDKClient extends optimizely.Client {
     variationKey?: string | null,
   ): boolean
 
-  getForcedVariation(experiment: string, overrideUserId?: string): string | null  
+  getForcedVariation(experiment: string, overrideUserId?: string): string | null
 }
 
 type UserContext = {
