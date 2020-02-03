@@ -177,39 +177,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         }
       },
     )
-
-    const gAPIScript = document.createElement('script')
-    gAPIScript.src = 'https://apis.google.com/js/api.js'
-    document.head.appendChild(gAPIScript)
-    function start() {
-      const gapi = (window as any).gapi
-      // 2. Initialize the JavaScript client library.
-      gapi.client.init({
-        'apiKey': 'YOUR_API_KEY',
-        // Your API key will be automatically added to the Discovery Document URLs.
-        // 'discoveryDocs': ['https://people.googleapis.com/$discovery/rest'],
-        // clientId and scope are optional if auth is not required.
-        'clientId': 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
-        // 'scope': 'profile',
-      }).then(
-        function() {
-          console.log('--- gapi ready')
-          // 3. Initialize and make the API request.
-          // return gapi.client.people.people.get({
-          //   'resourceName': 'people/me',
-          //   'requestMask.includeField': 'person.names'
-          // });
-        },
-        function(reason: any) {
-          console.log('Error: ' + reason.result.error.message);
-        }
-      );
-    }
-    // 1. Load the JavaScript client library.
-    gAPIScript.onload = () => {
-      const gapi = (window as any).gapi
-      gapi.load('client', start);
-    }
   }
 
   onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
@@ -401,7 +368,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         }
       })
       if (audienceIds.length > 0) {
-        payload.audience_id = audienceIds[0]
+        const audience = audiencesById[audienceIds[0]]
+        if (audience) {
+          payload.audience_name = audience.name
+        } else {
+          logger.warn('notifyFeatureEvaluation: no audience found with id %s', audienceIds[0])
+        }
       }
     } else {
       logger.warn('notifyFeatureEvaluation: decision had no associated experiment')
