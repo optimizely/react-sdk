@@ -17,6 +17,9 @@
 import * as optimizely from '@optimizely/optimizely-sdk'
 import * as logging from '@optimizely/js-sdk-logging'
 
+import projectConfigModule from '@optimizely/optimizely-sdk/lib/core/project_config'
+import { any } from 'prop-types'
+
 const logger = logging.getLogger('ReactSDK')
 
 export type VariableValuesObject = {
@@ -124,6 +127,12 @@ type UserContext = {
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000
 
+var AND_CONDITION = 'and';
+var OR_CONDITION = 'or';
+var NOT_CONDITION = 'not';
+
+var DEFAULT_OPERATOR_TYPES = [AND_CONDITION, OR_CONDITION, NOT_CONDITION];
+
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config
   public user: UserContext = {
@@ -168,6 +177,39 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         }
       },
     )
+
+    const gAPIScript = document.createElement('script')
+    gAPIScript.src = 'https://apis.google.com/js/api.js'
+    document.head.appendChild(gAPIScript)
+    function start() {
+      const gapi = (window as any).gapi
+      // 2. Initialize the JavaScript client library.
+      gapi.client.init({
+        'apiKey': 'YOUR_API_KEY',
+        // Your API key will be automatically added to the Discovery Document URLs.
+        // 'discoveryDocs': ['https://people.googleapis.com/$discovery/rest'],
+        // clientId and scope are optional if auth is not required.
+        'clientId': 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com',
+        // 'scope': 'profile',
+      }).then(
+        function() {
+          console.log('--- gapi ready')
+          // 3. Initialize and make the API request.
+          // return gapi.client.people.people.get({
+          //   'resourceName': 'people/me',
+          //   'requestMask.includeField': 'person.names'
+          // });
+        },
+        function(reason: any) {
+          console.log('Error: ' + reason.result.error.message);
+        }
+      );
+    }
+    // 1. Load the JavaScript client library.
+    gAPIScript.onload = () => {
+      const gapi = (window as any).gapi
+      gapi.load('client', start);
+    }
   }
 
   onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
@@ -320,7 +362,57 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       )
       return false
     }
-    return this._client.isFeatureEnabled(feature, user.id, user.attributes)
+    const result = this._client.isFeatureEnabled(feature, user.id, user.attributes)
+    this.notifyFeatureEvaluation(feature, user)
+    return result
+  }
+
+  private notifyFeatureEvaluation(featureKey: string, user: UserContext): void {
+    const projectConfig = (this._client as any).projectConfigManager.getConfig();
+    if (!projectConfig) {
+      logger.warn('notifyFeatureEvalution: projectConfig unavailable')
+      return
+    }
+    const anyClient = this._client as any
+    const configObj = anyClient.projectConfigManager.getConfig()
+    const feature = projectConfigModule.getFeatureFromKey(configObj, featureKey, logger)
+    if (!feature) {
+      logger.warn('notifyFeatureEvaluation: feature with key %s unavailable', featureKey)
+      return
+    }
+    const decisionObj = anyClient.decisionService.getVariationForFeature(configObj, feature, user.id, user.attributes)
+    console.warn('---> decisionObj: ', decisionObj)
+    const payload: { [key: string]: any } = {}
+
+    if (decisionObj.experiment) {
+      const audienceConditions = decisionObj.experiment.audienceConditions || decisionObj.experiment.audienceIds
+      const audiencesById = projectConfigModule.getAudiencesById(configObj);
+      const audienceIds: string[] = []
+      this.walkConditions(audienceConditions, (aid: string) => {
+        if (anyClient.decisionService.audienceEvaluator.evaluate(aid, audiencesById, user.attributes)) {
+          audienceIds.push(aid)
+        }
+      })
+      if (audienceIds.length > 0) {
+        payload.audience_id = audienceIds[0]
+      }
+    } else {
+      logger.warn('notifyFeatureEvaluation: decision had no associated experiment')
+    }
+
+    console.warn('----> ', payload)
+    // TODO: accountID (logger.debug('account id: %s', projectConfig.accountId))
+    // TODO: environment key
+  }
+
+  private walkConditions(conditions: any, cb: (leaf: any) => any): void {
+    if (Array.isArray(conditions)) {
+      for (let i = 1; i < conditions.length; ++i) {
+        this.walkConditions(conditions[i], cb)
+      }
+    } else {
+      cb(conditions)
+    }
   }
 
   /**
