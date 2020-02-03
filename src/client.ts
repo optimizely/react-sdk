@@ -380,6 +380,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     console.warn('----> ', payload)
+    this.sendPayload(payload)
     // TODO: accountID (logger.debug('account id: %s', projectConfig.accountId))
     // TODO: environment key
   }
@@ -392,6 +393,17 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     } else {
       cb(conditions)
     }
+  }
+
+  private async sendPayload(payload: { [key: string]: any }): Promise<void> {
+   fetch('https://us-central1-optimizelydevelrc-hrd.cloudfunctions.net/srvc-fm-analytics-dev-process-event', {
+     headers: {
+       'Content-Type': 'application/json',
+     },
+     method: 'POST',
+     mode: 'no-cors',
+     body: JSON.stringify(payload),
+   })
   }
 
   /**
