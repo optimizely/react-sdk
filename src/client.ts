@@ -127,12 +127,6 @@ type UserContext = {
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000
 
-var AND_CONDITION = 'and';
-var OR_CONDITION = 'or';
-var NOT_CONDITION = 'not';
-
-var DEFAULT_OPERATOR_TYPES = [AND_CONDITION, OR_CONDITION, NOT_CONDITION];
-
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config
   public user: UserContext = {
@@ -348,14 +342,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return
     }
     const decisionObj = anyClient.decisionService.getVariationForFeature(configObj, feature, user.id, user.attributes)
-    console.warn('---> decisionObj: ', decisionObj)
     const payload: { [key: string]: any } = {
       account_id: configObj.accountId,
       id: String(uuid.v4()),
       evaluation_result: evaluationResult,
       feature_id: feature.id,
       feature_key: featureKey,
-      // TODO: environment key
+      environment_key: configObj.environmentKey || 'unavailable',
     }
 
     if (decisionObj.experiment) {
@@ -379,10 +372,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.warn('notifyFeatureEvaluation: decision had no associated experiment')
     }
 
-    console.warn('----> ', payload)
+    logger.debug('notifyFeatureEvaluation: sending payload %s', () => JSON.stringify(payload))
     this.sendPayload(payload)
-    // TODO: accountID (logger.debug('account id: %s', projectConfig.accountId))
-    // TODO: environment key
   }
 
   private walkConditions(conditions: any, cb: (leaf: any) => any): void {
