@@ -18,7 +18,7 @@ import * as optimizely from '@optimizely/optimizely-sdk'
 import * as logging from '@optimizely/js-sdk-logging'
 
 import projectConfigModule from '@optimizely/optimizely-sdk/lib/core/project_config'
-import { any } from 'prop-types'
+import uuid from 'uuid'
 
 const logger = logging.getLogger('ReactSDK')
 
@@ -363,11 +363,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false
     }
     const result = this._client.isFeatureEnabled(feature, user.id, user.attributes)
-    this.notifyFeatureEvaluation(feature, user)
+    this.notifyFeatureEvaluation(feature, user, result)
     return result
   }
 
-  private notifyFeatureEvaluation(featureKey: string, user: UserContext): void {
+  private notifyFeatureEvaluation(featureKey: string, user: UserContext, evaluationResult: boolean): void {
     const projectConfig = (this._client as any).projectConfigManager.getConfig();
     if (!projectConfig) {
       logger.warn('notifyFeatureEvalution: projectConfig unavailable')
@@ -382,7 +382,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
     const decisionObj = anyClient.decisionService.getVariationForFeature(configObj, feature, user.id, user.attributes)
     console.warn('---> decisionObj: ', decisionObj)
-    const payload: { [key: string]: any } = {}
+    const payload: { [key: string]: any } = {
+      account_id: configObj.accountId,
+      id: String(uuid.v4()),
+      evaluation_result: evaluationResult,
+      feature_id: feature.id,
+      feature_key: featureKey,
+      // TODO: environment key
+    }
 
     if (decisionObj.experiment) {
       const audienceConditions = decisionObj.experiment.audienceConditions || decisionObj.experiment.audienceIds
