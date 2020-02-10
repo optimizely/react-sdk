@@ -6,6 +6,11 @@ script: yarn test
 addons:
   srcclr: true
 
+# Integration tests need to run first to reset the PR build status to pending
+stages:
+  - 'Lint markdown files'
+  - 'Test'
+
 jobs:
   include:
     - stage: 'Lint markdown files'
