@@ -1,14 +1,6 @@
-language: node_js
+language: generic
 os: linux
-node_js:
-  - 10
-  - 11
-install: yarn
-script: yarn test
-addons:
-  srcclr: true
 
-# Integration tests need to run first to reset the PR build status to pending
 stages:
   - 'Lint markdown files'
   - 'Test'
@@ -35,3 +27,13 @@ jobs:
       script:
         - mdspell -a -n -r --en-us '**/*.md'
       after_success: skip
+
+    - stage: 'Test'
+      os: linux
+      language: node_js
+      node_js:
+        - 10
+      install: yarn
+      script: yarn test
+      addons:
+        srcclr: true
