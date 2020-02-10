@@ -5,3 +5,29 @@ install: yarn
 script: yarn test
 addons:
   srcclr: true
+
+jobs:
+  include:
+    - stage: 'Lint markdown files'
+      language: ruby
+      rvm: 2.4.1
+      os: linux
+      install: gem install awesome_bot
+      before_script: skip
+      script:
+        - find . -type f -name '*.md' -exec awesome_bot {} \;
+      notifications:
+        email: false
+
+    - stage: 'Lint markdown files'
+      language: generic
+      node_js: 12
+      os: linux
+      before_install: skip
+      install:
+        - npm i -g markdown-spellcheck
+      before_script:
+        - wget --quiet https://raw.githubusercontent.com/optimizely/mdspell-config/master/.spelling
+      script:
+        - mdspell -a -n -r --en-us '**/*.md'
+      after_success: skip
