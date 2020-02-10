@@ -9,6 +9,7 @@ addons:
 jobs:
   include:
     - stage: 'Lint markdown files'
+      os: linux
       language: ruby
       rvm: 2.4.1
       os: linux
@@ -16,12 +17,9 @@ jobs:
       before_script: skip
       script:
         - find . -type f -name '*.md' -exec awesome_bot {} \;
-      notifications:
-        email: false
 
     - stage: 'Lint markdown files'
-      language: node_js
-      node_js: 12
+      language: generic
       os: linux
       before_install: skip
       install:
