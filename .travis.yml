@@ -9,16 +9,15 @@ jobs:
   include:
     - stage: 'Lint markdown files'
       os: linux
-      language: ruby
-      rvm: 2.4.1
+      language: generic
       install: gem install awesome_bot
       before_script: skip
       script:
         - find . -type f -name '*.md' -exec awesome_bot {} \;
 
     - stage: 'Lint markdown files'
-      language: generic
       os: linux
+      language: generic
       before_install: skip
       install:
         - npm i -g markdown-spellcheck
