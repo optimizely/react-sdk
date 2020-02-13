@@ -253,7 +253,7 @@ function ExperimentComponent() {
 }
 ```
 
-**Note: If you are loading the datafile or the user asynchrounously, be sure to include an `<OptimizelyVariation default>` component as the render path if the datafile or user fails to load.**
+**Note: If you are loading the datafile or the user asynchronously, be sure to include an `<OptimizelyVariation default>` component as the render path if the datafile or user fails to load.**
 
 ## `OptimizelyFeature`
 
@@ -392,7 +392,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 * `getEnabledFeatures(overrideUserId?: string, overrideAttributes?: UserAttributes): Array<string>`: Return the keys of all features enabled for the given user
 * `track(eventKey: string, overrideUserId?: string | EventTags, overrideAttributes?: UserAttributes, eventTags?: EventTags): void` Track an event to the Optimizely results backend
 * `setForcedVariation(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string | null): boolean` Set a forced variation for the given experiment, variation, and user
-* `getForcedVariation(experiment: string, overrideUserId?: string): string | null` Get the forced faration for the given experiment, variation, and user
+* `getForcedVariation(experiment: string, overrideUserId?: string): string | null` Get the forced variation for the given experiment, variation, and user
 
 ## Rollout or experiment a feature user-by-user
 

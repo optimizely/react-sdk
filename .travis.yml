@@ -1,7 +1,38 @@
-language: node_js
-node_js:
-- '10'
-install: yarn
-script: yarn test
-addons:
-  srcclr: true
+language: generic
+os: linux
+
+stages:
+  - 'Lint markdown files'
+  - 'Test'
+
+jobs:
+  include:
+    - stage: 'Lint markdown files'
+      os: linux
+      language: generic
+      install: gem install awesome_bot
+      before_script: skip
+      script:
+        - find . -type f -name '*.md' -exec awesome_bot {} \;
+
+    - stage: 'Lint markdown files'
+      os: linux
+      language: generic
+      before_install: skip
+      install:
+        - npm i -g markdown-spellcheck
+      before_script:
+        - wget --quiet https://raw.githubusercontent.com/optimizely/mdspell-config/master/.spelling
+      script:
+        - mdspell -a -n -r --en-us '**/*.md'
+      after_success: skip
+
+    - stage: 'Test'
+      os: linux
+      language: node_js
+      node_js:
+        - 10
+      install: yarn
+      script: yarn test
+      addons:
+        srcclr: true
