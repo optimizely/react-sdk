@@ -32,3 +32,5 @@ export {
 export { createInstance, ReactSDKClient } from './client'
 
 export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher'
+
+export { useOptimizelyFeature } from './hooks/useOptimizelyFeature';
