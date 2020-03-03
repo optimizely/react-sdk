@@ -16,17 +16,17 @@
 import { createContext } from 'react'
 import { ReactSDKClient } from './client'
 
-export interface OptimizelyContext {
+export interface OptimizelyContextInterface {
   optimizely: ReactSDKClient | null,
   isServerSide: boolean,
   timeout: number | undefined,
 }
 
-const { Consumer, Provider } = createContext<OptimizelyContext>({
+export const OptimizelyContext = createContext<OptimizelyContextInterface>({
   optimizely: null,
   isServerSide: false,
   timeout: 0,
 })
 
-export const OptimizelyContextConsumer = Consumer
-export const OptimizelyContextProvider = Provider
+export const OptimizelyContextConsumer = OptimizelyContext.Consumer
+export const OptimizelyContextProvider = OptimizelyContext.Provider

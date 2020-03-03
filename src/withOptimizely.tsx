@@ -16,7 +16,7 @@
 import * as React from 'react'
 import { Subtract } from 'utility-types'
 
-import { OptimizelyContextConsumer, OptimizelyContext } from './Context'
+import { OptimizelyContextConsumer, OptimizelyContextInterface } from './Context'
 import { ReactSDKClient } from './client'
 import { hoistStaticsAndForwardRefs } from './utils'
 
@@ -45,7 +45,7 @@ export function withOptimizely<P extends WithOptimizelyProps, R>(
       // https://github.com/microsoft/TypeScript/issues/28884
       return (
         <OptimizelyContextConsumer>
-          {(value: OptimizelyContext) => (
+          {(value: OptimizelyContextInterface) => (
             <Component
               {...rest as P}
               optimizelyReadyTimeout={value.timeout}
