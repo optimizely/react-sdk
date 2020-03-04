@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useEffect, useContext, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import * as optimizely from '@optimizely/optimizely-sdk';
 import { getLogger } from '@optimizely/js-sdk-logging';
 
-import { VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client'
 import { setupAutoUpdateListeners } from './autoUpdate';
+import { VariableValuesObject, OnReadyResult } from './client'
 import { OptimizelyContext } from './Context';
 
 type UseFeatureState = {
@@ -49,6 +49,8 @@ interface UseFeature {
  */
 export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
+  const finalReadyTimeout: number | undefined =
+      options.timeout !== undefined ? options.timeout : timeout;
 
   // Helper function to return the current values for isEnabled and variables.
   const getCurrentValues = useCallback(() => ({
@@ -74,21 +76,21 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     const logger = getLogger('useFeature');
     const cleanupFns: Array<() => void> = [];
 
-    optimizely.onReady({ timeout }).then((res: OnReadyResult) => {
+    optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
       if (res.success) {
         logger.info('feature="%s" successfully rendered for user="%s"', featureKey, optimizely.user.id)
       } else {
         logger.info(
           'feature="%s" could not be checked before timeout of %sms, reason="%s" ',
           featureKey,
-          timeout === undefined ? DEFAULT_ON_READY_TIMEOUT : timeout,
+          finalReadyTimeout,
           res.reason || '',
         )
       }
       setData(getCurrentValues());
       if (options.autoUpdate) {
         cleanupFns.push(
-          setupAutoUpdateListeners(optimizely, 'feature', logger, () => setData(getCurrentValues()))
+          setupAutoUpdateListeners(optimizely, 'feature', featureKey, logger, () => setData(getCurrentValues()))
         );
       }
     });

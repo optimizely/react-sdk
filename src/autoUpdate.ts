@@ -20,6 +20,7 @@ interface AutoUpdate {
   (
     optimizely: ReactSDKClient,
     type: 'feature' | 'experiment',
+    value: string,
     logger: LoggerFacade,
     callback: () => void
   ) : () => void
@@ -29,21 +30,21 @@ interface AutoUpdate {
  * Utility to setup listeners for changes to the datafile or user attributes and invoke the provided callback.
  * Returns an unListen function
  */
-export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, logger, callback) => {
+export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, logger, callback) => {
   if (optimizely === null) {
     return () => {};
   }
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
     'OPTIMIZELY_CONFIG_UPDATE',
     () => {
-      logger.info(`OPTIMIZELY_CONFIG_UPDATE, re-evaluating ${type}="%s" for user="%s"`, type, optimizely.user.id);
+      logger.info(`OPTIMIZELY_CONFIG_UPDATE, re-evaluating ${type}="%s" for user="%s"`, value, optimizely.user.id);
       callback();
     },
   )
   const unregisterConfigUpdateListener = () => optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
-    logger.info(`User update, re-evaluating ${type}="%s" for user="%s"`, type, optimizely.user.id);
+    logger.info(`User update, re-evaluating ${type}="%s" for user="%s"`, value, optimizely.user.id);
     callback();
   });
 

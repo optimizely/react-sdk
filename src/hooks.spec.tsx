@@ -31,7 +31,6 @@ const MyComponent = () => {
 
 const MyComponentAutoUpdate = () => {
   const [ isEnabled ] = useFeature('feature1', { autoUpdate: true });
-  console.log('MyComponentAutoUpdate rendering: ', isEnabled);
   return <>{`${isEnabled ? 'true' : 'false'}`}</>;
 }
 
