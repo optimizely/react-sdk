@@ -301,6 +301,43 @@ function FeatureComponent() {
 }
 ```
 
+
+## `useFeature` Hook
+
+A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retreive the status of a feature flag and it's variables. This can be useful as an alternative to the `<OptimizelyFeature>` component or to use features & variables inside code that is not explicitly rendered.
+
+*arguments*
+* `feature : string` Key of the feature
+* `options : Object`
+  * `autoUpdate : boolean` (optional) If true, this component will re-render in response to datafile or user changes. Default: `false`.
+  * `timeout : number` (optional) Rendering timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`. 
+* `overrides : Object`
+  * `overrideUserId : string` (optional) Override the userId for calls to `isFeatureEnabled` for this hook.
+  * `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `isFeatureEnabled` for this hook.
+
+### Render something if feature is enabled
+
+```jsx
+import { useEffect } from 'react';
+import { useFeature } from '@optimizely/react-sdk';
+
+function FeatureComponent() {
+  const [isEnabled, variables] = useFeature('feature1', { autoUpdate: true }, { /* (Optional) User overrides */ });
+  useEffect(() => {
+    document.title = isEnabled ? 'title1' : 'title2';
+  }, [isEnabled]);
+
+  return (
+    <p>
+      <a href={isEnabled ? "/login" : "/login2"}>
+        {variables.loginText}
+      </a>
+    </p>
+  )
+}
+```
+
+
 ## `withOptimizely`
 
 Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the higher-order component (HoC) `withOptimizely`.
@@ -406,7 +443,7 @@ Right now server side rendering is possible with a few caveats.
 
 1. You must download the datafile manually and pass in via the `datafile` option.  Can not use `sdkKey` to automatically download.
 
-2. Rendering of components must be completely synchronous (this is true for all server side rendering)
+2. Rendering of components must be completely synchronous (this is true for all server side rendering), thus the Optimizely SDK assumes that the optimizely client has been instantiated and fired it's `onReady` event already.
 
 ### Setting up `<OptimizelyProvider>`
 

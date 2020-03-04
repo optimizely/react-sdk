@@ -16,35 +16,39 @@
 import { LoggerFacade } from '@optimizely/js-sdk-logging';
 import { ReactSDKClient } from './client';
 
-export const setupAutoUpdateListeners = (optimizely: ReactSDKClient, feature: string, logger: LoggerFacade, callback: (data: any) => void) => {
+interface AutoUpdate {
+  (
+    optimizely: ReactSDKClient,
+    type: 'feature' | 'experiment',
+    logger: LoggerFacade,
+    callback: () => void
+  ) : () => void
+}
+
+/**
+ * Utility to setup listeners for changes to the datafile or user attributes and invoke the provided callback.
+ * Returns an unListen function
+ */
+export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, logger, callback) => {
   if (optimizely === null) {
-    return;
+    return () => {};
   }
-
-  const handleUpdate = () => {
-    const isEnabled = optimizely.isFeatureEnabled(feature);
-    const variables = optimizely.getFeatureVariables(feature);
-    callback({
-      isEnabled,
-      variables,
-    });
-  }
-
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
     'OPTIMIZELY_CONFIG_UPDATE',
     () => {
-      logger.info('OPTIMIZELY_CONFIG_UPDATE, re-evaluating feature="%s" for user="%s"', feature, optimizely.user.id);
-      handleUpdate();
+      logger.info(`OPTIMIZELY_CONFIG_UPDATE, re-evaluating ${type}="%s" for user="%s"`, type, optimizely.user.id);
+      callback();
     },
   )
+  const unregisterConfigUpdateListener = () => optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
-    logger.info('User update, re-evaluating feature="%s" for user="%s"', feature, optimizely.user.id);
-    handleUpdate();
+    logger.info(`User update, re-evaluating ${type}="%s" for user="%s"`, type, optimizely.user.id);
+    callback();
   });
 
-  return {
-    optimizelyNotificationId,
-    unregisterUserListener
+  return () => {
+    unregisterConfigUpdateListener();
+    unregisterUserListener();
   }
 }
