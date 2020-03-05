@@ -29,6 +29,11 @@ const MyComponent = () => {
   return <>{`${isEnabled ? 'true' : 'false'}`}</>;
 }
 
+const MyComponentTimeout100 = () => {
+  const [ isEnabled, _, clientReady ] = useFeature('feature1', { timeout: 100 });
+  return <>{`${isEnabled ? 'true' : 'false'}|${clientReady}`}</>;
+}
+
 const MyComponentAutoUpdate = () => {
   const [ isEnabled ] = useFeature('feature1', { autoUpdate: true });
   return <>{`${isEnabled ? 'true' : 'false'}`}</>;
@@ -104,6 +109,20 @@ describe('hooks', () => {
       expect(component.text()).toBe('false');
     });
 
+    it.skip('should respect the timeout option passed', async () => {
+      isFeatureEnabledMock.mockReturnValue(true);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyComponentTimeout100 />
+        </OptimizelyProvider>,
+      );
+      await new Promise(r => setTimeout(r, 120));
+      resolver.resolve({ success: true });
+      await optimizelyMock.onReady();
+      component.update();
+      expect(component.text()).toBe('false|false');
+    });
+
     it('should re-render when the user attributes change using autoUpdate', async () => {
       isFeatureEnabledMock.mockReturnValue(false);
       const component = Enzyme.mount(
@@ -126,6 +145,30 @@ describe('hooks', () => {
       });
       component.update();
       expect(component.text()).toBe('true');
+    });
+
+    it('should not re-render when the user attributes change without autoUpdate', async () => {
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyComponent />
+        </OptimizelyProvider>,
+      );
+      resolver.resolve({ success: true });
+
+      // TODO - Wrap this with async act() once we upgrade to React 16.9
+      // See https://github.com/facebook/react/issues/15379
+      await optimizelyMock.onReady();
+      component.update();
+      expect(component.text()).toBe('false');
+
+      isFeatureEnabledMock.mockReturnValue(true);
+      // Simulate the user object changing
+      act(() => {
+        userUpdateCallbacks.forEach(fn => fn());
+      });
+      component.update();
+      expect(component.text()).toBe('false');
     });
   });
 });

@@ -29,6 +29,7 @@ type UseFeatureState = {
 };
 
 type ClientReady = boolean;
+type DidTimeout = boolean;
 
 type UseFeatureOptions = {
   autoUpdate?: boolean,
@@ -48,7 +49,8 @@ interface UseFeature {
   ): [
     UseFeatureState["isEnabled"],
     UseFeatureState["variables"],
-    ClientReady
+    ClientReady,
+    DidTimeout
   ]
 }
 
@@ -77,27 +79,49 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     }
     return { isEnabled: false, variables: {}};
   });
+
   const [clientReady, setClientReady] = useState(isServerSide ? true : false);
+  const [didTimeout, setDidTimeout] = useState(false);
 
   useEffect(() => {
     const cleanupFns: Array<() => void> = [];
 
     optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
       if (res.success) {
-        useFeatureLogger.info(`feature="${featureKey}" successfully rendered for user="${optimizely.user.id}"`);
+        // didTimeout=false
+        setClientReady(true);
+        useFeatureLogger.info(`feature="${featureKey}" successfully set for user="${optimizely.user.id}"`);
+        return;
       } else {
+        setDidTimeout(true);
         useFeatureLogger.info(
-          `feature="${featureKey}" could not be checked before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`,
+          `feature="${featureKey}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`,
         )
+        return optimizely.dataReadyPromise.then(
+          () => {
+            setClientReady(true);
+            useFeatureLogger.info(
+              `feature="${featureKey}" is now set, but after timeout.`,
+            );
+          });
       }
-      setClientReady(true);
+    })
+    .then(() => {
       setData(getCurrentValues());
       if (options.autoUpdate) {
         cleanupFns.push(
-          setupAutoUpdateListeners(optimizely, 'feature', featureKey, useFeatureLogger, () => setData(getCurrentValues()))
+          setupAutoUpdateListeners(optimizely, 'feature', featureKey, useFeatureLogger, () => {
+            if (cleanupFns.length) {
+              setData(getCurrentValues());
+            }
+          })
         );
       }
-    });
+    })
+    .catch(() => {
+      /* The user promise or core client promise rejected. */
+      /* Swallow or log here? */
+    })
 
     return () => {
       while(cleanupFns.length) {
@@ -110,5 +134,6 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     data.isEnabled,
     data.variables,
     clientReady,
+    didTimeout,
   ];
 };

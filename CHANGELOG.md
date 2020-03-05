@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### New Features
+
+- Added `useFeature` hook
+  - Can be used to retrieve the status of a feature flag and its variables. See [#28](https://github.com/optimizely/react-sdk/pull/28) for more details.
+
+### Enhancements
+
+- Exposed the entire context object used by 
+  - Enables support for using APIs which require passing reference to a context object, like `useContext`. [#27](https://github.com/optimizely/react-sdk/pull/27) for more details.
+
+
 ## [1.2.0-alpha.1] - March 5th, 2020
 
 ### New Features

@@ -37,6 +37,7 @@ const REACT_SDK_CLIENT_VERSION = '1.2.0-alpha.1'
 
 export interface ReactSDKClient extends optimizely.Client {
   user: UserContext
+  dataReadyPromise: Promise<OnReadyResult>
 
   onReady(opts?: { timeout?: number }): Promise<any>
   setUser(userInfo: { id: string; attributes?: { [key: string]: any } }): void
@@ -138,7 +139,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private readonly _client: optimizely.Client
 
   // promise keeping track of async requests for initializing client instance
-  private dataReadyPromise: Promise<OnReadyResult>
+  public dataReadyPromise: Promise<OnReadyResult>
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.

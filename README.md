@@ -321,10 +321,10 @@ A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the status
 import { useEffect } from 'react';
 import { useFeature } from '@optimizely/react-sdk';
 
-function FeatureComponent() {
+function LoginComponent() {
   const [isEnabled, variables] = useFeature('feature1', { autoUpdate: true }, { /* (Optional) User overrides */ });
   useEffect(() => {
-    document.title = isEnabled ? 'title1' : 'title2';
+    document.title = isEnabled ? 'login1' : 'login2';
   }, [isEnabled]);
 
   return (
