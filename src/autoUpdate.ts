@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { LoggerFacade } from '@optimizely/js-sdk-logging';
+import { NOTIFICATION_TYPES } from '@optimizely/optimizely-sdk/lib/utils/enums';
+
 import { ReactSDKClient } from './client';
 
 interface AutoUpdate {
@@ -35,12 +37,12 @@ export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, l
     return () => {};
   }
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
-    'OPTIMIZELY_CONFIG_UPDATE',
+    NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
     () => {
       logger.info(`OPTIMIZELY_CONFIG_UPDATE, re-evaluating ${type}="%s" for user="%s"`, value, optimizely.user.id);
       callback();
     },
-  )
+  );
   const unregisterConfigUpdateListener = () => optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
@@ -51,5 +53,5 @@ export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, l
   return () => {
     unregisterConfigUpdateListener();
     unregisterUserListener();
-  }
+  };
 }

@@ -26,6 +26,8 @@ type UseFeatureState = {
   variables: VariableValuesObject,
 };
 
+type ClientReady = Boolean;
+
 type UseFeatureOptions = {
   autoUpdate?: Boolean,
   timeout?: number
@@ -41,11 +43,16 @@ interface UseFeature {
     featureKey: string,
     options?: UseFeatureOptions,
     overrides?: UseFeatureOverrides,
-  ): [Boolean, VariableValuesObject]
+  ): [
+    UseFeatureState["isEnabled"],
+    UseFeatureState["variables"],
+    ClientReady
+  ]
 }
 
 /**
- * 
+ * A React Hook that retrieves the status of a feature flag and its variables, optionally
+ * auto updating those values based on underlying user or datafile changes.
  */
 export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
@@ -68,6 +75,7 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     }
     return { isEnabled: false, variables: {}};
   });
+  const [clientReady, setClientReady] = useState(isServerSide ? true : false);
 
   useEffect(() => {
     if (!optimizely) {
@@ -87,6 +95,7 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
           res.reason || '',
         )
       }
+      setClientReady(true);
       setData(getCurrentValues());
       if (options.autoUpdate) {
         cleanupFns.push(
@@ -102,6 +111,7 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
 
   return [
     data.isEnabled,
-    data.variables
+    data.variables,
+    clientReady,
   ];
 };

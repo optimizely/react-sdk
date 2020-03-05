@@ -304,7 +304,7 @@ function FeatureComponent() {
 
 ## `useFeature` Hook
 
-A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retreive the status of a feature flag and its variables. This can be useful as an alternative to the `<OptimizelyFeature>` component or to use features & variables inside code that is not explicitly rendered.
+A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the status of a feature flag and its variables. This can be useful as an alternative to the `<OptimizelyFeature>` component or to use features & variables inside code that is not explicitly rendered.
 
 *arguments*
 * `feature : string` Key of the feature
