@@ -74,7 +74,7 @@ class FeatureComponent extends React.Component<FeatureProps, FeatureState> {
       isServerSide,
       timeout,
     } = this.props
-    if (optimizely === null) {
+    if (!optimizely) {
       throw new Error('optimizely prop must be supplied')
     }
 

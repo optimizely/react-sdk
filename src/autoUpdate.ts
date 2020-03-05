@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020, Optimizely
+ * Copyright 2020, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { enums } from '@optimizely/optimizely-sdk';
 import { LoggerFacade } from '@optimizely/js-sdk-logging';
-import { NOTIFICATION_TYPES } from '@optimizely/optimizely-sdk/lib/utils/enums';
 
 import { ReactSDKClient } from './client';
 
@@ -33,20 +33,18 @@ interface AutoUpdate {
  * Returns an unListen function
  */
 export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, logger, callback) => {
-  if (optimizely === null) {
-    return () => {};
-  }
+  const loggerSuffix = `${type}="${value}" for user="${optimizely.user.id}"`;
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
-    NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
+    enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
     () => {
-      logger.info(`OPTIMIZELY_CONFIG_UPDATE, re-evaluating ${type}="%s" for user="%s"`, value, optimizely.user.id);
+      logger.info(`${enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE}, ${loggerSuffix}`);
       callback();
     },
   );
   const unregisterConfigUpdateListener = () => optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
-    logger.info(`User update, re-evaluating ${type}="%s" for user="%s"`, value, optimizely.user.id);
+    logger.info(`User update, ${loggerSuffix}`);
     callback();
   });
 

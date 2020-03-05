@@ -52,7 +52,7 @@ export class Experiment extends React.Component<ExperimentProps, ExperimentState
     this.autoUpdate = !!autoUpdate
 
     if (isServerSide) {
-      if (optimizely === null) {
+      if (!optimizely) {
         throw new Error('optimizely prop must be supplied')
       }
       const variation = optimizely.activate(experiment)
