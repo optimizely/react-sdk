@@ -97,7 +97,7 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
         useFeatureLogger.info(
           `feature="${featureKey}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`,
         )
-        return optimizely.dataReadyPromise.then(
+        return res.dataReadyPromise!.then(
           () => {
             setClientReady(true);
             useFeatureLogger.info(

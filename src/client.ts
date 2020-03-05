@@ -30,6 +30,7 @@ type OnUserUpdateHandler = (userInfo: UserContext) => void
 export type OnReadyResult = {
   success: boolean
   reason?: string
+  dataReadyPromise?: Promise<any>
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk'
@@ -37,7 +38,6 @@ const REACT_SDK_CLIENT_VERSION = '1.2.0-alpha.1'
 
 export interface ReactSDKClient extends optimizely.Client {
   user: UserContext
-  dataReadyPromise: Promise<OnReadyResult>
 
   onReady(opts?: { timeout?: number }): Promise<any>
   setUser(userInfo: { id: string; attributes?: { [key: string]: any } }): void
@@ -139,7 +139,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private readonly _client: optimizely.Client
 
   // promise keeping track of async requests for initializing client instance
-  public dataReadyPromise: Promise<OnReadyResult>
+  private dataReadyPromise: Promise<OnReadyResult>
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -190,7 +190,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     return Promise.race([this.dataReadyPromise, timeoutPromise]).then(res => {
       clearTimeout(timeoutId)
-      return res
+      return Object.assign(res, { dataReadyPromise: this.dataReadyPromise });
     })
   }
 
