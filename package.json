@@ -1,6 +1,6 @@
 {
   "name": "@optimizely/react-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0-alpha.1",
   "description": "React SDK for Optimizely Full Stack and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
@@ -28,7 +28,7 @@
   },
   "dependencies": {
     "@optimizely/js-sdk-logging": "^0.1.0",
-    "@optimizely/optimizely-sdk": "3.4.1",
+    "@optimizely/optimizely-sdk": "3.6.0-alpha.1",
     "hoist-non-react-statics": "^3.3.0",
     "prop-types": "^15.6.2",
     "utility-types": "^2.1.0"
