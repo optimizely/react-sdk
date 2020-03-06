@@ -57,6 +57,9 @@ interface UseFeature {
 /**
  * A React Hook that retrieves the status of a feature flag and its variables, optionally
  * auto updating those values based on underlying user or datafile changes.
+ * 
+ * Note: The react client can become ready AFTER the timeout period. 
+ *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
@@ -89,24 +92,23 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
       if (res.success) {
         // didTimeout=false
-        setClientReady(true);
         useFeatureLogger.info(`feature="${featureKey}" successfully set for user="${optimizely.user.id}"`);
         return;
-      } else {
-        setDidTimeout(true);
-        useFeatureLogger.info(
-          `feature="${featureKey}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`,
-        )
-        return res.dataReadyPromise!.then(
-          () => {
-            setClientReady(true);
-            useFeatureLogger.info(
-              `feature="${featureKey}" is now set, but after timeout.`,
-            );
-          });
       }
+      setDidTimeout(true);
+      useFeatureLogger.info(
+        `feature="${featureKey}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`,
+      );
+      // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
+      return res.dataReadyPromise!.then(
+        () => {
+          useFeatureLogger.info(
+            `feature="${featureKey}" is now set, but after timeout.`,
+          );
+        });
     })
     .then(() => {
+      setClientReady(true);
       setData(getCurrentValues());
       if (options.autoUpdate) {
         cleanupFns.push(

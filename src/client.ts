@@ -184,13 +184,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           success: false,
           reason:
             'failed to initialize onReady before timeout, either the datafile or user info was not set before the timeout',
+          dataReadyPromise: this.dataReadyPromise
         })
       }, timeout) as any
     })
 
     return Promise.race([this.dataReadyPromise, timeoutPromise]).then(res => {
       clearTimeout(timeoutId)
-      return Object.assign(res, { dataReadyPromise: this.dataReadyPromise });
+      return res
     })
   }
 
