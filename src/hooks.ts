@@ -122,7 +122,7 @@ export const useFeature : UseFeature = (featureKey, options = {}, overrides = {}
     })
     .catch(() => {
       /* The user promise or core client promise rejected. */
-      /* Swallow or log here? */
+      useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
     })
 
     return () => {
