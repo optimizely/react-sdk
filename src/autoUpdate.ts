@@ -33,7 +33,7 @@ interface AutoUpdate {
  * Returns an unListen function
  */
 export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, logger, callback) => {
-  const loggerSuffix = `${type}="${value}" for user="${optimizely.user.id}"`;
+  const loggerSuffix = `re-evaluating ${type}="${value}" for user="${optimizely.user.id}"`;
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
     enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
     () => {

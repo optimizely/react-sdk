@@ -19,30 +19,27 @@ import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 
 import { OptimizelyProvider } from './Provider';
-import { ReactSDKClient } from './client';
+import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
 import { useFeature } from './hooks';
 
 Enzyme.configure({ adapter: new Adapter() });
 
-const MyComponent = () => {
-  const [ isEnabled ] = useFeature('feature1');
-  return <>{`${isEnabled ? 'true' : 'false'}`}</>;
-}
-
-const MyComponentWithOptions = (props: any) => {
-  const [ isEnabled, variables, clientReady, didTimeout ] = useFeature('feature1', { timeout: props.timeout });
+const MyComponent = ({ options = {}, overrides = {}}: any) => {
+  const [
+    isEnabled,
+    variables,
+    clientReady,
+    didTimeout,
+  ] = useFeature('feature1', { ...options }, { ...overrides });
   return <>{`${isEnabled ? 'true' : 'false'}|${JSON.stringify(variables)}|${clientReady}|${didTimeout}`}</>;
 }
 
-const MyComponentAutoUpdate = () => {
-  const [ isEnabled ] = useFeature('feature1', { autoUpdate: true });
-  return <>{`${isEnabled ? 'true' : 'false'}`}</>;
-}
+const mockFeatureVariables: VariableValuesObject = {
+  foo: 'bar',
+};
 
 describe('hooks', () => {
-  const featureVariables = {
-    foo: 'bar',
-  };
+  let featureVariables: VariableValuesObject;
   let getOnReadyPromise: any;
   let isFeatureEnabledMock: jest.Mock;
   let mockDelay: number;
@@ -52,7 +49,7 @@ describe('hooks', () => {
   let userUpdateCallbacks: Array<() => void>;
   
   beforeEach(() => {
-    getOnReadyPromise = ({ timeout = 0 }: any) => new Promise((resolve) => {
+    getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> => new Promise((resolve) => {
       setTimeout(function() {
         resolve(Object.assign({
           success: readySuccess,
@@ -63,6 +60,7 @@ describe('hooks', () => {
     });
 
     isFeatureEnabledMock = jest.fn();
+    featureVariables = mockFeatureVariables;
     userUpdateCallbacks = [];
     mockDelay = 10;
     readySuccess = true;
@@ -102,13 +100,14 @@ describe('hooks', () => {
           <MyComponent />
         </OptimizelyProvider>,
       );
-      await new Promise(r => setTimeout(r, mockDelay));
+      await optimizelyMock.onReady();
       component.update();
-      expect(component.text()).toBe('true');
+      expect(component.text()).toBe('true|{\"foo\":\"bar\"}|true|false');
     });
 
     it('should render false when the feature is disabled', async () => {
       isFeatureEnabledMock.mockReturnValue(false);
+      featureVariables = {};
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyComponent />
@@ -116,7 +115,7 @@ describe('hooks', () => {
       );
       await optimizelyMock.onReady();
       component.update();
-      expect(component.text()).toBe('false');
+      expect(component.text()).toBe('false|{}|true|false');
     });
 
     it('should respect the timeout option passed', async () => {
@@ -124,7 +123,7 @@ describe('hooks', () => {
       readySuccess = false;
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <MyComponentWithOptions timeout={mockDelay} />
+          <MyComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>,
       );
       expect(component.text()).toBe('false|{}|false|false'); // initial render
@@ -143,7 +142,7 @@ describe('hooks', () => {
       });
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <MyComponentWithOptions timeout={mockDelay} />
+          <MyComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>,
       );
       expect(component.text()).toBe('false|{}|false|false'); // initial render
@@ -154,9 +153,10 @@ describe('hooks', () => {
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
       isFeatureEnabledMock.mockReturnValue(false);
+      featureVariables = {};
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <MyComponentAutoUpdate />
+          <MyComponent options={{ autoUpdate: true }} />
         </OptimizelyProvider>,
       );
 
@@ -164,19 +164,21 @@ describe('hooks', () => {
       // See https://github.com/facebook/react/issues/15379
       await optimizelyMock.onReady();
       component.update();
-      expect(component.text()).toBe('false');
+      expect(component.text()).toBe('false|{}|true|false');
 
-      isFeatureEnabledMock.mockReturnValue(true);      
+      isFeatureEnabledMock.mockReturnValue(true);
+      featureVariables = mockFeatureVariables;
       // Simulate the user object changing
       act(() => {
         userUpdateCallbacks.forEach(fn => fn());
       });
       component.update();
-      expect(component.text()).toBe('true');
+      expect(component.text()).toBe('true|{\"foo\":\"bar\"}|true|false');
     });
 
     it('should not re-render when the user attributes change without autoUpdate', async () => {
       isFeatureEnabledMock.mockReturnValue(false);
+      featureVariables = {};
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyComponent />
@@ -187,15 +189,16 @@ describe('hooks', () => {
       // See https://github.com/facebook/react/issues/15379
       await optimizelyMock.onReady();
       component.update();
-      expect(component.text()).toBe('false');
+      expect(component.text()).toBe('false|{}|true|false');
 
       isFeatureEnabledMock.mockReturnValue(true);
+      featureVariables = mockFeatureVariables;
       // Simulate the user object changing
       act(() => {
         userUpdateCallbacks.forEach(fn => fn());
       });
       component.update();
-      expect(component.text()).toBe('false');
+      expect(component.text()).toBe('false|{}|true|false');
     });
   });
 });
