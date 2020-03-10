@@ -30,6 +30,7 @@ type OnUserUpdateHandler = (userInfo: UserContext) => void
 export type OnReadyResult = {
   success: boolean
   reason?: string
+  dataReadyPromise?: Promise<any>
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk'
@@ -183,6 +184,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           success: false,
           reason:
             'failed to initialize onReady before timeout, either the datafile or user info was not set before the timeout',
+          dataReadyPromise: this.dataReadyPromise
         })
       }, timeout) as any
     })

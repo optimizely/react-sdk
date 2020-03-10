@@ -98,7 +98,7 @@ The `ReactSDKClient` client created via `createInstance` is the programmatic API
   - [JavaScript: Update datafiles](https://docs.developers.optimizely.com/full-stack/docs/javascript-update-datafiles)
 
 *returns*
-- A `ReactSDKClient` instance.
+* A `ReactSDKClient` instance.
 
 ```jsx
 import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk'
@@ -301,6 +301,53 @@ function FeatureComponent() {
 }
 ```
 
+
+## `useFeature` Hook
+
+A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the status of a feature flag and its variables. This can be useful as an alternative to the `<OptimizelyFeature>` component or to use features & variables inside code that is not explicitly rendered.
+
+*arguments*
+* `feature : string` Key of the feature
+* `options : Object`
+  * `autoUpdate : boolean` (optional) If true, this hook will update the feature and it's variables in response to datafile or user changes. Default: `false`.
+  * `timeout : number` (optional) Client timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`. 
+* `overrides : Object`
+  * `overrideUserId : string` (optional) Override the userId for calls to `isFeatureEnabled` for this hook.
+  * `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `isFeatureEnabled` for this hook.
+
+*returns*
+
+* `Array` of:
+  * `isFeatureEnabled : boolean` - The `isFeatureEnabled` value for the `feature` provided.
+  * `variables : VariableValuesObject` - The variable values for the `feature` provided
+  * `clientReady : boolean` - Whether or not the underlying `ReactSDKClient` instance is ready or not.
+  * `didTimeout : boolean` - Whether or not the underlying `ReactSDKClient` became ready within the allowed `timeout` range.
+
+  _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
+
+### Render something if feature is enabled
+
+```jsx
+import { useEffect } from 'react';
+import { useFeature } from '@optimizely/react-sdk';
+
+function LoginComponent() {
+  const [isEnabled, variables] = useFeature('feature1', { autoUpdate: true }, { /* (Optional) User overrides */ });
+  useEffect(() => {
+    document.title = isEnabled ? 'login1' : 'login2';
+  }, [isEnabled]);
+
+  return (
+    <p>
+      <a href={isEnabled ? "/login" : "/login2"}>
+        {variables.loginText}
+      </a>
+    </p>
+  )
+}
+```
+
+
 ## `withOptimizely`
 
 Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the higher-order component (HoC) `withOptimizely`.
@@ -377,7 +424,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 
 `ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely X Full Stack developer docs site](https://docs.developers.optimizely.com/full-stack/docs). The major exception is that, for most methods, user id & attributes are ***optional*** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
 
-* `onReady(opts?: { timeout?: number }): Promise` Returns a Promise that fulfills with an object representing the initialization process. The instance is ready when it has fetched a datafile and a user is available (via `setUser` being called with an object, or a Promise passed to `setUser` becoming fulfilled).
+* `onReady(opts?: { timeout?: number }): Promise<onReadyResult>` Returns a Promise that fulfills with an `onReadyResult` object representing the initialization process. The instance is ready when it has fetched a datafile and a user is available (via `setUser` being called with an object, or a Promise passed to `setUser` becoming fulfilled). If the `timeout` period happens before the client instance is ready, the `onReadyResult` object will contain an additional key, `dataReadyPromise`, which can be used to determine when, if ever, the instance does become ready.
 * `user: User` The current user associated with this client instance
 * `setUser(userInfo: User | Promise<User>): void` Call this to update the current user
 * `onUserUpdate(handler: (userInfo: User) => void): () => void` Subscribe a callback to be called when this instance's current user changes. Returns a function that will unsubscribe the callback.
@@ -406,7 +453,7 @@ Right now server side rendering is possible with a few caveats.
 
 1. You must download the datafile manually and pass in via the `datafile` option.  Can not use `sdkKey` to automatically download.
 
-2. Rendering of components must be completely synchronous (this is true for all server side rendering)
+2. Rendering of components must be completely synchronous (this is true for all server side rendering), thus the Optimizely SDK assumes that the optimizely client has been instantiated and fired it's `onReady` event already.
 
 ### Setting up `<OptimizelyProvider>`
 
