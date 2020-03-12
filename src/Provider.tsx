@@ -13,86 +13,81 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as React from 'react'
-import * as optimizely from '@optimizely/optimizely-sdk'
-import { getLogger } from '@optimizely/js-sdk-logging'
+import * as React from 'react';
+import * as optimizely from '@optimizely/optimizely-sdk';
+import { getLogger } from '@optimizely/js-sdk-logging';
 
-import { OptimizelyContextProvider } from './Context'
-import { ReactSDKClient } from './client'
+import { OptimizelyContextProvider } from './Context';
+import { ReactSDKClient } from './client';
 import { areUsersEqual } from './utils';
 
-const logger = getLogger('<OptimizelyProvider>')
+const logger = getLogger('<OptimizelyProvider>');
 
 type UserInfo = {
-  id: string
-  attributes?: optimizely.UserAttributes
-}
+  id: string;
+  attributes?: optimizely.UserAttributes;
+};
 
 interface OptimizelyProviderProps {
-  optimizely: ReactSDKClient
-  timeout?: number
-  isServerSide?: boolean
-  user?: Promise<UserInfo> | UserInfo
-  userId?: string
-  userAttributes?: optimizely.UserAttributes
+  optimizely: ReactSDKClient;
+  timeout?: number;
+  isServerSide?: boolean;
+  user?: Promise<UserInfo> | UserInfo;
+  userId?: string;
+  userAttributes?: optimizely.UserAttributes;
 }
 
 interface OptimizelyProviderState {
-  userId: string
-  attributes: { [key: string]: string } | undefined
+  userId: string;
+  attributes: { [key: string]: string } | undefined;
 }
 
-export class OptimizelyProvider extends React.Component<
-  OptimizelyProviderProps,
-  OptimizelyProviderState
-> {
+export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
   constructor(props: OptimizelyProviderProps) {
-    super(props)
-    const { optimizely, userId, userAttributes, user} = props
+    super(props);
+    const { optimizely, userId, userAttributes, user } = props;
 
     // check if user id/attributes are provided as props and set them ReactSDKClient
     let finalUser: {
-      id: string
-      attributes: optimizely.UserAttributes
-    } | null = null
+      id: string;
+      attributes: optimizely.UserAttributes;
+    } | null = null;
 
     if (user) {
       if ('then' in user) {
         user.then(user => {
-          optimizely.setUser(user)
-        })
+          optimizely.setUser(user);
+        });
       } else {
         finalUser = {
           id: user.id,
           attributes: user.attributes || {},
-        }
+        };
       }
     } else if (userId) {
       finalUser = {
         id: userId,
         attributes: userAttributes || {},
-      }
+      };
       // deprecation warning
-      logger.warn(
-        'Passing userId and userAttributes as props is deprecated, please switch to using `user` prop',
-      )
+      logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
     }
 
     if (finalUser) {
-      optimizely.setUser(finalUser)
+      optimizely.setUser(finalUser);
     }
   }
 
   componentDidUpdate(prevProps: OptimizelyProviderProps): void {
     if (prevProps.isServerSide) {
       // dont react to updates on server
-      return
+      return;
     }
-    const { optimizely } = this.props
+    const { optimizely } = this.props;
     if (this.props.user && 'id' in this.props.user) {
       if (!optimizely.user.id) {
         // no user is set in optimizely, update
-        optimizely.setUser(this.props.user)
+        optimizely.setUser(this.props.user);
       } else if (
         // if the users aren't equal update
         !areUsersEqual(
@@ -104,25 +99,23 @@ export class OptimizelyProvider extends React.Component<
             id: this.props.user.id,
             // TODO see if we can use computeDerivedStateFromProps
             attributes: this.props.user.attributes || {},
-          },
+          }
         )
       ) {
-        optimizely.setUser(this.props.user)
+        optimizely.setUser(this.props.user);
       }
     }
   }
 
   render() {
-    const { optimizely, children, timeout } = this.props
-    const isServerSide = !!this.props.isServerSide
+    const { optimizely, children, timeout } = this.props;
+    const isServerSide = !!this.props.isServerSide;
     const value = {
       optimizely,
       isServerSide,
       timeout,
-    }
+    };
 
-    return (
-      <OptimizelyContextProvider value={value}>{children}</OptimizelyContextProvider>
-    )
+    return <OptimizelyContextProvider value={value}>{children}</OptimizelyContextProvider>;
   }
 }

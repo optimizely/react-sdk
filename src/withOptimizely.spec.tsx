@@ -15,128 +15,115 @@
  */
 /// <reference types="jest" />
 
-import * as React from 'react'
-import * as Enzyme from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
-Enzyme.configure({ adapter: new Adapter() })
+import * as React from 'react';
+import * as Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
+Enzyme.configure({ adapter: new Adapter() });
 
-import { mount } from 'enzyme'
-import { OptimizelyProvider } from './Provider'
-import { withOptimizely } from './withOptimizely'
-import { ReactSDKClient } from './client'
+import { mount } from 'enzyme';
+import { OptimizelyProvider } from './Provider';
+import { withOptimizely } from './withOptimizely';
+import { ReactSDKClient } from './client';
 
 type TestProps = {
-  optimizely: ReactSDKClient
-  optimizelyReadyTimeout: number | undefined
-  isServerSide: boolean
-}
+  optimizely: ReactSDKClient;
+  optimizelyReadyTimeout: number | undefined;
+  isServerSide: boolean;
+};
 
 class InnerComponent extends React.Component<TestProps, any> {
   constructor(props: TestProps) {
-    super(props)
+    super(props);
   }
 
   render() {
-    return <div>test</div>
+    return <div>test</div>;
   }
 }
 
-const WrapperComponent = withOptimizely(InnerComponent)
+const WrapperComponent = withOptimizely(InnerComponent);
 
 describe('withOptimizely', () => {
-  let optimizelyClient: ReactSDKClient
+  let optimizelyClient: ReactSDKClient;
   beforeEach(() => {
     optimizelyClient = ({
       setUser: jest.fn(),
-    } as unknown) as ReactSDKClient
-  })
+    } as unknown) as ReactSDKClient;
+  });
 
   describe('when userId / userAttributes props are provided', () => {
     it('should call setUser with the correct user id / attributes', () => {
       const attributes = {
         foo: 'bar',
-      }
-      const userId = 'jordan'
+      };
+      const userId = 'jordan';
       const component = mount(
-        <OptimizelyProvider
-          optimizely={optimizelyClient}
-          timeout={200}
-          userId={userId}
-          userAttributes={attributes}
-        >
+        <OptimizelyProvider optimizely={optimizelyClient} timeout={200} userId={userId} userAttributes={attributes}>
           <WrapperComponent />
-        </OptimizelyProvider>,
-      )
+        </OptimizelyProvider>
+      );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1)
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({ id: userId, attributes })
-    })
-  })
+      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith({ id: userId, attributes });
+    });
+  });
 
   describe('when only userId prop is provided', () => {
     it('should call setUser with the correct user id / attributes', () => {
-      const userId = 'jordan'
+      const userId = 'jordan';
       const component = mount(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} userId={userId}>
           <WrapperComponent />
-        </OptimizelyProvider>,
-      )
+        </OptimizelyProvider>
+      );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1)
+      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes: {},
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe(`when the user prop is passed only with "id"`, () => {
     it('should call setUser with the correct user id / attributes', () => {
-      const userId = 'jordan'
+      const userId = 'jordan';
       const component = mount(
-        <OptimizelyProvider
-          optimizely={optimizelyClient}
-          timeout={200}
-          user={{ id: userId }}
-        >
+        <OptimizelyProvider optimizely={optimizelyClient} timeout={200} user={{ id: userId }}>
           <WrapperComponent />
-        </OptimizelyProvider>,
-      )
+        </OptimizelyProvider>
+      );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1)
+      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes: {},
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe(`when the user prop is passed with "id" and "attributes"`, () => {
     it('should call setUser with the correct user id / attributes', () => {
-      const userId = 'jordan'
-      const attributes = { foo: 'bar' }
+      const userId = 'jordan';
+      const attributes = { foo: 'bar' };
       const component = mount(
-        <OptimizelyProvider
-          optimizely={optimizelyClient}
-          timeout={200}
-          user={{ id: userId, attributes }}
-        >
+        <OptimizelyProvider optimizely={optimizelyClient} timeout={200} user={{ id: userId, attributes }}>
           <WrapperComponent />
-        </OptimizelyProvider>,
-      )
+        </OptimizelyProvider>
+      );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1)
+      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes,
-      })
-    })
-  })
+      });
+    });
+  });
 
   describe('when both the user prop and userId / userAttributes props are passed', () => {
     it('should respect the user object prop', () => {
-      const userId = 'jordan'
-      const attributes = { foo: 'bar' }
+      const userId = 'jordan';
+      const attributes = { foo: 'bar' };
       const component = mount(
         <OptimizelyProvider
           optimizely={optimizelyClient}
@@ -146,68 +133,63 @@ describe('withOptimizely', () => {
           userAttributes={{ other: 'yo' }}
         >
           <WrapperComponent />
-        </OptimizelyProvider>,
-      )
+        </OptimizelyProvider>
+      );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1)
+      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes,
-      })
-    })
-  })
+      });
+    });
+  });
 
   it('should inject optimizely and optimizelyReadyTimeout from <OptimizelyProvider>', async () => {
     const component = mount(
       <OptimizelyProvider optimizely={optimizelyClient} timeout={200}>
         <WrapperComponent />
-      </OptimizelyProvider>,
-    )
+      </OptimizelyProvider>
+    );
 
-    const innerComponent = component.find(InnerComponent)
+    const innerComponent = component.find(InnerComponent);
     expect(innerComponent.props()).toEqual({
       optimizely: optimizelyClient,
       isServerSide: false,
       optimizelyReadyTimeout: 200,
-    })
+    });
 
-    expect(optimizelyClient.setUser).not.toHaveBeenCalled()
-  })
+    expect(optimizelyClient.setUser).not.toHaveBeenCalled();
+  });
 
   it('should inject the isServerSide prop', async () => {
     const component = mount(
-      <OptimizelyProvider
-        optimizely={optimizelyClient}
-        timeout={200}
-        isServerSide={true}
-      >
+      <OptimizelyProvider optimizely={optimizelyClient} timeout={200} isServerSide={true}>
         <WrapperComponent />
-      </OptimizelyProvider>,
-    )
+      </OptimizelyProvider>
+    );
 
-    const innerComponent = component.find(InnerComponent)
+    const innerComponent = component.find(InnerComponent);
     expect(innerComponent.props()).toEqual({
       optimizely: optimizelyClient,
       isServerSide: true,
       optimizelyReadyTimeout: 200,
-    })
-  })
+    });
+  });
 
   it('should forward refs', () => {
     interface FancyInputProps extends TestProps {
-      defaultValue: string
+      defaultValue: string;
     }
-    const FancyInput: React.RefForwardingComponent<HTMLInputElement, FancyInputProps> = (
-      props,
-      ref,
-    ) => <input ref={ref} className="fancyInput" defaultValue={props.defaultValue} />
-    const ForwardingFancyInput = React.forwardRef(FancyInput)
-    const OptimizelyInput = withOptimizely(ForwardingFancyInput)
-    const inputRef: React.RefObject<HTMLInputElement> = React.createRef()
+    const FancyInput: React.RefForwardingComponent<HTMLInputElement, FancyInputProps> = (props, ref) => (
+      <input ref={ref} className="fancyInput" defaultValue={props.defaultValue} />
+    );
+    const ForwardingFancyInput = React.forwardRef(FancyInput);
+    const OptimizelyInput = withOptimizely(ForwardingFancyInput);
+    const inputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
     const optimizelyMock: ReactSDKClient = ({
       setUser: jest.fn(),
-    } as unknown) as ReactSDKClient
+    } as unknown) as ReactSDKClient;
 
     const component = mount(
       <OptimizelyProvider
@@ -218,28 +200,26 @@ describe('withOptimizely', () => {
         isServerSide={true}
       >
         <OptimizelyInput ref={inputRef} defaultValue="hi" />
-      </OptimizelyProvider>,
-    )
-    expect(inputRef.current).toBeInstanceOf(HTMLInputElement)
-    expect(typeof inputRef.current!.focus).toBe('function')
-    const inputNode: HTMLInputElement = component.find('input').getDOMNode()
-    expect(inputRef.current!).toBe(inputNode)
-  })
+      </OptimizelyProvider>
+    );
+    expect(inputRef.current).toBeInstanceOf(HTMLInputElement);
+    expect(typeof inputRef.current!.focus).toBe('function');
+    const inputNode: HTMLInputElement = component.find('input').getDOMNode();
+    expect(inputRef.current!).toBe(inputNode);
+  });
 
   it('should hoist non-React statics', () => {
     class MyComponentWithAStatic extends React.Component<TestProps> {
       static foo(): string {
-        return 'foo'
+        return 'foo';
       }
 
       render() {
-        return (
-          <div>I have a static method</div>
-        )
+        return <div>I have a static method</div>;
       }
     }
-    const OptlyComponent = withOptimizely(MyComponentWithAStatic)
-    expect(typeof (OptlyComponent as any).foo).toBe('function')
-    expect((OptlyComponent as any).foo()).toBe('foo')
-  })
-})
+    const OptlyComponent = withOptimizely(MyComponentWithAStatic);
+    expect(typeof (OptlyComponent as any).foo).toBe('function');
+    expect((OptlyComponent as any).foo()).toBe('foo');
+  });
+});

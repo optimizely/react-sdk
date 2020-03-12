@@ -13,107 +13,98 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as React from 'react'
-import { withOptimizely, WithOptimizelyProps } from './withOptimizely'
-import { VariationProps } from './Variation'
-import { VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client'
-import * as logging from '@optimizely/js-sdk-logging'
+import * as React from 'react';
+import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
+import { VariationProps } from './Variation';
+import { VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client';
+import * as logging from '@optimizely/js-sdk-logging';
 
-const logger = logging.getLogger('<OptimizelyExperiment>')
+const logger = logging.getLogger('<OptimizelyExperiment>');
 
-export type ChildrenRenderFunction = (
-  variableValues: VariableValuesObject,
-) => React.ReactNode
+export type ChildrenRenderFunction = (variableValues: VariableValuesObject) => React.ReactNode;
 
-type ChildRenderFunction = (variation: string | null) => React.ReactNode
+type ChildRenderFunction = (variation: string | null) => React.ReactNode;
 
 export interface ExperimentProps extends WithOptimizelyProps {
   // TODO add support for overrideUserId
-  experiment: string
-  autoUpdate?: boolean
-  timeout?: number
-  children: React.ReactNode | ChildRenderFunction
+  experiment: string;
+  autoUpdate?: boolean;
+  timeout?: number;
+  children: React.ReactNode | ChildRenderFunction;
 }
 
 export interface ExperimentState {
-  canRender: boolean
-  variation: string | null
+  canRender: boolean;
+  variation: string | null;
 }
 
 export class Experiment extends React.Component<ExperimentProps, ExperimentState> {
-  private optimizelyNotificationId?: number
-  private unregisterUserListener: () => void = () => {}
-  private autoUpdate: boolean = false
+  private optimizelyNotificationId?: number;
+  private unregisterUserListener: () => void = () => {};
+  private autoUpdate = false;
 
   constructor(props: ExperimentProps) {
-    super(props)
+    super(props);
 
-    const { autoUpdate, isServerSide, optimizely, experiment } = props
-    this.autoUpdate = !!autoUpdate
+    const { autoUpdate, isServerSide, optimizely, experiment } = props;
+    this.autoUpdate = !!autoUpdate;
 
     if (isServerSide) {
       if (!optimizely) {
-        throw new Error('optimizely prop must be supplied')
+        throw new Error('optimizely prop must be supplied');
       }
-      const variation = optimizely.activate(experiment)
+      const variation = optimizely.activate(experiment);
       this.state = {
         canRender: true,
         variation,
-      }
+      };
     } else {
       this.state = {
         canRender: false,
         variation: null,
-      }
+      };
     }
   }
 
   componentDidMount() {
-    const {
-      experiment,
-      optimizely,
-      optimizelyReadyTimeout,
-      isServerSide,
-      timeout,
-    } = this.props
+    const { experiment, optimizely, optimizelyReadyTimeout, isServerSide, timeout } = this.props;
     if (!optimizely) {
-      throw new Error('optimizely prop must be supplied')
+      throw new Error('optimizely prop must be supplied');
     }
     if (isServerSide) {
-      return
+      return;
     }
 
     // allow overriding of the ready timeout via the `timeout` prop passed to <Experiment />
-    let finalReadyTimeout: number | undefined =
-      timeout !== undefined ? timeout : optimizelyReadyTimeout
+    const finalReadyTimeout: number | undefined = timeout !== undefined ? timeout : optimizelyReadyTimeout;
 
     optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
       if (res.success) {
-        logger.info('experiment="%s" successfully rendered for user="%s"', experiment, optimizely.user.id)
+        logger.info('experiment="%s" successfully rendered for user="%s"', experiment, optimizely.user.id);
       } else {
         logger.info(
           'experiment="%s" could not be checked before timeout of %sms, reason="%s" ',
           experiment,
           timeout === undefined ? DEFAULT_ON_READY_TIMEOUT : timeout,
-          res.reason || '',
-        )
+          res.reason || ''
+        );
       }
 
-      const variation = optimizely.activate(experiment)
+      const variation = optimizely.activate(experiment);
       this.setState({
         canRender: true,
         variation,
-      })
+      });
       if (this.autoUpdate) {
-        this.setupAutoUpdateListeners()
+        this.setupAutoUpdateListeners();
       }
-    })
+    });
   }
 
   setupAutoUpdateListeners() {
-    const { optimizely, experiment } = this.props
+    const { optimizely, experiment } = this.props;
     if (optimizely === null) {
-      return
+      return;
     }
 
     this.optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
@@ -122,77 +113,68 @@ export class Experiment extends React.Component<ExperimentProps, ExperimentState
         logger.info(
           'OPTIMIZELY_CONFIG_UPDATE, re-evaluating experiment="%s" for user="%s"',
           experiment,
-          optimizely.user.id,
-        )
-        const variation = optimizely.activate(experiment)
+          optimizely.user.id
+        );
+        const variation = optimizely.activate(experiment);
         this.setState({
           variation,
-        })
-      },
-    )
+        });
+      }
+    );
 
     this.unregisterUserListener = optimizely.onUserUpdate(() => {
-      logger.info(
-        'User update, re-evaluating experiment="%s" for user="%s"',
-        experiment,
-        optimizely.user.id,
-      )
-      const variation = optimizely.activate(experiment)
+      logger.info('User update, re-evaluating experiment="%s" for user="%s"', experiment, optimizely.user.id);
+      const variation = optimizely.activate(experiment);
       this.setState({
         variation,
-      })
-    })
+      });
+    });
   }
 
   componentWillUnmount() {
-    const { optimizely, isServerSide } = this.props
+    const { optimizely, isServerSide } = this.props;
     if (isServerSide || !this.autoUpdate) {
-      return
+      return;
     }
     if (optimizely && this.optimizelyNotificationId) {
-      optimizely.notificationCenter.removeNotificationListener(
-        this.optimizelyNotificationId,
-      )
+      optimizely.notificationCenter.removeNotificationListener(this.optimizelyNotificationId);
     }
-    this.unregisterUserListener()
+    this.unregisterUserListener();
   }
 
   render() {
-    const { children } = this.props
-    const { variation, canRender } = this.state
+    const { children } = this.props;
+    const { variation, canRender } = this.state;
 
     if (!canRender) {
-      return null
+      return null;
     }
 
     if (children != null && typeof children === 'function') {
-      return (children as ChildRenderFunction)(variation)
+      return (children as ChildRenderFunction)(variation);
     }
 
-    let match: React.ReactElement<VariationProps> | null = null
+    let match: React.ReactElement<VariationProps> | null = null;
 
     // We use React.Children.forEach instead of React.Children.toArray().find()
     // here because toArray adds keys to all child elements and we do not want
     // to trigger an unmount/remount
-    React.Children.forEach(
-      this.props.children,
-      (child: React.ReactElement<VariationProps>) => {
-        if (match || !React.isValidElement(child)) {
-          return
-        }
+    React.Children.forEach(this.props.children, (child: React.ReactElement<VariationProps>) => {
+      if (match || !React.isValidElement(child)) {
+        return;
+      }
 
-        if (child.props.variation) {
-          if (variation === child.props.variation) {
-            match = child
-          }
-        } else if (child.props.default) {
-          match = child
+      if (child.props.variation) {
+        if (variation === child.props.variation) {
+          match = child;
         }
-      },
-    )
+      } else if (child.props.default) {
+        match = child;
+      }
+    });
 
-    return match ? React.cloneElement(match, { variation: variation }) : null
+    return match ? React.cloneElement(match, { variation: variation }) : null;
   }
 }
 
-export const OptimizelyExperiment = withOptimizely(Experiment)
+export const OptimizelyExperiment = withOptimizely(Experiment);

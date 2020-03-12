@@ -13,41 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as React from 'react'
-import { Subtract } from 'utility-types'
+import * as React from 'react';
+import { Subtract } from 'utility-types';
 
-import { OptimizelyContextConsumer, OptimizelyContextInterface } from './Context'
-import { ReactSDKClient } from './client'
-import { hoistStaticsAndForwardRefs } from './utils'
+import { OptimizelyContextConsumer, OptimizelyContextInterface } from './Context';
+import { ReactSDKClient } from './client';
+import { hoistStaticsAndForwardRefs } from './utils';
 
 export interface WithOptimizelyProps {
-  optimizely: ReactSDKClient | null
-  optimizelyReadyTimeout: number | undefined
-  isServerSide: boolean
+  optimizely: ReactSDKClient | null;
+  optimizelyReadyTimeout: number | undefined;
+  isServerSide: boolean;
 }
 
-export type WithoutOptimizelyProps<P extends WithOptimizelyProps> = Subtract<
-  P,
-  WithOptimizelyProps
->
+export type WithoutOptimizelyProps<P extends WithOptimizelyProps> = Subtract<P, WithOptimizelyProps>;
 
 export function withOptimizely<P extends WithOptimizelyProps, R>(
-  Component: React.ComponentType<P>,
-): React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<WithoutOptimizelyProps<P>> & React.RefAttributes<R>
-> {
-  type WrapperProps = WithoutOptimizelyProps<P> & { forwardedRef?: React.Ref<R> }
+  Component: React.ComponentType<P>
+): React.ForwardRefExoticComponent<React.PropsWithoutRef<WithoutOptimizelyProps<P>> & React.RefAttributes<R>> {
+  type WrapperProps = WithoutOptimizelyProps<P> & { forwardedRef?: React.Ref<R> };
 
   class WithOptimizely extends React.Component<WrapperProps> {
     render() {
-      const { forwardedRef, ...rest } = this.props
+      const { forwardedRef, ...rest } = this.props;
       // Note: Casting props to P is necessary because of this TypeScript issue:
       // https://github.com/microsoft/TypeScript/issues/28884
       return (
         <OptimizelyContextConsumer>
           {(value: OptimizelyContextInterface) => (
             <Component
-              {...rest as P}
+              {...(rest as P)}
               optimizelyReadyTimeout={value.timeout}
               optimizely={value.optimizely}
               isServerSide={value.isServerSide}
@@ -55,15 +50,15 @@ export function withOptimizely<P extends WithOptimizelyProps, R>(
             />
           )}
         </OptimizelyContextConsumer>
-      )
+      );
     }
   }
 
   const withRefsForwarded = hoistStaticsAndForwardRefs<R, WithoutOptimizelyProps<P>>(
     WithOptimizely,
     Component,
-    'withOptimizely',
-  )
+    'withOptimizely'
+  );
 
-  return withRefsForwarded
+  return withRefsForwarded;
 }

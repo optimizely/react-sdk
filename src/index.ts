@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { OptimizelyContext, OptimizelyContextConsumer, OptimizelyContextProvider } from './Context'
-export { OptimizelyProvider } from './Provider'
-export { OptimizelyFeature } from './Feature'
-export { useFeature } from './hooks'
-export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely'
-export { OptimizelyExperiment } from './Experiment'
-export { OptimizelyVariation } from './Variation'
+export { OptimizelyContext, OptimizelyContextConsumer, OptimizelyContextProvider } from './Context';
+export { OptimizelyProvider } from './Provider';
+export { OptimizelyFeature } from './Feature';
+export { useFeature } from './hooks';
+export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely';
+export { OptimizelyExperiment } from './Experiment';
+export { OptimizelyVariation } from './Variation';
 
-export {
-  logging,
-  errorHandler,
-  setLogger,
-  setLogLevel,
-  enums,
-  eventDispatcher,
-} from '@optimizely/optimizely-sdk'
+export { logging, errorHandler, setLogger, setLogLevel, enums, eventDispatcher } from '@optimizely/optimizely-sdk';
 
-export { createInstance, ReactSDKClient } from './client'
+export { createInstance, ReactSDKClient } from './client';
 
-export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher'
+export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher';
