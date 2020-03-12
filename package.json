@@ -20,7 +20,7 @@
   "scripts": {
     "tsc": "rm -rf lib/ && tsc",
     "build": "rm -rf dist/ && node ./scripts/build.js",
-    "lint": "tsc --noEmit && eslint '*/**/*.{js,ts,tsx}' --quiet --fix",
+    "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build"
   },
