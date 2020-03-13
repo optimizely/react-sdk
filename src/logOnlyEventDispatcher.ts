@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import * as optimizely from '@optimizely/optimizely-sdk'
-import * as logging from '@optimizely/js-sdk-logging'
+import * as optimizely from '@optimizely/optimizely-sdk';
+import * as logging from '@optimizely/js-sdk-logging';
 
-const logger = logging.getLogger('ReactSDK')
+const logger = logging.getLogger('ReactSDK');
 
 /**
  * logOnlyEventDispatcher only logs a message at the debug level, and does not
@@ -27,15 +27,15 @@ const logger = logging.getLogger('ReactSDK')
 const logOnlyEventDispatcher: optimizely.EventDispatcher = {
   dispatchEvent(event: optimizely.Event, callback: () => void): void {
     logger.debug('Event not dispatched by disabled event dispatcher: %s', () => {
-      let eventStr: string
+      let eventStr: string;
       try {
-        eventStr = JSON.stringify(event)
+        eventStr = JSON.stringify(event);
       } catch (err) {
-        eventStr = 'error stringifying event'
+        eventStr = 'error stringifying event';
       }
-      return eventStr
-    })
-  }
-}
+      return eventStr;
+    });
+  },
+};
 
-export default logOnlyEventDispatcher
+export default logOnlyEventDispatcher;

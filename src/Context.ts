@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createContext } from 'react'
-import { ReactSDKClient } from './client'
+import { createContext } from 'react';
+import { ReactSDKClient } from './client';
 
 export interface OptimizelyContextInterface {
-  optimizely: ReactSDKClient | null,
-  isServerSide: boolean,
-  timeout: number | undefined,
+  optimizely: ReactSDKClient | null;
+  isServerSide: boolean;
+  timeout: number | undefined;
 }
 
 export const OptimizelyContext = createContext<OptimizelyContextInterface>({
   optimizely: null,
   isServerSide: false,
   timeout: 0,
-})
+});
 
-export const OptimizelyContextConsumer = OptimizelyContext.Consumer
-export const OptimizelyContextProvider = OptimizelyContext.Provider
+export const OptimizelyContextConsumer = OptimizelyContext.Consumer;
+export const OptimizelyContextProvider = OptimizelyContext.Provider;

@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-import * as optimizelyReactSDK from './index'
+import * as optimizelyReactSDK from './index';
 
-module.exports = optimizelyReactSDK
+module.exports = optimizelyReactSDK;

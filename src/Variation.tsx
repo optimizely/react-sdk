@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as React from 'react'
+import * as React from 'react';
 
 export type VariationProps = {
-  variation?: any
-  default?: any
-  children?: React.ReactNode
-}
+  variation?: any;
+  default?: any;
+  children?: React.ReactNode;
+};
 
 class Variation extends React.Component<VariationProps, {}> {
   render() {
-    return this.props.children
+    return this.props.children;
   }
 }
 
-export const OptimizelyVariation = Variation
+export const OptimizelyVariation = Variation;

@@ -25,23 +25,24 @@ interface AutoUpdate {
     value: string,
     logger: LoggerFacade,
     callback: () => void
-  ) : () => void
+  ): () => void;
 }
 
 /**
  * Utility to setup listeners for changes to the datafile or user attributes and invoke the provided callback.
  * Returns an unListen function
  */
-export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, logger, callback) => {
+export const setupAutoUpdateListeners: AutoUpdate = (optimizely, type, value, logger, callback) => {
   const loggerSuffix = `re-evaluating ${type}="${value}" for user="${optimizely.user.id}"`;
   const optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
     enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
     () => {
       logger.info(`${enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE}, ${loggerSuffix}`);
       callback();
-    },
+    }
   );
-  const unregisterConfigUpdateListener = () => optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
+  const unregisterConfigUpdateListener = () =>
+    optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
     logger.info(`User update, ${loggerSuffix}`);
@@ -52,4 +53,4 @@ export const setupAutoUpdateListeners : AutoUpdate = (optimizely, type, value, l
     unregisterConfigUpdateListener();
     unregisterUserListener();
   };
-}
+};
