@@ -26,10 +26,15 @@ export interface FeatureProps extends WithOptimizelyProps {
   autoUpdate?: boolean;
   overrideUserId?: string;
   overrideAttributes?: UserAttributes;
-  children: (isEnabled: boolean, variables: VariableValuesObject) => React.ReactNode;
+  children: (
+    isEnabled: boolean,
+    variables: VariableValuesObject,
+    clientReady: boolean,
+    didTimeout: boolean
+  ) => React.ReactNode;
 }
 
-const FeatureComponent = (props: FeatureProps): any => {
+const FeatureComponent: React.FunctionComponent<FeatureProps> = props => {
   const { feature, timeout, autoUpdate, children, overrideUserId, overrideAttributes } = props;
   const [isEnabled, variables, clientReady, didTimeout] = useFeature(
     feature,
@@ -42,7 +47,9 @@ const FeatureComponent = (props: FeatureProps): any => {
     return null;
   }
 
-  return children(isEnabled, variables);
+  // Wrap the return value here in a Fragment to please the HOC's expected React.ComponentType
+  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
+  return <>{children(isEnabled, variables, clientReady, didTimeout)}</>;
 };
 
 export const OptimizelyFeature = withOptimizely(FeatureComponent);

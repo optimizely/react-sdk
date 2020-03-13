@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useCallback, useContext, useEffect, useState } from 'react';
-import * as optimizely from '@optimizely/optimizely-sdk';
+import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
@@ -38,7 +38,7 @@ type UseFeatureOptions = {
 
 type UseFeatureOverrides = {
   overrideUserId?: string;
-  overrideAttributes?: optimizely.UserAttributes;
+  overrideAttributes?: UserAttributes;
 };
 
 interface UseFeature {
