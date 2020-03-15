@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- Refactored `<OptimizelyFeature>` to a functional component that uses the `useFeature` hook under the hood. See [#32](https://github.com/optimizely/react-sdk/pull/32) for more details.
+
 ### New Features
 
 - Added `useFeature` hook
@@ -14,9 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Enhancements
 
-- Exposed the entire context object used by 
+- Exposed the entire context object used by `<OptimizelyProvider>`.
   - Enables support for using APIs which require passing reference to a context object, like `useContext`. [#27](https://github.com/optimizely/react-sdk/pull/27) for more details.
-
 
 ## [1.2.0-alpha.1] - March 5th, 2020
 

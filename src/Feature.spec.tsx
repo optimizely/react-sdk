@@ -81,8 +81,8 @@ describe('<OptimizelyFeature>', () => {
 
       component.update();
 
-      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
       expect(component.text()).toBe('true|bar');
     });
 
@@ -99,15 +99,39 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
-      resolver.resolve({ sucess: true });
+      resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();
 
       component.update();
 
-      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
       expect(component.text()).toBe('true|bar');
+    });
+
+    it('should pass the values for clientReady and didTimeout', async () => {
+      const component = mount(
+        <OptimizelyProvider optimizely={optimizelyMock} timeout={200}>
+          <OptimizelyFeature feature="feature1" timeout={100}>
+            {(isEnabled, variables, clientReady, didTimeout) =>
+              `${isEnabled ? 'true' : 'false'}|${variables.foo}|${clientReady}|${didTimeout}`
+            }
+          </OptimizelyFeature>
+        </OptimizelyProvider>
+      );
+
+      // while it's waiting for onReady()
+      expect(component.text()).toBe('');
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      component.update();
+
+      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(component.text()).toBe('true|bar|true|false');
     });
 
     it('should respect a locally passed timeout prop', async () => {
@@ -123,14 +147,36 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
-      resolver.resolve({ sucess: true });
+      resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();
 
       component.update();
 
-      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
+      expect(component.text()).toBe('true|bar');
+    });
+
+    it('should pass the override props through', async () => {
+      const component = mount(
+        <OptimizelyProvider optimizely={optimizelyMock} timeout={200}>
+          <OptimizelyFeature feature="feature1" overrideUserId="james123" overrideAttributes={{ betaUser: true }}>
+            {(isEnabled, variables) => `${isEnabled ? 'true' : 'false'}|${variables.foo}`}
+          </OptimizelyFeature>
+        </OptimizelyProvider>
+      );
+
+      // while it's waiting for onReady()
+      expect(component.text()).toBe('');
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      component.update();
+
+      expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', 'james123', { betaUser: true });
+      expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', 'james123', { betaUser: true });
       expect(component.text()).toBe('true|bar');
     });
 
@@ -148,14 +194,14 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(component.text()).toBe('');
-        resolver.resolve({ sucess: true });
+        resolver.resolve({ success: true });
 
         await optimizelyMock.onReady();
 
         component.update();
 
-        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
         expect(component.text()).toBe('true|bar');
 
         const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
@@ -190,14 +236,14 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(component.text()).toBe('');
-        resolver.resolve({ sucess: true });
+        resolver.resolve({ success: true });
 
         await optimizelyMock.onReady();
 
         component.update();
 
-        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
         expect(component.text()).toBe('true|bar');
 
         const updateFn = (optimizelyMock.onUserUpdate as jest.Mock).mock.calls[0][0];
@@ -233,14 +279,14 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(component.text()).toBe('');
-        resolver.resolve({ sucess: false, reason: 'fail' });
+        resolver.resolve({ success: false, reason: 'fail', dataReadyPromise: Promise.resolve() });
 
-        await optimizelyMock.onReady();
+        await optimizelyMock.onReady().then(res => res.dataReadyPromise);
 
         component.update();
 
-        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1');
-        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1');
+        expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
+        expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
         expect(component.text()).toBe('true|bar');
       });
     });

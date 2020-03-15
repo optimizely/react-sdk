@@ -14,148 +14,42 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
-import { VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client';
-import { getLogger } from '@optimizely/js-sdk-logging';
+import { UserAttributes } from '@optimizely/optimizely-sdk';
 
-const logger = getLogger('<OptimizelyFeature>');
+import { VariableValuesObject } from './client';
+import { useFeature } from './hooks';
+import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
 export interface FeatureProps extends WithOptimizelyProps {
-  // TODO add support for overrideUserId
   feature: string;
   timeout?: number;
   autoUpdate?: boolean;
-  children: (isEnabled: boolean, variables: VariableValuesObject) => React.ReactNode;
+  overrideUserId?: string;
+  overrideAttributes?: UserAttributes;
+  children: (
+    isEnabled: boolean,
+    variables: VariableValuesObject,
+    clientReady: boolean,
+    didTimeout: boolean
+  ) => React.ReactNode;
 }
 
-export interface FeatureState {
-  canRender: boolean;
-  isEnabled: boolean;
-  variables: VariableValuesObject;
-}
+const FeatureComponent: React.FunctionComponent<FeatureProps> = props => {
+  const { feature, timeout, autoUpdate, children, overrideUserId, overrideAttributes } = props;
+  const [isEnabled, variables, clientReady, didTimeout] = useFeature(
+    feature,
+    { timeout, autoUpdate },
+    { overrideUserId, overrideAttributes }
+  );
 
-class FeatureComponent extends React.Component<FeatureProps, FeatureState> {
-  private optimizelyNotificationId?: number;
-  private unregisterUserListener: () => void;
-  private autoUpdate = false;
-
-  constructor(props: FeatureProps) {
-    super(props);
-
-    this.unregisterUserListener = () => {};
-
-    const { autoUpdate, isServerSide, optimizely, feature } = props;
-    this.autoUpdate = !!autoUpdate;
-    if (isServerSide) {
-      if (optimizely === null) {
-        throw new Error('optimizely prop must be supplied');
-      }
-      const isEnabled = optimizely.isFeatureEnabled(feature);
-      const variables = optimizely.getFeatureVariables(feature);
-      this.state = {
-        canRender: true,
-        isEnabled,
-        variables,
-      };
-    } else {
-      this.state = {
-        canRender: false,
-        isEnabled: false,
-        variables: {},
-      };
-    }
+  if (!clientReady && !didTimeout) {
+    // Only block rendering while were waiting for the client within the allowed timeout.
+    return null;
   }
 
-  componentDidMount() {
-    const { feature, optimizely, optimizelyReadyTimeout, isServerSide, timeout } = this.props;
-    if (!optimizely) {
-      throw new Error('optimizely prop must be supplied');
-    }
-
-    if (isServerSide) {
-      return;
-    }
-
-    // allow overriding of the ready timeout via the `timeout` prop passed to <Experiment />
-    const finalReadyTimeout: number | undefined = timeout !== undefined ? timeout : optimizelyReadyTimeout;
-
-    optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
-      if (res.success) {
-        logger.info('feature="%s" successfully rendered for user="%s"', feature, optimizely.user.id);
-      } else {
-        logger.info(
-          'feature="%s" could not be checked before timeout of %sms, reason="%s" ',
-          feature,
-          timeout === undefined ? DEFAULT_ON_READY_TIMEOUT : timeout,
-          res.reason || ''
-        );
-      }
-
-      const isEnabled = optimizely.isFeatureEnabled(feature);
-      const variables = optimizely.getFeatureVariables(feature);
-      this.setState({
-        canRender: true,
-        isEnabled,
-        variables,
-      });
-
-      if (this.autoUpdate) {
-        this.setupAutoUpdateListeners();
-      }
-    });
-  }
-
-  setupAutoUpdateListeners() {
-    const { optimizely, feature } = this.props;
-    if (optimizely === null) {
-      return;
-    }
-
-    this.optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
-      'OPTIMIZELY_CONFIG_UPDATE',
-      () => {
-        logger.info('OPTIMIZELY_CONFIG_UPDATE, re-evaluating feature="%s" for user="%s"', feature, optimizely.user.id);
-        const isEnabled = optimizely.isFeatureEnabled(feature);
-        const variables = optimizely.getFeatureVariables(feature);
-        this.setState({
-          isEnabled,
-          variables,
-        });
-      }
-    );
-
-    this.unregisterUserListener = optimizely.onUserUpdate(() => {
-      logger.info('User update, re-evaluating feature="%s" for user="%s"', feature, optimizely.user.id);
-      const isEnabled = optimizely.isFeatureEnabled(feature);
-      const variables = optimizely.getFeatureVariables(feature);
-      this.setState({
-        isEnabled,
-        variables,
-      });
-    });
-  }
-
-  componentWillUnmount() {
-    const { optimizely, isServerSide } = this.props;
-    if (isServerSide || !this.autoUpdate) {
-      return;
-    }
-    if (optimizely && this.optimizelyNotificationId) {
-      optimizely.notificationCenter.removeNotificationListener(this.optimizelyNotificationId);
-    }
-    this.unregisterUserListener();
-  }
-
-  render() {
-    const { children } = this.props;
-    const { isEnabled, variables, canRender } = this.state;
-
-    if (!canRender) {
-      return null;
-    }
-
-    return children(isEnabled, variables);
-  }
-}
+  // Wrap the return value here in a Fragment to please the HOC's expected React.ComponentType
+  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
+  return <>{children(isEnabled, variables, clientReady, didTimeout)}</>;
+};
 
 export const OptimizelyFeature = withOptimizely(FeatureComponent);
