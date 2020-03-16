@@ -15,13 +15,18 @@
  */
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { UserAttributes } from '@optimizely/optimizely-sdk';
-import { getLogger } from '@optimizely/js-sdk-logging';
+import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { VariableValuesObject, OnReadyResult } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
 
 const useFeatureLogger = getLogger('useFeature');
+
+enum HookType {
+  EXPERIMENT = 'experiment',
+  FEATURE = 'feature',
+}
 
 type UseFeatureState = {
   isEnabled: boolean;
@@ -51,6 +56,68 @@ interface UseFeature {
 }
 
 /**
+ * A function which waits for the optimizely client instance passed to become
+ * ready and then sets up initial state and (optionally) autoUpdate listeners
+ * for the hook type specified.
+ */
+const initializeWhenClientReadyFn = (
+  type: HookType,
+  name: string,
+  optimizely: ReactSDKClient,
+  options: UseFeatureOptions,
+  logger: LoggerFacade,
+  timeout: number | undefined,
+  setDidTimeout: (val: boolean) => void,
+  setClientReady: (val: boolean) => void,
+  setData: (val: UseFeatureState) => void,
+  getCurrentValues: () => UseFeatureState
+): (() => void) => {
+  return (): (() => void) => {
+    const cleanupFns: Array<() => void> = [];
+    const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
+
+    optimizely
+      .onReady({ timeout: finalReadyTimeout })
+      .then((res: OnReadyResult) => {
+        if (res.success) {
+          // didTimeout=false
+          logger.info(`${type}="${name}" successfully set for user="${optimizely.user.id}"`);
+          return;
+        }
+        setDidTimeout(true);
+        logger.info(`${type}="${name}" could not be set before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
+        // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
+        return res.dataReadyPromise!.then(() => {
+          logger.info(`${type}="${name}" is now set, but after timeout.`);
+        });
+      })
+      .then(() => {
+        setClientReady(true);
+        setData(getCurrentValues());
+        if (options.autoUpdate) {
+          cleanupFns.push(
+            setupAutoUpdateListeners(optimizely, type, name, logger, () => {
+              if (cleanupFns.length) {
+                setData(getCurrentValues());
+              }
+            })
+          );
+        }
+      })
+      .catch(() => {
+        /* The user promise or core client promise rejected. */
+        logger.error(`Error initializing client. The core client or user promise(s) rejected.`);
+      });
+
+    return (): void => {
+      while (cleanupFns.length) {
+        cleanupFns.shift()!();
+      }
+    };
+  };
+};
+
+/**
  * A React Hook that retrieves the status of a feature flag and its variables, optionally
  * auto updating those values based on underlying user or datafile changes.
  *
@@ -62,7 +129,6 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
-  const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
 
   // Helper function to return the current values for isEnabled and variables.
   const getCurrentValues = useCallback(
@@ -84,51 +150,21 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   const [clientReady, setClientReady] = useState(isServerSide ? true : false);
   const [didTimeout, setDidTimeout] = useState(false);
 
-  useEffect(() => {
-    const cleanupFns: Array<() => void> = [];
-
-    optimizely
-      .onReady({ timeout: finalReadyTimeout })
-      .then((res: OnReadyResult) => {
-        if (res.success) {
-          // didTimeout=false
-          useFeatureLogger.info(`feature="${featureKey}" successfully set for user="${optimizely.user.id}"`);
-          return;
-        }
-        setDidTimeout(true);
-        useFeatureLogger.info(
-          `feature="${featureKey}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason ||
-            ''}"`
-        );
-        // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
-        return res.dataReadyPromise!.then(() => {
-          useFeatureLogger.info(`feature="${featureKey}" is now set, but after timeout.`);
-        });
-      })
-      .then(() => {
-        setClientReady(true);
-        setData(getCurrentValues());
-        if (options.autoUpdate) {
-          cleanupFns.push(
-            setupAutoUpdateListeners(optimizely, 'feature', featureKey, useFeatureLogger, () => {
-              if (cleanupFns.length) {
-                setData(getCurrentValues());
-              }
-            })
-          );
-        }
-      })
-      .catch(() => {
-        /* The user promise or core client promise rejected. */
-        useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
-      });
-
-    return () => {
-      while (cleanupFns.length) {
-        cleanupFns.shift()!();
-      }
-    };
-  }, [optimizely]);
+  useEffect(
+    initializeWhenClientReadyFn(
+      HookType.FEATURE,
+      featureKey,
+      optimizely,
+      options,
+      useFeatureLogger,
+      timeout,
+      setDidTimeout,
+      setClientReady,
+      setData,
+      getCurrentValues
+    ),
+    [optimizely]
+  );
 
   return [data.isEnabled, data.variables, clientReady, didTimeout];
 };
