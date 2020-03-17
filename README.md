@@ -332,7 +332,7 @@ import { useEffect } from 'react';
 import { useExperiment } from '@optimizely/react-sdk';
 
 function LoginComponent() {
-  const [variation, clientReady] = useFeature(
+  const [variation, clientReady] = useExperiment(
     'experiment1',
     { autoUpdate: true },
     {

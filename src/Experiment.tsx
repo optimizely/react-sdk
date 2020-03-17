@@ -24,7 +24,7 @@ import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
 export type ChildrenRenderFunction = (variableValues: VariableValuesObject) => React.ReactNode;
 
-type ChildRenderFunction = (variation: string | null, clientReady: boolean, didTimeout: boolean) => React.ReactNode;
+type ChildRenderFunction = (variation: string | null, clientReady?: boolean, didTimeout?: boolean) => React.ReactNode;
 
 export interface ExperimentProps extends WithOptimizelyProps {
   // TODO add support for overrideUserId
@@ -36,13 +36,8 @@ export interface ExperimentProps extends WithOptimizelyProps {
   children: React.ReactNode | ChildRenderFunction;
 }
 
-export interface ExperimentState {
-  canRender: boolean;
-  variation: string | null;
-}
-
 const Experiment: React.FunctionComponent<ExperimentProps> = props => {
-  const { experiment, timeout, autoUpdate, children, overrideUserId, overrideAttributes } = props;
+  const { experiment, autoUpdate, timeout, overrideUserId, overrideAttributes, children } = props;
   const [variation, clientReady, didTimeout] = useExperiment(
     experiment,
     { timeout, autoUpdate },
