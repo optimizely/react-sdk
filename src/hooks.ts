@@ -101,7 +101,7 @@ const initializeWhenClientReadyFn = (
           logger.info(`${type}="${name}" successfully set for user="${optimizely.user.id}"`);
           return;
         }
-        setState((state: HookState) => Object.assign({}, state, { didTimeout: true }));
+        setState((state: HookState) => ({ ...state, didTimeout: true }));
         logger.info(`${type}="${name}" could not be set before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
         // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
         return res.dataReadyPromise!.then(() => {
@@ -109,12 +109,12 @@ const initializeWhenClientReadyFn = (
         });
       })
       .then(() => {
-        setState((state: HookState) => Object.assign({}, state, { clientReady: true }, getCurrentDecisionValues()));
+        setState((state: HookState) => ({ ...state, ...getCurrentDecisionValues(), clientReady: true }));
         if (options.autoUpdate) {
           cleanupFns.push(
             setupAutoUpdateListeners(optimizely, type, name, logger, () => {
               if (cleanupFns.length) {
-                setState((state: HookState) => Object.assign({}, state, getCurrentDecisionValues()));
+                setState((state: HookState) => ({ ...state, ...getCurrentDecisionValues() }));
               }
             })
           );
@@ -164,7 +164,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
       didTimeout: false,
     };
     if (isServerSide) {
-      return Object.assign(initialState, getCurrentValues());
+      return { ...initialState, ...getCurrentValues() };
     }
     return initialState;
   });
