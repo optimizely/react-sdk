@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Refactored `<OptimizelyFeature>` to a functional component that uses the `useFeature` hook under the hood. See [#32](https://github.com/optimizely/react-sdk/pull/32) for more details.
 
+- Refactored `<OptimizelyExperiment>` to a functional component that uses the `useExperiment` hook under the hood. See [#36](https://github.com/optimizely/react-sdk/pull/36) for more details.
+
+- Added `useExperiment` hook
+  - Can be used to retrieve the variation for an experiment. See [#36](https://github.com/optimizely/react-sdk/pull/36) for more details.
+
 ### New Features
 
 - Added `useFeature` hook
