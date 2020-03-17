@@ -21,7 +21,7 @@ import { ReactSDKClient } from './client';
 interface AutoUpdate {
   (
     optimizely: ReactSDKClient,
-    type: 'feature' | 'experiment',
+    type: 'Feature' | 'Experiment',
     value: string,
     logger: LoggerFacade,
     callback: () => void
@@ -41,7 +41,7 @@ export const setupAutoUpdateListeners: AutoUpdate = (optimizely, type, value, lo
       callback();
     }
   );
-  const unregisterConfigUpdateListener = () =>
+  const unregisterConfigUpdateListener: () => void = () =>
     optimizely.notificationCenter.removeNotificationListener(optimizelyNotificationId);
 
   const unregisterUserListener = optimizely.onUserUpdate(() => {
@@ -49,7 +49,7 @@ export const setupAutoUpdateListeners: AutoUpdate = (optimizely, type, value, lo
     callback();
   });
 
-  return () => {
+  return (): void => {
     unregisterConfigUpdateListener();
     unregisterUserListener();
   };
