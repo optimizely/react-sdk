@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
+
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
@@ -21,33 +22,51 @@ import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
 
-const useFeatureLogger = getLogger('useFeature');
-
 enum HookType {
-  EXPERIMENT = 'experiment',
-  FEATURE = 'feature',
+  EXPERIMENT = 'Experiment',
+  FEATURE = 'Feature',
 }
 
-type UseFeatureState = {
-  isEnabled: boolean;
-  variables: VariableValuesObject;
-};
-
-type ClientReady = boolean;
-type DidTimeout = boolean;
-
-type UseFeatureOptions = {
+type HookOptions = {
   autoUpdate?: boolean;
   timeout?: number;
 };
 
-type UseFeatureOverrides = {
+type HookOverrides = {
   overrideUserId?: string;
   overrideAttributes?: UserAttributes;
 };
 
+type ClientReady = boolean;
+
+type DidTimeout = boolean;
+
+interface HookStateBase {
+  clientReady: ClientReady;
+  didTimeout: DidTimeout;
+}
+
+// TODO - Get these from the core SDK once it's typed
+interface ExperimentDecisionValues {
+  variation: string | null;
+}
+
+// TODO - Get these from the core SDK once it's typed
+interface FeatureDecisionValues {
+  isEnabled: boolean;
+  variables: VariableValuesObject;
+}
+
+interface UseExperimentState extends HookStateBase, ExperimentDecisionValues {}
+
+interface UseFeatureState extends HookStateBase, FeatureDecisionValues {}
+
+type HookState = UseExperimentState | UseFeatureState;
+
+type CurrentDecisionValues = ExperimentDecisionValues | FeatureDecisionValues;
+
 interface UseFeature {
-  (featureKey: string, options?: UseFeatureOptions, overrides?: UseFeatureOverrides): [
+  (featureKey: string, options?: HookOptions, overrides?: HookOverrides): [
     UseFeatureState['isEnabled'],
     UseFeatureState['variables'],
     ClientReady,
@@ -64,17 +83,15 @@ const initializeWhenClientReadyFn = (
   type: HookType,
   name: string,
   optimizely: ReactSDKClient,
-  options: UseFeatureOptions,
-  logger: LoggerFacade,
+  options: HookOptions,
   timeout: number | undefined,
-  setDidTimeout: (val: boolean) => void,
-  setClientReady: (val: boolean) => void,
-  setData: (val: UseFeatureState) => void,
-  getCurrentValues: () => UseFeatureState
-): (() => void) => {
+  setState: Dispatch<SetStateAction<HookState>>,
+  getCurrentDecisionValues: () => CurrentDecisionValues
+): EffectCallback => {
   return (): (() => void) => {
     const cleanupFns: Array<() => void> = [];
     const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
+    const logger: LoggerFacade = getLogger(`use${type}`);
 
     optimizely
       .onReady({ timeout: finalReadyTimeout })
@@ -84,7 +101,7 @@ const initializeWhenClientReadyFn = (
           logger.info(`${type}="${name}" successfully set for user="${optimizely.user.id}"`);
           return;
         }
-        setDidTimeout(true);
+        setState((state: HookState) => Object.assign({}, state, { didTimeout: true }));
         logger.info(`${type}="${name}" could not be set before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
         // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
         return res.dataReadyPromise!.then(() => {
@@ -92,13 +109,12 @@ const initializeWhenClientReadyFn = (
         });
       })
       .then(() => {
-        setClientReady(true);
-        setData(getCurrentValues());
+        setState((state: HookState) => Object.assign({}, state, { clientReady: true }, getCurrentDecisionValues()));
         if (options.autoUpdate) {
           cleanupFns.push(
             setupAutoUpdateListeners(optimizely, type, name, logger, () => {
               if (cleanupFns.length) {
-                setData(getCurrentValues());
+                setState((state: HookState) => Object.assign({}, state, getCurrentDecisionValues()));
               }
             })
           );
@@ -131,7 +147,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }
 
   // Helper function to return the current values for isEnabled and variables.
-  const getCurrentValues = useCallback(
+  const getCurrentValues = useCallback<() => FeatureDecisionValues>(
     () => ({
       isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
       variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
@@ -140,31 +156,23 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   );
 
   // Set the initial state immediately serverSide
-  const [data, setData] = useState<UseFeatureState>(() => {
+  const [state, setState] = useState<UseFeatureState>(() => {
+    const initialState = {
+      isEnabled: false,
+      variables: {},
+      clientReady: isServerSide ? true : false,
+      didTimeout: false,
+    };
     if (isServerSide) {
-      return getCurrentValues();
+      return Object.assign(initialState, getCurrentValues());
     }
-    return { isEnabled: false, variables: {} };
+    return initialState;
   });
 
-  const [clientReady, setClientReady] = useState(isServerSide ? true : false);
-  const [didTimeout, setDidTimeout] = useState(false);
-
   useEffect(
-    initializeWhenClientReadyFn(
-      HookType.FEATURE,
-      featureKey,
-      optimizely,
-      options,
-      useFeatureLogger,
-      timeout,
-      setDidTimeout,
-      setClientReady,
-      setData,
-      getCurrentValues
-    ),
+    initializeWhenClientReadyFn(HookType.FEATURE, featureKey, optimizely, options, timeout, setState, getCurrentValues),
     [optimizely]
   );
 
-  return [data.isEnabled, data.variables, clientReady, didTimeout];
+  return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
