@@ -26,7 +26,7 @@ import { OptimizelyFeature } from './Feature';
 describe('<OptimizelyFeature>', () => {
   let resolver: any;
   let optimizelyMock: ReactSDKClient;
-  const isEnabled = true;
+  const isEnabledMock = true;
   const featureVariables = {
     foo: 'bar',
   };
@@ -42,7 +42,7 @@ describe('<OptimizelyFeature>', () => {
     optimizelyMock = ({
       onReady: jest.fn().mockImplementation(config => onReadyPromise),
       getFeatureVariables: jest.fn().mockImplementation(() => featureVariables),
-      isFeatureEnabled: jest.fn().mockImplementation(() => isEnabled),
+      isFeatureEnabled: jest.fn().mockImplementation(() => isEnabledMock),
       onUserUpdate: jest.fn().mockImplementation(handler => () => {}),
       notificationCenter: {
         addNotificationListener: jest.fn().mockImplementation((type, handler) => {}),
