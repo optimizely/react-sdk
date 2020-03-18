@@ -20,18 +20,20 @@ import { VariableValuesObject } from './client';
 import { useFeature } from './hooks';
 import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
+export type ChildrenRenderFunction = (
+  isEnabled: boolean,
+  variables: VariableValuesObject,
+  clientReady: boolean,
+  didTimeout: boolean
+) => React.ReactNode;
+
 export interface FeatureProps extends WithOptimizelyProps {
   feature: string;
   timeout?: number;
   autoUpdate?: boolean;
   overrideUserId?: string;
   overrideAttributes?: UserAttributes;
-  children: (
-    isEnabled: boolean,
-    variables: VariableValuesObject,
-    clientReady: boolean,
-    didTimeout: boolean
-  ) => React.ReactNode;
+  children: ChildrenRenderFunction;
 }
 
 const FeatureComponent: React.FunctionComponent<FeatureProps> = props => {

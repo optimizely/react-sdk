@@ -72,13 +72,13 @@ describe('<OptimizelyExperiment>', () => {
       expect(optimizelyMock.onReady).toHaveBeenCalledWith({ timeout: 100 });
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
-      resolver.resolve({ sucess: true });
+      resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();
 
       component.update();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
       expect(component.text()).toBe(variationKey);
     });
 
@@ -94,11 +94,11 @@ describe('<OptimizelyExperiment>', () => {
       expect(optimizelyMock.onReady).toHaveBeenCalledWith({ timeout: 200 });
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
-      resolver.resolve({ sucess: true });
+      resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
     });
 
     it(`should use the Experiment prop's timeout when there is no timeout passed to <Provider>`, async () => {
@@ -117,7 +117,7 @@ describe('<OptimizelyExperiment>', () => {
 
       await optimizelyMock.onReady();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
     });
 
     it('should render using <OptimizelyVariation> when the variationKey matches', async () => {
@@ -182,7 +182,55 @@ describe('<OptimizelyExperiment>', () => {
       expect(component.text()).toBe('');
     });
 
-    describe('when the onReady() promise return { sucess: false }', () => {
+    it('should pass the override props through', async () => {
+      const component = mount(
+        <OptimizelyProvider optimizely={optimizelyMock} timeout={100}>
+          <OptimizelyExperiment
+            experiment="experiment1"
+            overrideUserId="james123"
+            overrideAttributes={{ betaUser: true }}
+          >
+            {variation => variation}
+          </OptimizelyExperiment>
+        </OptimizelyProvider>
+      );
+
+      expect(optimizelyMock.onReady).toHaveBeenCalledWith({ timeout: 100 });
+      // while it's waiting for onReady()
+      expect(component.text()).toBe('');
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      component.update();
+
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', 'james123', { betaUser: true });
+
+      expect(component.text()).toBe('variationResult');
+    });
+
+    it('should pass the values for clientReady and didTimeout', async () => {
+      const component = mount(
+        <OptimizelyProvider optimizely={optimizelyMock} timeout={100}>
+          <OptimizelyExperiment experiment="experiment1">
+            {(variation, clientReady, didTimeout) => `${variation}|${clientReady}|${didTimeout}`}
+          </OptimizelyExperiment>
+        </OptimizelyProvider>
+      );
+
+      // while it's waiting for onReady()
+      expect(component.text()).toBe('');
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      component.update();
+
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
+      expect(component.text()).toBe('variationResult|true|false');
+    });
+
+    describe('when the onReady() promise return { success: false }', () => {
       it('should still render', async () => {
         const component = mount(
           <OptimizelyProvider optimizely={optimizelyMock}>
@@ -223,7 +271,7 @@ describe('<OptimizelyExperiment>', () => {
 
       component.update();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
 
       expect(component.text()).toBe('variationResult');
 
@@ -238,7 +286,7 @@ describe('<OptimizelyExperiment>', () => {
 
       component.update();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
       expect(component.text()).toBe('newVariation');
     });
 
@@ -260,7 +308,7 @@ describe('<OptimizelyExperiment>', () => {
 
       component.update();
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
 
       expect(component.text()).toBe('variationResult');
 
@@ -274,7 +322,7 @@ describe('<OptimizelyExperiment>', () => {
 
       expect(optimizelyMock.activate).toBeCalledTimes(2);
 
-      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1');
+      expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
       expect(component.text()).toBe('newVariation');
     });
   });

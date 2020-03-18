@@ -14,167 +14,68 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
+
+import { UserAttributes } from '@optimizely/optimizely-sdk';
+
+import { useExperiment } from './hooks';
 import { VariationProps } from './Variation';
-import { VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client';
-import * as logging from '@optimizely/js-sdk-logging';
+import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
-const logger = logging.getLogger('<OptimizelyExperiment>');
-
-export type ChildrenRenderFunction = (variableValues: VariableValuesObject) => React.ReactNode;
-
-type ChildRenderFunction = (variation: string | null) => React.ReactNode;
+export type ChildrenRenderFunction = (
+  variation: string | null,
+  clientReady?: boolean,
+  didTimeout?: boolean
+) => React.ReactNode;
 
 export interface ExperimentProps extends WithOptimizelyProps {
   // TODO add support for overrideUserId
   experiment: string;
   autoUpdate?: boolean;
   timeout?: number;
-  children: React.ReactNode | ChildRenderFunction;
+  overrideUserId?: string;
+  overrideAttributes?: UserAttributes;
+  children: React.ReactNode | ChildrenRenderFunction;
 }
 
-export interface ExperimentState {
-  canRender: boolean;
-  variation: string | null;
-}
+const Experiment: React.FunctionComponent<ExperimentProps> = props => {
+  const { experiment, autoUpdate, timeout, overrideUserId, overrideAttributes, children } = props;
+  const [variation, clientReady, didTimeout] = useExperiment(
+    experiment,
+    { timeout, autoUpdate },
+    { overrideUserId, overrideAttributes }
+  );
 
-export class Experiment extends React.Component<ExperimentProps, ExperimentState> {
-  private optimizelyNotificationId?: number;
-  private unregisterUserListener: () => void = () => {};
-  private autoUpdate = false;
-
-  constructor(props: ExperimentProps) {
-    super(props);
-
-    const { autoUpdate, isServerSide, optimizely, experiment } = props;
-    this.autoUpdate = !!autoUpdate;
-
-    if (isServerSide) {
-      if (!optimizely) {
-        throw new Error('optimizely prop must be supplied');
-      }
-      const variation = optimizely.activate(experiment);
-      this.state = {
-        canRender: true,
-        variation,
-      };
-    } else {
-      this.state = {
-        canRender: false,
-        variation: null,
-      };
-    }
+  if (!clientReady && !didTimeout) {
+    // Only block rendering while were waiting for the client within the allowed timeout.
+    return null;
   }
 
-  componentDidMount() {
-    const { experiment, optimizely, optimizelyReadyTimeout, isServerSide, timeout } = this.props;
-    if (!optimizely) {
-      throw new Error('optimizely prop must be supplied');
-    }
-    if (isServerSide) {
+  if (children != null && typeof children === 'function') {
+    // Wrap the return value here in a Fragment to please the HOC's expected React.ComponentType
+    // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
+    return <>{(children as ChildrenRenderFunction)(variation, clientReady, didTimeout)}</>;
+  }
+
+  let match: React.ReactElement<VariationProps> | null = null;
+
+  // We use React.Children.forEach instead of React.Children.toArray().find()
+  // here because toArray adds keys to all child elements and we do not want
+  // to trigger an unmount/remount
+  React.Children.forEach(children, (child: React.ReactElement<VariationProps>) => {
+    if (match || !React.isValidElement(child)) {
       return;
     }
 
-    // allow overriding of the ready timeout via the `timeout` prop passed to <Experiment />
-    const finalReadyTimeout: number | undefined = timeout !== undefined ? timeout : optimizelyReadyTimeout;
-
-    optimizely.onReady({ timeout: finalReadyTimeout }).then((res: OnReadyResult) => {
-      if (res.success) {
-        logger.info('experiment="%s" successfully rendered for user="%s"', experiment, optimizely.user.id);
-      } else {
-        logger.info(
-          'experiment="%s" could not be checked before timeout of %sms, reason="%s" ',
-          experiment,
-          timeout === undefined ? DEFAULT_ON_READY_TIMEOUT : timeout,
-          res.reason || ''
-        );
-      }
-
-      const variation = optimizely.activate(experiment);
-      this.setState({
-        canRender: true,
-        variation,
-      });
-      if (this.autoUpdate) {
-        this.setupAutoUpdateListeners();
-      }
-    });
-  }
-
-  setupAutoUpdateListeners() {
-    const { optimizely, experiment } = this.props;
-    if (optimizely === null) {
-      return;
-    }
-
-    this.optimizelyNotificationId = optimizely.notificationCenter.addNotificationListener(
-      'OPTIMIZELY_CONFIG_UPDATE',
-      () => {
-        logger.info(
-          'OPTIMIZELY_CONFIG_UPDATE, re-evaluating experiment="%s" for user="%s"',
-          experiment,
-          optimizely.user.id
-        );
-        const variation = optimizely.activate(experiment);
-        this.setState({
-          variation,
-        });
-      }
-    );
-
-    this.unregisterUserListener = optimizely.onUserUpdate(() => {
-      logger.info('User update, re-evaluating experiment="%s" for user="%s"', experiment, optimizely.user.id);
-      const variation = optimizely.activate(experiment);
-      this.setState({
-        variation,
-      });
-    });
-  }
-
-  componentWillUnmount() {
-    const { optimizely, isServerSide } = this.props;
-    if (isServerSide || !this.autoUpdate) {
-      return;
-    }
-    if (optimizely && this.optimizelyNotificationId) {
-      optimizely.notificationCenter.removeNotificationListener(this.optimizelyNotificationId);
-    }
-    this.unregisterUserListener();
-  }
-
-  render() {
-    const { children } = this.props;
-    const { variation, canRender } = this.state;
-
-    if (!canRender) {
-      return null;
-    }
-
-    if (children != null && typeof children === 'function') {
-      return (children as ChildRenderFunction)(variation);
-    }
-
-    let match: React.ReactElement<VariationProps> | null = null;
-
-    // We use React.Children.forEach instead of React.Children.toArray().find()
-    // here because toArray adds keys to all child elements and we do not want
-    // to trigger an unmount/remount
-    React.Children.forEach(this.props.children, (child: React.ReactElement<VariationProps>) => {
-      if (match || !React.isValidElement(child)) {
-        return;
-      }
-
-      if (child.props.variation) {
-        if (variation === child.props.variation) {
-          match = child;
-        }
-      } else if (child.props.default) {
+    if (child.props.variation) {
+      if (variation === child.props.variation) {
         match = child;
       }
-    });
+    } else if (child.props.default) {
+      match = child;
+    }
+  });
 
-    return match ? React.cloneElement(match, { variation: variation }) : null;
-  }
-}
+  return match ? React.cloneElement(match, { variation }) : null;
+};
 
 export const OptimizelyExperiment = withOptimizely(Experiment);

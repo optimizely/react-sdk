@@ -65,6 +65,14 @@ type HookState = UseExperimentState | UseFeatureState;
 
 type CurrentDecisionValues = ExperimentDecisionValues | FeatureDecisionValues;
 
+interface UseExperiment {
+  (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
+    UseExperimentState['variation'],
+    ClientReady,
+    DidTimeout
+  ];
+}
+
 interface UseFeature {
   (featureKey: string, options?: HookOptions, overrides?: HookOverrides): [
     UseFeatureState['isEnabled'],
@@ -131,6 +139,56 @@ const initializeWhenClientReadyFn = (
       }
     };
   };
+};
+
+/**
+ * A React Hook that retrieves the variation for an experiment, optionally
+ * auto updating that value based on underlying user or datafile changes.
+ *
+ * Note: The react client can become ready AFTER the timeout period.
+ *       ClientReady and DidTimeout provide signals to handle this scenario.
+ */
+export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
+  const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
+  if (!optimizely) {
+    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  }
+
+  // Helper function to return the current value for variation.
+  const getCurrentValues = useCallback<() => ExperimentDecisionValues>(
+    () => ({
+      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
+    }),
+    [experimentKey, overrides]
+  );
+
+  // Set the initial state immediately serverSide
+  const [state, setState] = useState<UseExperimentState>(() => {
+    const initialState = {
+      variation: null,
+      clientReady: isServerSide ? true : false,
+      didTimeout: false,
+    };
+    if (isServerSide) {
+      return { ...initialState, ...getCurrentValues() };
+    }
+    return initialState;
+  });
+
+  useEffect(
+    initializeWhenClientReadyFn(
+      HookType.EXPERIMENT,
+      experimentKey,
+      optimizely,
+      options,
+      timeout,
+      setState,
+      getCurrentValues
+    ),
+    [optimizely]
+  );
+
+  return [state.variation, state.clientReady, state.didTimeout];
 };
 
 /**
