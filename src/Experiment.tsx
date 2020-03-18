@@ -19,12 +19,13 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 import { useExperiment } from './hooks';
 import { VariationProps } from './Variation';
-import { VariableValuesObject } from './client';
 import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
-export type ChildrenRenderFunction = (variableValues: VariableValuesObject) => React.ReactNode;
-
-type ChildRenderFunction = (variation: string | null, clientReady?: boolean, didTimeout?: boolean) => React.ReactNode;
+export type ChildrenRenderFunction = (
+  variation: string | null,
+  clientReady?: boolean,
+  didTimeout?: boolean
+) => React.ReactNode;
 
 export interface ExperimentProps extends WithOptimizelyProps {
   // TODO add support for overrideUserId
@@ -33,7 +34,7 @@ export interface ExperimentProps extends WithOptimizelyProps {
   timeout?: number;
   overrideUserId?: string;
   overrideAttributes?: UserAttributes;
-  children: React.ReactNode | ChildRenderFunction;
+  children: React.ReactNode | ChildrenRenderFunction;
 }
 
 const Experiment: React.FunctionComponent<ExperimentProps> = props => {
@@ -52,7 +53,7 @@ const Experiment: React.FunctionComponent<ExperimentProps> = props => {
   if (children != null && typeof children === 'function') {
     // Wrap the return value here in a Fragment to please the HOC's expected React.ComponentType
     // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
-    return <>{(children as ChildRenderFunction)(variation, clientReady, didTimeout)}</>;
+    return <>{(children as ChildrenRenderFunction)(variation, clientReady, didTimeout)}</>;
   }
 
   let match: React.ReactElement<VariationProps> | null = null;
