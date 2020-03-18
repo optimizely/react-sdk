@@ -16,15 +16,13 @@
 import * as React from 'react';
 
 export type VariationProps = {
-  variation?: any;
+  variation?: string;
   default?: any;
   children?: React.ReactNode;
 };
 
-class Variation extends React.Component<VariationProps, {}> {
-  render() {
-    return this.props.children;
-  }
-}
+// Wrap the return value here in a Fragment to please the HOC's expected React.ComponentType
+// See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/18051
+const Variation: React.FunctionComponent<VariationProps> = ({ children }) => <>{children}</>;
 
 export const OptimizelyVariation = Variation;
