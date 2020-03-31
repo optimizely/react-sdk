@@ -26,7 +26,7 @@ export type ChildrenRenderFunction = (
   didTimeout?: boolean
 ) => React.ReactNode;
 
-export interface ExperimentProps  {
+export interface ExperimentProps {
   // TODO add support for overrideUserId
   experiment: string;
   autoUpdate?: boolean;
