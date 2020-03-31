@@ -19,7 +19,6 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 import { useExperiment } from './hooks';
 import { VariationProps } from './Variation';
-import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
 export type ChildrenRenderFunction = (
   variation: string | null,
@@ -27,7 +26,7 @@ export type ChildrenRenderFunction = (
   didTimeout?: boolean
 ) => React.ReactNode;
 
-export interface ExperimentProps extends WithOptimizelyProps {
+export interface ExperimentProps  {
   // TODO add support for overrideUserId
   experiment: string;
   autoUpdate?: boolean;
@@ -78,4 +77,4 @@ const Experiment: React.FunctionComponent<ExperimentProps> = props => {
   return match ? React.cloneElement(match, { variation }) : null;
 };
 
-export const OptimizelyExperiment = withOptimizely(Experiment);
+export const OptimizelyExperiment = Experiment;
