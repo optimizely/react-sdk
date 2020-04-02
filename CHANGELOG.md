@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.0-alpha.2] - April 2nd, 2020
+
 ### Breaking Changes
 
 - Upgrade `@optimizely/optimizely-sdk` to 4.0.0-alpha.1. `Promise` polyfill no longer included. See [@optimizely/optimizely-sdk Release 4.0.0-alpha.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.0.0-alpha.1) for more details.
