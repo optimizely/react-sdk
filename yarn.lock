@@ -63,19 +63,17 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@3.6.0-alpha.1":
-  version "3.6.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-3.6.0-alpha.1.tgz#fa1aa8880954a96ffd6f732810bacb0a7ffd45e6"
-  integrity sha512-AxY8iykT4R4n/2HcgQcSE7CUeQEd89hGnyMPgyo49FKzPKQTC1ldmIcHu+zwr7jmmxwEqCIsBGWkzl5aR+93QQ==
+"@optimizely/optimizely-sdk@4.0.0-alpha.1":
+  version "4.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.0.0-alpha.1.tgz#a0b95e901b690afe455baeb08d0cee3f92574eb5"
+  integrity sha512-x6+zMbwz5co4G8ixkOu7jBpYBaJDKlYGliNXvFPRzDqWGLzTe51eKt3C+60SaGDO/nAFryzGhBM8RD3EFI0BMw==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.4.0"
     "@optimizely/js-sdk-event-processor" "^0.4.0"
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.2.0"
     json-schema "^0.2.3"
-    lodash "^4.17.11"
     murmurhash "0.0.2"
-    promise-polyfill "8.1.0"
     uuid "^3.3.2"
 
 "@types/cheerio@*":
@@ -3750,11 +3748,6 @@ progress@^2.0.0:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
-
-promise-polyfill@8.1.0:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-8.1.0.tgz#30059da54d1358ce905ac581f287e184aedf995d"
-  integrity sha512-OzSf6gcCUQ01byV4BgwyUCswlaQQ6gzXc23aLQWhicvfX9kfsUiUhgt3CCQej8jDnl8/PhGF31JdHX2/MzF3WA==
 
 prompts@^0.1.9:
   version "0.1.14"
