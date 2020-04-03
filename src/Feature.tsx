@@ -18,7 +18,6 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 import { VariableValuesObject } from './client';
 import { useFeature } from './hooks';
-import { withOptimizely, WithOptimizelyProps } from './withOptimizely';
 
 export type ChildrenRenderFunction = (
   isEnabled: boolean,
@@ -27,7 +26,7 @@ export type ChildrenRenderFunction = (
   didTimeout: boolean
 ) => React.ReactNode;
 
-export interface FeatureProps extends WithOptimizelyProps {
+export interface FeatureProps {
   feature: string;
   timeout?: number;
   autoUpdate?: boolean;
@@ -54,4 +53,4 @@ const FeatureComponent: React.FunctionComponent<FeatureProps> = props => {
   return <>{children(isEnabled, variables, clientReady, didTimeout)}</>;
 };
 
-export const OptimizelyFeature = withOptimizely(FeatureComponent);
+export const OptimizelyFeature = FeatureComponent;

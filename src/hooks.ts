@@ -110,7 +110,9 @@ const initializeWhenClientReadyFn = (
           return;
         }
         setState((state: HookState) => ({ ...state, didTimeout: true }));
-        logger.info(`${type}="${name}" could not be set before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
+        logger.info(
+          `${type}="${name}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
+        );
         // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
         return res.dataReadyPromise!.then(() => {
           logger.info(`${type}="${name}" is now set, but after timeout.`);
