@@ -31,8 +31,7 @@ jobs:
     - stage: 'Test'
       os: linux
       language: node_js
-      node_js:
-        - 10
+      node_js: 10
       install: yarn
       script: yarn test
       addons:
