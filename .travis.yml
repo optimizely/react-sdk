@@ -4,6 +4,7 @@ os: linux
 stages:
   - 'Lint markdown files'
   - 'Test'
+  - 'Publish'
 
 jobs:
   include:
@@ -36,3 +37,29 @@ jobs:
       script: yarn test
       addons:
         srcclr: true
+
+    - stage: 'Publish'
+      if: type = push AND tag IS present AND tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+/
+      name: publish github release
+      os: linux
+      language: minimal
+      before_install:
+        - set -e
+        - |
+          mkdir $HOME/travisci-tools
+          pushd $HOME/travisci-tools
+          git init
+          git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git
+          popd
+      install:
+        # installs hub to ~/bin
+        - $HOME/travisci-tools/release_github/install_hub.sh
+        - export PATH=$HOME/bin:$PATH
+      script:
+        - set -e
+        - |
+          NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' ${CHANGELOG} | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+          [[ "${NEW_VERSION_CHECK}" != "${TRAVIS_TAG}" ]] && echo "ERROR: CHANGELOG.md needs to be updated" && exit 1
+          LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' ${CHANGELOG} | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+          DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
+          hub release create -m "Release ${TRAVIS_TAG}" -m "${DESCRIPTION}" "${TRAVIS_TAG}"
