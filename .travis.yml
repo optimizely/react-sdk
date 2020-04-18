@@ -38,22 +38,18 @@ jobs:
         srcclr: true
 
     - stage: 'Publish'
-      if: type = push AND tag IS present AND tag =~ /^v[0-9]+\.[0-9]+\.[0-9]+/
+      if: type = push AND tag IS present AND tag =~ /^[0-9]+\.[0-9]+\.[0-9]+/
       name: publish to github release
       os: linux
       language: minimal
       install:
         # installs hub to /tmp/bin
-        - set -e
-        - |
-          URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
-          curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
+        -  URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
+        -  curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
         - export PATH=/tmp/bin:$PATH
+        - hub version
       script:
-        - set -e
-        - |
-          NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' ${CHANGELOG} | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          [[ "${NEW_VERSION_CHECK}" != "${TRAVIS_TAG}" ]] && echo "ERROR: CHANGELOG.md needs to be updated" && exit 1
-          LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' ${CHANGELOG} | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
-          hub release create -m "Release ${TRAVIS_TAG}" -m "${DESCRIPTION}" "${TRAVIS_TAG}"
+        - NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+        - LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+        - DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
+        - hub release create -m "Release ${TRAVIS_TAG}" -m "${DESCRIPTION}" "${TRAVIS_TAG}"
