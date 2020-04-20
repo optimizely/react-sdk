@@ -26,13 +26,14 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@optimizely/js-sdk-datafile-manager@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.4.0.tgz#fe5e3cdf1f2b80260cd4727f12ae9b3524edc603"
-  integrity sha512-olkXopZBaf6CPOfd9AKFEPjJ422S0IRnPa8S7Xx6EVoXYFvi+ButzJLHbHopFnMfAxKYPPs3owAW6V5feGnaVQ==
+"@optimizely/js-sdk-datafile-manager@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.5.0.tgz#d6283ca3f8d2a60f30a6c300aaadf6a99cd9255e"
+  integrity sha512-ZDov8jphA+Ez+fA0anioA8ooJrraCFbeGm7GejzPTCZPMisNGtchrpdHr9TMd+hld+TOMBZ5NbqfMvvYhbB34A==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.1.0"
-    "@optimizely/js-sdk-utils" "^0.1.0"
+    "@optimizely/js-sdk-utils" "^0.2.0"
+    decompress-response "^4.2.1"
 
 "@optimizely/js-sdk-event-processor@^0.4.0":
   version "0.4.0"
@@ -63,12 +64,12 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@4.0.0-alpha.1":
-  version "4.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.0.0-alpha.1.tgz#a0b95e901b690afe455baeb08d0cee3f92574eb5"
-  integrity sha512-x6+zMbwz5co4G8ixkOu7jBpYBaJDKlYGliNXvFPRzDqWGLzTe51eKt3C+60SaGDO/nAFryzGhBM8RD3EFI0BMw==
+"@optimizely/optimizely-sdk@4.0.0-rc.1":
+  version "4.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.0.0-rc.1.tgz#ea918c58c6efb6f0dcf2ed579164fef2e6981194"
+  integrity sha512-uIH4kWRX+HVfyJogM0N8abG/yLzk+FdrT3Wrij0oqJJVCS50QFi2OFVgjJrbW3UhUkpg/Yo/HeXEkU4d2wIYyg==
   dependencies:
-    "@optimizely/js-sdk-datafile-manager" "^0.4.0"
+    "@optimizely/js-sdk-datafile-manager" "^0.5.0"
     "@optimizely/js-sdk-event-processor" "^0.4.0"
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.2.0"
@@ -1071,6 +1072,13 @@ decode-uri-component@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
   integrity sha1-6zkTMzRYd1y4TNGh+uBiEGu4dUU=
+
+decompress-response@^4.2.1:
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/decompress-response/-/decompress-response-4.2.1.tgz#414023cc7a302da25ce2ec82d0d5238ccafd8986"
+  integrity sha512-jOSne2qbyE+/r8G1VU+G/82LBs2Fs4LAsTiLSHOCOMZQl2OKZ6i8i4IyHemTe+/yIXOtTcRQMzPcgyhoFlqPkw==
+  dependencies:
+    mimic-response "^2.0.0"
 
 deep-extend@^0.6.0:
   version "0.6.0"
@@ -3160,6 +3168,11 @@ mimic-fn@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-2.1.0.tgz#7ed2c2ccccaf84d3ffcb7a69b57711fc2083401b"
   integrity sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==
+
+mimic-response@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-2.1.0.tgz#d13763d35f613d09ec37ebb30bac0469c0ee8f43"
+  integrity sha512-wXqjST+SLt7R009ySCglWBCFpjUygmCIfD790/kVbiGmUgfYGuB14PiTd5DwVxSV4NcYHjzMkoj5LjQZwTQLEA==
 
 minimatch@^3.0.3, minimatch@^3.0.4:
   version "3.0.4"

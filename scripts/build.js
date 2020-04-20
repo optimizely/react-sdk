@@ -37,22 +37,3 @@ exec(`./node_modules/.bin/rollup -c scripts/config.js -f es -o dist/${packageNam
 console.log("\nBuilding CommonJS modules...");
 
 exec(`./node_modules/.bin/rollup -c scripts/config.js -f cjs -o dist/${packageName}.js`);
-
-console.log("\nBuilding UMD modules...");
-
-
-exec(
-  `./node_modules/.bin/rollup -c scripts/config.js -f umd -n ${umdName} -o dist/${packageName}.browser.umd.js`,
-  {
-    EXTERNALS: "peers",
-    BUILD_ENV: "development"
-  }
-);
-
-exec(
-  `./node_modules/.bin/rollup -c scripts/config.js -f umd -n ${umdName} -o dist/${packageName}.browser.umd.min.js`,
-  {
-    EXTERNALS: "peers",
-    BUILD_ENV: "production"
-  }
-);

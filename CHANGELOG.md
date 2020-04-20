@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0-rc.1] - April 20th, 2020
+
+### Breaking Changes
+
+- Upgrade `@optimizely/optimizely-sdk` to 4.0.0-rc.1. Dropped support for Node.js version <8. See [@optimizely/optimizely-sdk Release 4.0.0-rc.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.0.0-rc.1) for more details.
+
 ## [2.0.0-alpha.2] - April 3rd, 2020
 
 ### Breaking Changes
