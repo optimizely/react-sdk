@@ -44,8 +44,8 @@ jobs:
       language: minimal
       install:
         # installs hub to /tmp/bin
-        -  URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
-        -  curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
+        - URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
+        - curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
         - export PATH=/tmp/bin:$PATH
         - hub version
       script:
