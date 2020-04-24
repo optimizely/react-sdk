@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0-rc.2] - April 24th, 2020
+
+### Bug Fixes
+
+- Upgrade `@optimizely/optimizely-sdk` to 4.0.0-rc.2. Allow creating multiple instances from the same datafile object. See [@optimizely/optimizely-sdk Release 4.0.0-rc.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.0.0-rc.2) for more details.
+
+
 ## [2.0.0-rc.1] - April 20th, 2020
 
 ### Breaking Changes
