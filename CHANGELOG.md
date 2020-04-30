@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0] - April 30th, 2020
+
+Upgrade `@optimizely/optimizely-sdk` to 4.0.0. See [@optimizely/optimizely-sdk Release 4.0.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.0.0) for more details.
+
+### New Features
+
+- Removed lodash dependency
+
+### Breaking Changes
+
+- Removed `Promise` polyfill from browser entry point ([417](https://github.com/optimizely/javascript-sdk/pull/417)).
+- Dropped support for Node.js version <8 ([#456](https://github.com/optimizely/javascript-sdk/pull/456))
+
 ## [2.0.0-rc.2] - April 24th, 2020
 
 ### Bug Fixes
