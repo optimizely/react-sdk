@@ -15,7 +15,7 @@ Upgrade `@optimizely/optimizely-sdk` to 4.0.0. See [@optimizely/optimizely-sdk R
 
 - Changed supported React version to 16.8+
 
-- @optimizely/optimizely-sdk no longer adds `Promise` polyill in its browser entry point
+- @optimizely/optimizely-sdk no longer adds `Promise` polyfill in its browser entry point
 
 - Dropped support for Node.js version <8
 
