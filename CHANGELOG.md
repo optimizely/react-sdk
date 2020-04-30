@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.0] - April 30th, 2020
+
+Upgrade `@optimizely/optimizely-sdk` to 4.0.0. See [@optimizely/optimizely-sdk Release 4.0.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.0.0) for more details.
+
+### Breaking Changes
+
+- Changed supported React version to 16.8+
+
+- @optimizely/optimizely-sdk no longer adds `Promise` polyfill in its browser entry point
+
+- Dropped support for Node.js version <8
+
+### New Features
+
+- Refactored `<OptimizelyFeature>` to a functional component that uses the `useFeature` hook under the hood. See [#32](https://github.com/optimizely/react-sdk/pull/32) for more details.
+
+- Refactored `<OptimizelyExperiment>` to a functional component that uses the `useExperiment` hook under the hood. See [#36](https://github.com/optimizely/react-sdk/pull/36) for more details.
+
+- Added `useExperiment` hook
+
+  - Can be used to retrieve the variation for an experiment. See [#36](https://github.com/optimizely/react-sdk/pull/36) for more details.
+
+- Added `useFeature` hook
+  - Can be used to retrieve the status of a feature flag and its variables. See [#28](https://github.com/optimizely/react-sdk/pull/28) for more details.
+
+- Removed lodash dependency
+
+### Enhancements
+
+- Exposed the entire context object used by `<OptimizelyProvider>`.
+  - Enables support for using APIs which require passing reference to a context object, like `useContext`. [#27](https://github.com/optimizely/react-sdk/pull/27) for more details.
+
+
 ## [2.0.0-rc.2] - April 24th, 2020
 
 ### Bug Fixes
