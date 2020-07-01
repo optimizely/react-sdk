@@ -38,6 +38,9 @@ describe('ReactSDKClient', () => {
       getForcedVariation: jest.fn(() => null),
       getFeatureVariableBoolean: jest.fn(() => null),
       getFeatureVariableDouble: jest.fn(() => null),
+      getFeatureVariableJson: jest.fn(() => null),
+      getAllFeatureVariables: jest.fn((): { [variableKey: string]: unknown } => { return {} }),
+      getFeatureVariable: jest.fn(() => null),
       getFeatureVariableInteger: jest.fn(() => null),
       getFeatureVariableString: jest.fn(() => null),
       getOptimizelyConfig: jest.fn(() => null),
@@ -358,6 +361,68 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getFeatureVariableDouble).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
       });
 
+      it('can use pre-set and override user for getFeatureVariableJson', () => {
+        const mockFn = mockInnerClient.getFeatureVariableJson as jest.Mock;
+        mockFn.mockReturnValue({
+          num_buttons: 0,
+          text: 'default value',
+        });
+        let result = instance.getFeatureVariableJson('feat1', 'dvar1');
+        expect(result).toEqual({
+          num_buttons: 0,
+          text: 'default value',
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith('feat1', 'dvar1', 'user1', {
+          foo: 'bar',
+        });
+        mockFn.mockReset();
+        mockFn.mockReturnValue({
+          num_buttons: 0,
+          text: 'variable value',
+        });
+        result = instance.getFeatureVariableJson('feat1', 'dvar1', 'user2', {
+          bar: 'baz',
+        });
+        expect(result).toEqual({
+          num_buttons: 0,
+          text: 'variable value',
+        });
+        expect(mockInnerClient.getFeatureVariableJson).toBeCalledTimes(1);
+        expect(mockInnerClient.getFeatureVariableJson).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+      });
+
+      it('can use pre-set and override user for getFeatureVariable', () => {
+        const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
+        mockFn.mockReturnValue({
+          num_buttons: 0,
+          text: 'default value',
+        });
+        let result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+        expect(result).toEqual({
+          num_buttons: 0,
+          text: 'default value',
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith('feat1', 'dvar1', 'user1', {
+          foo: 'bar',
+        });
+        mockFn.mockReset();
+        mockFn.mockReturnValue({
+          num_buttons: 0,
+          text: 'variable value',
+        });
+        result = instance.getFeatureVariable('feat1', 'dvar1', 'user2', {
+          bar: 'baz',
+        });
+        expect(result).toEqual({
+          num_buttons: 0,
+          text: 'variable value',
+        });
+        expect(mockInnerClient.getFeatureVariable).toBeCalledTimes(1);
+        expect(mockInnerClient.getFeatureVariable).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+      });
+
       it('can use pre-set and override user for setForcedVariation', () => {
         const mockFn = mockInnerClient.setForcedVariation as jest.Mock;
         mockFn.mockReturnValue(true);
@@ -393,50 +458,24 @@ describe('ReactSDKClient', () => {
 
     describe('getFeatureVariables', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
-        const anyClient = mockInnerClient as any;
-        anyClient.getFeatureVariableBoolean.mockReturnValue(null);
-        anyClient.getFeatureVariableString.mockReturnValue(null);
-        anyClient.getFeatureVariableInteger.mockReturnValue(null);
-        anyClient.getFeatureVariableDouble.mockReturnValue(null);
+        const anyClient =  mockInnerClient.getAllFeatureVariables as jest.Mock;
+        anyClient.mockReturnValue({});
         const instance = createInstance(config);
         const result = instance.getFeatureVariables('feat1');
         expect(result).toEqual({});
       });
 
       it('returns an object with variables of all types returned from the inner sdk ', () => {
-        const anyClient = mockInnerClient as any;
-        anyClient.projectConfigManager = {
-          getConfig() {
-            return {
-              featureKeyMap: {
-                feat1: {
-                  variables: [
-                    {
-                      type: 'boolean',
-                      key: 'bvar',
-                    },
-                    {
-                      type: 'string',
-                      key: 'svar',
-                    },
-                    {
-                      type: 'integer',
-                      key: 'ivar',
-                    },
-                    {
-                      type: 'double',
-                      key: 'dvar',
-                    },
-                  ],
-                },
-              },
-            };
-          },
-        };
-        anyClient.getFeatureVariableBoolean.mockReturnValue(true);
-        anyClient.getFeatureVariableString.mockReturnValue('whatsup');
-        anyClient.getFeatureVariableInteger.mockReturnValue(10);
-        anyClient.getFeatureVariableDouble.mockReturnValue(-10.5);
+        const anyClient =  mockInnerClient.getAllFeatureVariables as jest.Mock;
+        anyClient.mockReturnValue({
+          bvar: true,
+          svar: 'whatsup',
+          ivar: 10,
+          dvar: -10.5,
+          jvar: {
+            value: 'json value'
+          }
+        });
         const instance = createInstance(config);
         instance.setUser({
           id: 'user1123',
@@ -447,6 +486,9 @@ describe('ReactSDKClient', () => {
           svar: 'whatsup',
           ivar: 10,
           dvar: -10.5,
+          jvar: {
+            value: 'json value'
+          }
         });
       });
     });
