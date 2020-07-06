@@ -458,10 +458,81 @@ describe('ReactSDKClient', () => {
 
     describe('getFeatureVariables', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
+        const anyClient = mockInnerClient as any;
+        anyClient.getFeatureVariableBoolean.mockReturnValue(null);
+        anyClient.getFeatureVariableString.mockReturnValue(null);
+        anyClient.getFeatureVariableInteger.mockReturnValue(null);
+        anyClient.getFeatureVariableDouble.mockReturnValue(null);
+        anyClient.getFeatureVariableJson.mockReturnValue(null);
+        const instance = createInstance(config);
+        const result = instance.getFeatureVariables('feat1');
+        expect(result).toEqual({});
+      });
+
+      it('returns an object with variables of all types returned from the inner sdk ', () => {
+        const anyClient = mockInnerClient as any;
+        anyClient.projectConfigManager = {
+          getConfig() {
+            return {
+              featureKeyMap: {
+                feat1: {
+                  variables: [
+                    {
+                      type: 'boolean',
+                      key: 'bvar',
+                    },
+                    {
+                      type: 'string',
+                      key: 'svar',
+                    },
+                    {
+                      type: 'integer',
+                      key: 'ivar',
+                    },
+                    {
+                      type: 'double',
+                      key: 'dvar',
+                    },
+                    {
+                      type: 'json',
+                      key: 'jvar',
+                    },
+                  ],
+                },
+              },
+            };
+          },
+        };
+        anyClient.getFeatureVariableBoolean.mockReturnValue(true);
+        anyClient.getFeatureVariableString.mockReturnValue('whatsup');
+        anyClient.getFeatureVariableInteger.mockReturnValue(10);
+        anyClient.getFeatureVariableDouble.mockReturnValue(-10.5);
+        anyClient.getFeatureVariableJson.mockReturnValue({
+          value: 'json value'
+        });
+        const instance = createInstance(config);
+        instance.setUser({
+          id: 'user1123',
+        });
+        const result = instance.getFeatureVariables('feat1');
+        expect(result).toEqual({
+          bvar: true,
+          svar: 'whatsup',
+          ivar: 10,
+          dvar: -10.5,
+          jvar: {
+            value: 'json value'
+          }
+        });
+      });
+    });
+
+    describe('getAllFeatureVariables', () => {
+      it('returns an empty object when the inner SDK returns no variables', () => {
         const anyClient =  mockInnerClient.getAllFeatureVariables as jest.Mock;
         anyClient.mockReturnValue({});
         const instance = createInstance(config);
-        const result = instance.getFeatureVariables('feat1');
+        const result = instance.getAllFeatureVariables('feat1', 'user1');
         expect(result).toEqual({});
       });
 
@@ -480,7 +551,7 @@ describe('ReactSDKClient', () => {
         instance.setUser({
           id: 'user1123',
         });
-        const result = instance.getFeatureVariables('feat1');
+        const result = instance.getAllFeatureVariables('feat1', 'user1');
         expect(result).toEqual({
           bvar: true,
           svar: 'whatsup',

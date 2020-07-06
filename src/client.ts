@@ -60,7 +60,7 @@ export interface ReactSDKClient extends optimizely.Client {
     featureKey: string,
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown };
+  ): VariableValuesObject;
 
   getFeatureVariableString(
     featureKey: string,
@@ -337,7 +337,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     featureKey: string,
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown } {
+  ): VariableValuesObject {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     const userId = user.id;
     if (userId === null) {
@@ -345,7 +345,44 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return {};
     }
     const userAttributes = user.attributes;
-    return this._client.getAllFeatureVariables(featureKey, userId, userAttributes);
+    const variableObj: { [key: string]: any } = {};
+    const config = (this._client as any).projectConfigManager.getConfig();
+    if (!config) {
+      return {};
+    }
+    const feature = config.featureKeyMap[featureKey];
+    if (!feature) {
+      return {};
+    }
+    const variables: object[] = feature.variables;
+    variables.forEach((variableDef: any) => {
+      const type: any = variableDef.type;
+      const key: any = variableDef.key;
+
+      switch (type) {
+        case 'string':
+          variableObj[key] = this._client.getFeatureVariableString(featureKey, key, userId, userAttributes);
+          break;
+
+        case 'boolean':
+          variableObj[key] = this._client.getFeatureVariableBoolean(featureKey, key, userId, userAttributes);
+          break;
+
+        case 'integer':
+          variableObj[key] = this._client.getFeatureVariableInteger(featureKey, key, userId, userAttributes);
+          break;
+
+        case 'double':
+          variableObj[key] = this._client.getFeatureVariableDouble(featureKey, key, userId, userAttributes);
+          break;
+
+        case 'json':
+          variableObj[key] = this._client.getFeatureVariableJson(featureKey, key, userId, userAttributes);
+          break;
+      }
+    });
+
+    return variableObj;
   }
 
   /**
