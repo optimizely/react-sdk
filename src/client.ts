@@ -90,7 +90,7 @@ export interface ReactSDKClient extends optimizely.Client {
     overrideAttributes?: optimizely.UserAttributes
   ): number | null;
 
-  getFeatureVariableJson(
+  getFeatureVariableJSON(
     featureKey: string,
     variableKey: string,
     overrideUserId?: string,
@@ -377,7 +377,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           break;
 
         case 'json':
-          variableObj[key] = this._client.getFeatureVariableJson(featureKey, key, userId, userAttributes);
+          variableObj[key] = this._client.getFeatureVariableJSON(featureKey, key, userId, userAttributes);
           break;
       }
     });
@@ -484,10 +484,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @param {string} variable
    * @param {string} [overrideUserId]
    * @param {optimizely.UserAttributes} [overrideAttributes]
-   * @returns {(string | null)}
+   * @returns {(unknown | null)}
    * @memberof OptimizelyReactSDKClient
    */
-  public getFeatureVariableJson(
+  public getFeatureVariableJSON(
     feature: string,
     variable: string,
     overrideUserId?: string,
@@ -497,7 +497,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null
     }
-    return this._client.getFeatureVariableJson(
+    return this._client.getFeatureVariableJSON(
       feature,
       variable,
       user.id,
@@ -512,6 +512,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @param {string} variableKey
    * @param {string} [overrideUserId]
    * @param {optimizely.UserAttributes} [overrideAttributes]
+   * @returns {(unknown | null)}
+   * @memberof OptimizelyReactSDKClient
    */
   getFeatureVariable(
       featureKey: string,
@@ -536,7 +538,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @param {string} featureKey
    * @param {string} overrideUserId
    * @param {optimizely.UserAttributes} [overrideAttributes]
-   * @returns {(object | null)}
+   * @returns {({ [variableKey: string]: unknown } | null)}
    * @memberof OptimizelyReactSDKClient
    */
   getAllFeatureVariables(
