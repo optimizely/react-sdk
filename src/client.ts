@@ -326,7 +326,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   /**
-   * @deprecated since 2.0.1
+   * @deprecated since 2.1.0
    * getAllFeatureVariables is added in JavaScript SDK which is similarly returning all the feature variables, but
    * it sends only single notification of type "all-feature-variables" instead of sending for each variable.
    * As getFeatureVariables was added when this functionality wasn't provided by JavaScript SDK, so there is no
