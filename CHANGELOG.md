@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.1.0] - July 8th, 2020
+
+## New Features
+- Add support for JSON feature variables ([#53](https://github.com/optimizely/react-sdk/pull/53))
+
 ## [2.0.1] - May 22nd, 2020
 
 ### Bug Fixes
