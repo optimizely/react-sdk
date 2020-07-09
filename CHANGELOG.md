@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ## [2.1.0] - July 8th, 2020
+Upgrade `@optimizely/optimizely-sdk` to 4.1.0. See [@optimizely/optimizely-sdk Release 4.1.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.1.0) for more details.
 
 ## New Features
 - Add support for JSON feature variables ([#53](https://github.com/optimizely/react-sdk/pull/53))
