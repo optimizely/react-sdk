@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.2.0] - July 31st, 2020
+Upgrade `@optimizely/optimizely-sdk` to [4.2.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.2.0)
+
+### New Features
+  - Better offline support in React Native apps:
+    - Persist downloaded datafiles in local storage for use in subsequent SDK initializations
+    - Persist pending impression & conversion events in local storage
+
+### Bug fixes
+  - Fixed log messages for Targeted Rollouts
+
 ## [2.1.0] - July 8th, 2020
 Upgrade `@optimizely/optimizely-sdk` to 4.1.0. See [@optimizely/optimizely-sdk Release 4.1.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.1.0) for more details.
 
