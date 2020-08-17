@@ -91,9 +91,8 @@ The `ReactSDKClient` client created via `createInstance` is the programmatic API
 _arguments_
 
 - `config : object` Object with SDK configuration parameters. This has the same format as the object passed to the `createInstance` method of the core `@optimizely/javascript-sdk` module. For details on this object, see the following pages from the developer docs:
-  - [Instantiate](https://docs.developers.optimizely.com/full-stack/docs/instantiate)
-  - [Initialize a non-mobile SDK](https://docs.developers.optimizely.com/full-stack/docs/initialize-a-non-mobile-sdk)
-  - [JavaScript: Update datafiles](https://docs.developers.optimizely.com/full-stack/docs/javascript-update-datafiles)
+  - [Instantiate](https://docs.developers.optimizely.com/full-stack/docs/initialize-sdk-react)
+  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/full-stack/docs/javascript-client-side-implementation)
 
 _returns_
 
