@@ -43,6 +43,7 @@ export interface ReactSDKClient extends optimizely.Client {
   onReady(opts?: { timeout?: number }): Promise<any>;
   setUser(userInfo: { id: string; attributes?: { [key: string]: any } }): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
+  isReady(): boolean;
 
   activate(
     experimentKey: string,
@@ -100,13 +101,13 @@ export interface ReactSDKClient extends optimizely.Client {
   getFeatureVariable(
     featureKey: string,
     variableKey: string,
-    overrideUserId: string,
+    overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): unknown
 
   getAllFeatureVariables(
     featureKey: string,
-    overrideUserId: string,
+    overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [variableKey: string]: unknown }
 
@@ -155,6 +156,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
 
+  private dataReadyPromiseFulfilled = false;
+
   /**
    * Creates an instance of OptimizelyReactSDKClient.
    * @param {optimizely.Config} [config={}]
@@ -176,6 +179,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }).then(() => ({ success: true }));
 
     this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
+      this.dataReadyPromiseFulfilled = true;
       return {
         success: true,
         reason: 'datafile and user resolved',
@@ -231,6 +235,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.onUserUpdateHandlers.splice(ind, 1);
       }
     };
+  }
+
+  isReady(): boolean {
+    return this.dataReadyPromiseFulfilled;
   }
 
   /**
