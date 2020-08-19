@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useState, useRef } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
@@ -57,10 +57,6 @@ interface UseExperimentState extends InitializationState, ExperimentDecisionValu
 
 interface UseFeatureState extends InitializationState, FeatureDecisionValues {}
 
-type HookState = UseExperimentState | UseFeatureState;
-
-type CurrentDecisionValues = ExperimentDecisionValues | FeatureDecisionValues;
-
 interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     UseExperimentState['variation'],
@@ -77,67 +73,6 @@ interface UseFeature {
     DidTimeout
   ];
 }
-
-/**
- * A function which waits for the optimizely client instance passed to become
- * ready and then sets up initial state and (optionally) autoUpdate listeners
- * for the hook type specified.
- */
-const initializeWhenClientReadyFn = (
-  type: HookType,
-  name: string,
-  optimizely: ReactSDKClient,
-  options: HookOptions,
-  timeout: number | undefined,
-  setState: Dispatch<SetStateAction<HookState>>,
-  getCurrentDecisionValues: () => CurrentDecisionValues
-): EffectCallback => {
-  return (): (() => void) => {
-    const cleanupFns: Array<() => void> = [];
-    const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
-    const logger: LoggerFacade = getLogger(`use${type}`);
-
-    optimizely
-      .onReady({ timeout: finalReadyTimeout })
-      .then((res: OnReadyResult) => {
-        if (res.success) {
-          // didTimeout=false
-          logger.info(`${type}="${name}" successfully set for user="${optimizely.user.id}"`);
-          return;
-        }
-        setState((state: HookState) => ({ ...state, didTimeout: true }));
-        logger.info(
-          `${type}="${name}" could not be set before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
-        );
-        // Since we timed out, wait for the dataReadyPromise to resolve before setting up.
-        return res.dataReadyPromise!.then(() => {
-          logger.info(`${type}="${name}" is now set, but after timeout.`);
-        });
-      })
-      .then(() => {
-        setState((state: HookState) => ({ ...state, ...getCurrentDecisionValues(), clientReady: true }));
-        if (options.autoUpdate) {
-          cleanupFns.push(
-            setupAutoUpdateListeners(optimizely, type, name, logger, () => {
-              if (cleanupFns.length) {
-                setState((state: HookState) => ({ ...state, ...getCurrentDecisionValues() }));
-              }
-            })
-          );
-        }
-      })
-      .catch(() => {
-        /* The user promise or core client promise rejected. */
-        logger.error(`Error initializing client. The core client or user promise(s) rejected.`);
-      });
-
-    return (): void => {
-      while (cleanupFns.length) {
-        cleanupFns.shift()!();
-      }
-    };
-  };
-};
 
 function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
   if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
@@ -209,7 +144,9 @@ function useDecision<DecisionType>(
     overrideAttributes: overrides.overrideAttributes,
   };
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  // console.warn(`decision inputs: old = ${JSON.stringify(prevDecisionInputs)}, new = ${JSON.stringify(currentDecisionInputs)}`)
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    // console.warn('decision inputs unequal, resetting state');
     setPrevDecisionInputs(currentDecisionInputs);
     decisionState = getCurrentDecisionValues();
     setDecisionState(decisionState);
@@ -326,44 +263,22 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
-  const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
+  const { optimizely } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
-  // Helper function to return the current value for variation.
-  const getCurrentValues = useCallback<() => ExperimentDecisionValues>(
-    () => ({
-      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
-    }),
-    [experimentKey, overrides]
-  );
-
-  // Set the initial state immediately serverSide
-  const [state, setState] = useState<UseExperimentState>(() => {
-    const initialState = {
-      variation: null,
-      clientReady: isServerSide ? true : false,
-      didTimeout: false,
-    };
-    if (isServerSide) {
-      return { ...initialState, ...getCurrentValues() };
-    }
-    return initialState;
+  const getCurrentValues = (): ExperimentDecisionValues => ({
+    variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
   });
 
-  useEffect(
-    initializeWhenClientReadyFn(
-      HookType.EXPERIMENT,
-      experimentKey,
-      optimizely,
-      options,
-      timeout,
-      setState,
-      getCurrentValues
-    ),
-    [optimizely]
+  const [experimentDecision, initializationState] = useDecision<ExperimentDecisionValues>(
+    optimizely,
+    experimentKey,
+    getCurrentValues,
+    { variation: null },
+    options,
+    overrides
   );
-
-  return [state.variation, state.clientReady, state.didTimeout];
+  return [experimentDecision.variation, initializationState.clientReady, initializationState.didTimeout];
 };
