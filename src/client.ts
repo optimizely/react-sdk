@@ -16,7 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { UserAttributes } from "@optimizely/optimizely-sdk";
+import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -95,21 +95,21 @@ export interface ReactSDKClient extends optimizely.Client {
     featureKey: string,
     variableKey: string,
     overrideUserId?: string,
-    overrideAttributes?: optimizely.UserAttributes,
-  ): unknown
+    overrideAttributes?: optimizely.UserAttributes
+  ): unknown;
 
   getFeatureVariable(
     featureKey: string,
     variableKey: string,
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): unknown
+  ): unknown;
 
   getAllFeatureVariables(
     featureKey: string,
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown }
+  ): { [variableKey: string]: unknown };
 
   isFeatureEnabled(
     featureKey: string,
@@ -131,6 +131,17 @@ export interface ReactSDKClient extends optimizely.Client {
   setForcedVariation(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string | null): boolean;
 
   getForcedVariation(experiment: string, overrideUserId?: string): string | null;
+
+  isFeatureEnabledNoSideEffects(
+    featureKey: string,
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): boolean;
+}
+
+export interface FeatureDecisionValues {
+  isEnabled: boolean;
+  variables: VariableValuesObject;
 }
 
 type UserContext = {
@@ -139,6 +150,11 @@ type UserContext = {
 };
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
+
+const NO_DECISION: FeatureDecisionValues = {
+  isEnabled: false,
+  variables: {},
+};
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config;
@@ -509,14 +525,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): unknown {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
-      return null
+      return null;
     }
-    return this._client.getFeatureVariableJSON(
-      feature,
-      variable,
-      user.id,
-      user.attributes,
-    );
+    return this._client.getFeatureVariableJSON(feature, variable, user.id, user.attributes);
   }
 
   /**
@@ -530,21 +541,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @memberof OptimizelyReactSDKClient
    */
   getFeatureVariable(
-      featureKey: string,
-      variableKey: string,
-      overrideUserId: string,
-      overrideAttributes?: optimizely.UserAttributes
+    featureKey: string,
+    variableKey: string,
+    overrideUserId: string,
+    overrideAttributes?: optimizely.UserAttributes
   ): unknown {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
-      return null
+      return null;
     }
-    return this._client.getFeatureVariable(
-        featureKey,
-        variableKey,
-        user.id,
-        user.attributes,
-    );
+    return this._client.getFeatureVariable(featureKey, variableKey, user.id, user.attributes);
   }
 
   /**
@@ -564,11 +570,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return {};
     }
-    return this._client.getAllFeatureVariables(
-      featureKey,
-      user.id,
-      user.attributes,
-    );
+    return this._client.getAllFeatureVariables(featureKey, user.id, user.attributes);
   }
 
   /**
@@ -584,6 +586,52 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return [];
     }
     return this._client.getEnabledFeatures(user.id, user.attributes);
+  }
+
+  public isFeatureEnabledNoSideEffects(
+    featureKey: string,
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): boolean {
+    try {
+      const client = this._client as any;
+      const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
+      if (!client.__isValidInstance()) {
+        return false;
+      }
+
+      if (!client.__validateInputs({ feature_key: featureKey, user_id: user.id }, user.attributes)) {
+        return false;
+      }
+
+      const configObj = client.projectConfigManager.getConfig();
+      if (!configObj) {
+        return false;
+      }
+
+      const feature = configObj.featureKeyMap[featureKey];
+      if (!feature) {
+        return false;
+      }
+
+      let featureEnabled = false;
+      const decision = client.decisionService.getVariationForFeature(configObj, feature, user.id, user.attributes);
+      const variation = decision.variation;
+
+      if (variation) {
+        featureEnabled = variation.featureEnabled;
+      }
+
+      if (featureEnabled !== true) {
+        featureEnabled = false;
+      }
+
+      return featureEnabled;
+    } catch (e) {
+      logger.error(e);
+      return false;
+    }
   }
 
   /**

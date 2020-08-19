@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
 
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
+import { FeatureDecisionValues, OnReadyResult, ReactSDKClient } from './client';
 import { OptimizelyContext } from './Context';
 
 enum HookType {
@@ -49,12 +49,6 @@ interface HookStateBase {
 // TODO - Get these from the core SDK once it's typed
 interface ExperimentDecisionValues {
   variation: string | null;
-}
-
-// TODO - Get these from the core SDK once it's typed
-interface FeatureDecisionValues {
-  isEnabled: boolean;
-  variables: VariableValuesObject;
 }
 
 interface UseExperimentState extends HookStateBase, ExperimentDecisionValues {}
@@ -193,12 +187,6 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   return [state.variation, state.clientReady, state.didTimeout];
 };
 
-interface DecisionProps {
-  featureKey: string;
-  overrideUserId?: string;
-  overrideAttributes?: UserAttributes;
-}
-
 function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
   if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
     // One went from undefined to object - must update
@@ -223,7 +211,13 @@ function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: User
   });
 }
 
-function areDecisionPropsEqual(previousDecisionProps: DecisionProps, newDecisionProps: DecisionProps): boolean {
+interface DecisionInputs {
+  featureKey: string;
+  overrideUserId?: string;
+  overrideAttributes?: UserAttributes;
+}
+
+function areDecisionPropsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
   return (
     previousDecisionProps.featureKey === newDecisionProps.featureKey &&
     previousDecisionProps.overrideUserId === newDecisionProps.overrideUserId &&
@@ -244,18 +238,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
-  // Feature decision state is derived from featureKey and overrides arguments.
-  // Track the previous value of those, and update state when they change
-  const currentDecisionProps: DecisionProps = {
-    featureKey,
-    overrideUserId: overrides.overrideUserId,
-    overrideAttributes: overrides.overrideAttributes,
-  };
-  const [prevDecisionProps, setPrevDecisionProps] = useState<DecisionProps>(currentDecisionProps);
-  const decisionPropsChanged = !areDecisionPropsEqual(prevDecisionProps, currentDecisionProps);
-
   const getCurrentDecisionValues = (): FeatureDecisionValues => ({
-    isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+    isEnabled: optimizely.isFeatureEnabledNoSideEffects(
+      featureKey,
+      overrides.overrideUserId,
+      overrides.overrideAttributes
+    ),
     variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
   });
 
@@ -273,14 +261,22 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   let featureDecisionState = featureStateAndSetter[0];
   const setFeatureDecisionState = featureStateAndSetter[1];
 
-  // console.warn(prevDecisionProps, currentDecisionProps);
-  if (decisionPropsChanged) {
-    console.warn('!!! decision props changed, old = ', prevDecisionProps, ', new = ', currentDecisionProps);
-    // setPrevDecisionProps(currentDecisionProps);
-    // featureDecisionState = getCurrentDecisionValues();
-    // setFeatureDecisionState(featureDecisionState);
-  } else {
-    console.warn('<<<< decision props did not change');
+  // Decision state is derived from featureKey and overrides arguments.
+  // Track the previous value of those arguments, and update state when they change.
+  // This is an instance of the derived state pattern recommended here:
+  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+  // The use case here is falls into the general category "fetching external data when props change",
+  // discussed here: https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change.
+  const currentDecisionProps: DecisionInputs = {
+    featureKey,
+    overrideUserId: overrides.overrideUserId,
+    overrideAttributes: overrides.overrideAttributes,
+  };
+  const [prevDecisionProps, setPrevDecisionProps] = useState<DecisionInputs>(currentDecisionProps);
+  if (!areDecisionPropsEqual(prevDecisionProps, currentDecisionProps)) {
+    setPrevDecisionProps(currentDecisionProps);
+    featureDecisionState = getCurrentDecisionValues();
+    setFeatureDecisionState(featureDecisionState);
   }
 
   const [initializationState, setInitializationState] = useState<HookStateBase>(() => ({
@@ -290,6 +286,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   // Add listener to update decision state when datafile or user change
   useEffect(() => {
+    Object.assign;
     if (!isClientReady || options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, getLogger('useFeature'), () => {
         setFeatureDecisionState(getCurrentDecisionValues());
@@ -340,6 +337,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         logger.error(`Error initializing client. The core client or user promise(s) rejected.`);
       });
   }, [optimizely, finalReadyTimeout]);
+
+  // TODO: finish implementing this effect for dispatching events.
+  // The above calculation of feature decision uses side-effect-free SDK methods.
+  useEffect(() => {
+    console.warn('---->>> event dispatched');
+  }, [optimizely, featureKey]);
 
   return [
     featureDecisionState.isEnabled,
