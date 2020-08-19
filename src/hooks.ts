@@ -22,7 +22,7 @@ import { setupAutoUpdateListeners } from './autoUpdate';
 import { FeatureDecisionValues, OnReadyResult, ReactSDKClient } from './client';
 import { OptimizelyContext } from './Context';
 
-const useFeatureLogger: LoggerFacade = getLogger('useFeature');
+const hooksLogger: LoggerFacade = getLogger('ReactSDK');
 
 enum HookType {
   EXPERIMENT = 'Experiment',
@@ -91,10 +91,8 @@ function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: User
     // Different attr count - must update
     return false;
   }
-  oldAttrsKeys.sort();
-  newAttrsKeys.sort();
-  return oldAttrsKeys.every((oldAttrKey: string, index: number) => {
-    return oldAttrKey === newAttrsKeys[index] && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
+  return oldAttrsKeys.every((oldAttrKey: string) => {
+    return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
   });
 }
 
@@ -165,7 +163,7 @@ function useDecision<DecisionType>(
   useEffect(() => {
     if (!isClientReady || options.autoUpdate) {
       // TODO: pass correct hook type (not always FEATURE)
-      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, entityKey, useFeatureLogger, () => {
+      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, entityKey, hooksLogger, () => {
         setDecisionState(getCurrentDecisionValues());
       });
     }
@@ -187,14 +185,14 @@ function useDecision<DecisionType>(
       .onReady({ timeout: finalReadyTimeout })
       .then((res: OnReadyResult) => {
         if (res.success) {
-          useFeatureLogger.info('Client became ready');
+          hooksLogger.info('Client became ready');
           setInitializationState({
             clientReady: true,
             didTimeout: false,
           });
           return;
         }
-        useFeatureLogger.info(
+        hooksLogger.info(
           `Client did not become ready before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
         );
         setInitializationState({
@@ -202,7 +200,7 @@ function useDecision<DecisionType>(
           didTimeout: true,
         });
         res.dataReadyPromise!.then(() => {
-          useFeatureLogger.info('Client became ready after timeout already elapsed');
+          hooksLogger.info('Client became ready after timeout already elapsed');
           setInitializationState({
             clientReady: true,
             didTimeout: true,
@@ -210,7 +208,7 @@ function useDecision<DecisionType>(
         });
       })
       .catch(() => {
-        useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
+        hooksLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
       });
   }, [optimizely, finalReadyTimeout]);
 
