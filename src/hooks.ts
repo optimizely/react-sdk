@@ -136,17 +136,13 @@ function useDecision<DecisionType>(
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
   // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
-  // The use case here falls into the general category "fetching external data when props change",
-  // discussed here: https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change.
   const currentDecisionInputs: DecisionInputs = {
     entityKey,
     overrideUserId: overrides.overrideUserId,
     overrideAttributes: overrides.overrideAttributes,
   };
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
-  // console.warn(`decision inputs: old = ${JSON.stringify(prevDecisionInputs)}, new = ${JSON.stringify(currentDecisionInputs)}`)
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
-    // console.warn('decision inputs unequal, resetting state');
     setPrevDecisionInputs(currentDecisionInputs);
     decisionState = getCurrentDecisionValues();
     setDecisionState(decisionState);
@@ -157,13 +153,15 @@ function useDecision<DecisionType>(
     didTimeout: false,
   }));
 
-  // Use a ref to track override attrs as an effect dependency, in order to
-  // trigger the effect when the contents of the attributes object change.
+  // We need to refresh the auto update listener whenever its dependencies change.
+
+  // Use a ref to track override attrs as an effect dependency - since it's an object we can't
+  // rely on the default Object.is equality test, so use this ref to manually update it according
+  // to our custom equality function.
   const overrideAttrsRef = useRef<UserAttributes | undefined>();
   if (!areAttributesEqual(overrideAttrsRef.current, overrides.overrideAttributes)) {
     overrideAttrsRef.current = overrides.overrideAttributes;
   }
-  // Add listener to update decision state when datafile or user change
   useEffect(() => {
     if (!isClientReady || options.autoUpdate) {
       // TODO: pass correct hook type (not always FEATURE)
