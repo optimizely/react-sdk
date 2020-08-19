@@ -43,7 +43,7 @@ type ClientReady = boolean;
 
 type DidTimeout = boolean;
 
-interface HookStateBase {
+interface InitializationState {
   clientReady: ClientReady;
   didTimeout: DidTimeout;
 }
@@ -53,9 +53,9 @@ interface ExperimentDecisionValues {
   variation: string | null;
 }
 
-interface UseExperimentState extends HookStateBase, ExperimentDecisionValues {}
+interface UseExperimentState extends InitializationState, ExperimentDecisionValues {}
 
-interface UseFeatureState extends HookStateBase, FeatureDecisionValues {}
+interface UseFeatureState extends InitializationState, FeatureDecisionValues {}
 
 type HookState = UseExperimentState | UseFeatureState;
 
@@ -139,6 +139,185 @@ const initializeWhenClientReadyFn = (
   };
 };
 
+function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
+  if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
+    // One went from undefined to object - must update
+    return false;
+  }
+  // Now we know, either they are both undefined, or both UserAttributes
+  // If either one is undefined, no need to update
+  if (oldAttrs === undefined || newAttrs === undefined) {
+    return true;
+  }
+  // Both objects, so must compare
+  const oldAttrsKeys = Object.keys(oldAttrs);
+  const newAttrsKeys = Object.keys(newAttrs);
+  if (oldAttrsKeys.length !== newAttrsKeys.length) {
+    // Different attr count - must update
+    return false;
+  }
+  oldAttrsKeys.sort();
+  newAttrsKeys.sort();
+  return oldAttrsKeys.every((oldAttrKey: string, index: number) => {
+    return oldAttrKey === newAttrsKeys[index] && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
+  });
+}
+
+interface DecisionInputs {
+  entityKey: string;
+  overrideUserId?: string;
+  overrideAttributes?: UserAttributes;
+}
+
+function areDecisionInputsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
+  return (
+    previousDecisionProps.entityKey === newDecisionProps.entityKey &&
+    previousDecisionProps.overrideUserId === newDecisionProps.overrideUserId &&
+    areAttributesEqual(previousDecisionProps.overrideAttributes, newDecisionProps.overrideAttributes)
+  );
+}
+
+function useDecision<DecisionType>(
+  optimizely: ReactSDKClient,
+  entityKey: string,
+  getCurrentDecisionValues: () => DecisionType,
+  initialDecision: DecisionType,
+  options: HookOptions = {},
+  overrides: HookOverrides = {}
+): [DecisionType, InitializationState] {
+  const { isServerSide, timeout } = useContext(OptimizelyContext);
+  const isClientReady = isServerSide || optimizely.isReady();
+
+  const decisionStateAndSetter = useState<DecisionType>(() => {
+    if (isClientReady) {
+      return getCurrentDecisionValues();
+    }
+    return initialDecision;
+  });
+  let decisionState = decisionStateAndSetter[0];
+  const setDecisionState = decisionStateAndSetter[1];
+
+  // Decision state is derived from featureKey and overrides arguments.
+  // Track the previous value of those arguments, and update state when they change.
+  // This is an instance of the derived state pattern recommended here:
+  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+  // The use case here falls into the general category "fetching external data when props change",
+  // discussed here: https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change.
+  const currentDecisionInputs: DecisionInputs = {
+    entityKey,
+    overrideUserId: overrides.overrideUserId,
+    overrideAttributes: overrides.overrideAttributes,
+  };
+  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    setPrevDecisionInputs(currentDecisionInputs);
+    decisionState = getCurrentDecisionValues();
+    setDecisionState(decisionState);
+  }
+
+  const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
+    clientReady: isClientReady,
+    didTimeout: false,
+  }));
+
+  // Use a ref to track override attrs as an effect dependency, in order to
+  // trigger the effect when the contents of the attributes object change.
+  const overrideAttrsRef = useRef<UserAttributes | undefined>();
+  if (!areAttributesEqual(overrideAttrsRef.current, overrides.overrideAttributes)) {
+    overrideAttrsRef.current = overrides.overrideAttributes;
+  }
+  // Add listener to update decision state when datafile or user change
+  useEffect(() => {
+    if (!isClientReady || options.autoUpdate) {
+      // TODO: pass correct hook type (not always FEATURE)
+      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, entityKey, useFeatureLogger, () => {
+        setDecisionState(getCurrentDecisionValues());
+      });
+    }
+    return (): void => {};
+  }, [optimizely, entityKey, overrides.overrideUserId, overrideAttrsRef.current]);
+
+  // Update initialization state when any of these occur:
+  // - Client instance changed
+  // - Timeout (obtained from provider or passed in) changed
+  // - onReady promise signaled timeout elapsed
+  // - client became ready
+  const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
+  useEffect(() => {
+    if (isClientReady) {
+      return;
+    }
+
+    optimizely
+      .onReady({ timeout: finalReadyTimeout })
+      .then((res: OnReadyResult) => {
+        if (res.success) {
+          useFeatureLogger.info('Client became ready');
+          setInitializationState({
+            clientReady: true,
+            didTimeout: false,
+          });
+          return;
+        }
+        useFeatureLogger.info(
+          `Client did not become ready before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
+        );
+        setInitializationState({
+          clientReady: false,
+          didTimeout: true,
+        });
+        res.dataReadyPromise!.then(() => {
+          useFeatureLogger.info('Client became ready after timeout already elapsed');
+          setInitializationState({
+            clientReady: true,
+            didTimeout: true,
+          });
+        });
+      })
+      .catch(() => {
+        useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
+      });
+  }, [optimizely, finalReadyTimeout]);
+
+  return [decisionState, initializationState];
+}
+
+/**
+ * A React Hook that retrieves the status of a feature flag and its variables, optionally
+ * auto updating those values based on underlying user or datafile changes.
+ *
+ * Note: The react client can become ready AFTER the timeout period.
+ *       ClientReady and DidTimeout provide signals to handle this scenario.
+ */
+export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
+  const { optimizely } = useContext(OptimizelyContext);
+  if (!optimizely) {
+    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  }
+
+  const getCurrentValues = (): FeatureDecisionValues => {
+    return {
+      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+    };
+  };
+
+  const [featureDecision, initializationState] = useDecision<FeatureDecisionValues>(
+    optimizely,
+    featureKey,
+    getCurrentValues,
+    { isEnabled: false, variables: {} },
+    options,
+    overrides
+  );
+  return [
+    featureDecision.isEnabled,
+    featureDecision.variables,
+    initializationState.clientReady,
+    initializationState.didTimeout,
+  ];
+};
+
 /**
  * A React Hook that retrieves the variation for an experiment, optionally
  * auto updating that value based on underlying user or datafile changes.
@@ -188,208 +367,3 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   return [state.variation, state.clientReady, state.didTimeout];
 };
-
-function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
-  if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
-    // One went from undefined to object - must update
-    return false;
-  }
-  // Now we know, either they are both undefined, or both UserAttributes
-  // If either one is undefined, no need to update
-  if (oldAttrs === undefined || newAttrs === undefined) {
-    return true;
-  }
-  // Both objects, so must compare
-  const oldAttrsKeys = Object.keys(oldAttrs);
-  const newAttrsKeys = Object.keys(newAttrs);
-  if (oldAttrsKeys.length !== newAttrsKeys.length) {
-    // Different attr count - must update
-    return false;
-  }
-  oldAttrsKeys.sort();
-  newAttrsKeys.sort();
-  return oldAttrsKeys.every((oldAttrKey: string, index: number) => {
-    return oldAttrKey === newAttrsKeys[index] && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
-  });
-}
-
-interface DecisionInputs {
-  featureKey: string;
-  overrideUserId?: string;
-  overrideAttributes?: UserAttributes;
-}
-
-function areDecisionInputsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
-  return (
-    previousDecisionProps.featureKey === newDecisionProps.featureKey &&
-    previousDecisionProps.overrideUserId === newDecisionProps.overrideUserId &&
-    areAttributesEqual(previousDecisionProps.overrideAttributes, newDecisionProps.overrideAttributes)
-  );
-}
-
-/**
- * A React Hook that retrieves the status of a feature flag and its variables, optionally
- * auto updating those values based on underlying user or datafile changes.
- *
- * Note: The react client can become ready AFTER the timeout period.
- *       ClientReady and DidTimeout provide signals to handle this scenario.
- */
-export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
-  const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
-
-  const getCurrentDecisionValues = (): FeatureDecisionValues => {
-    return {
-      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-    };
-  };
-
-  const isClientReady = isServerSide || optimizely.isReady();
-
-  const featureStateAndSetter = useState<FeatureDecisionValues>(() => {
-    if (isClientReady) {
-      return getCurrentDecisionValues();
-    }
-    return {
-      isEnabled: false,
-      variables: {},
-    };
-  });
-  let featureDecisionState = featureStateAndSetter[0];
-  const setFeatureDecisionState = featureStateAndSetter[1];
-
-  // Decision state is derived from featureKey and overrides arguments.
-  // Track the previous value of those arguments, and update state when they change.
-  // This is an instance of the derived state pattern recommended here:
-  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
-  // The use case here falls into the general category "fetching external data when props change",
-  // discussed here: https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change.
-  const currentDecisionInputs: DecisionInputs = {
-    featureKey,
-    overrideUserId: overrides.overrideUserId,
-    overrideAttributes: overrides.overrideAttributes,
-  };
-  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
-  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
-    setPrevDecisionInputs(currentDecisionInputs);
-    featureDecisionState = getCurrentDecisionValues();
-    setFeatureDecisionState(featureDecisionState);
-  }
-
-  const [initializationState, setInitializationState] = useState<HookStateBase>(() => ({
-    clientReady: isClientReady,
-    didTimeout: false,
-  }));
-
-  // Use a ref to track override attrs as an effect dependency, in order to
-  // trigger the effect when the contents of the attributes object change.
-  const overrideAttrsRef = useRef<UserAttributes | undefined>();
-  if (!areAttributesEqual(overrideAttrsRef.current, overrides.overrideAttributes)) {
-    overrideAttrsRef.current = overrides.overrideAttributes;
-  }
-  // Add listener to update decision state when datafile or user change
-  useEffect(() => {
-    if (!isClientReady || options.autoUpdate) {
-      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, getLogger('useFeature'), () => {
-        setFeatureDecisionState(getCurrentDecisionValues());
-      });
-    }
-    return (): void => {};
-  }, [optimizely, featureKey, overrides.overrideUserId, overrideAttrsRef.current]);
-
-  // Update initialization state when any of these occur:
-  // - Client instance changed
-  // - Timeout (obtained from provider or passed in) changed
-  // - onReady promise signaled timeout elapsed
-  // - client became ready
-  const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
-  useEffect(() => {
-    if (isClientReady) {
-      return;
-    }
-
-    optimizely
-      .onReady({ timeout: finalReadyTimeout })
-      .then((res: OnReadyResult) => {
-        if (res.success) {
-          useFeatureLogger.info('Client became ready');
-          setInitializationState({
-            clientReady: true,
-            didTimeout: false,
-          });
-          return;
-        }
-        useFeatureLogger.info(
-          `Client did not become ready before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
-        );
-        setInitializationState({
-          clientReady: false,
-          didTimeout: true,
-        });
-        res.dataReadyPromise!.then(() => {
-          useFeatureLogger.info('Client became ready after timeout already elapsed');
-          setInitializationState({
-            clientReady: true,
-            didTimeout: true,
-          });
-        });
-      })
-      .catch(() => {
-        useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
-      });
-  }, [optimizely, finalReadyTimeout]);
-
-  return [
-    featureDecisionState.isEnabled,
-    featureDecisionState.variables,
-    initializationState.clientReady,
-    initializationState.didTimeout,
-  ];
-};
-
-export function useFeatureNew(
-  featureKey: string,
-  options: HookOptions = {},
-  overrides: HookOverrides = {}
-): [UseFeatureState['isEnabled'], UseFeatureState['variables'], ClientReady, DidTimeout] {
-  const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
-
-  const isClientReady = isServerSide || optimizely.isReady();
-
-  const [initializationState, setInitializationState] = useState<HookStateBase>(() => ({
-    clientReady: isClientReady,
-    didTimeout: false,
-  }));
-
-  let decision: FeatureDecisionValues;
-  if (isClientReady) {
-    // TODO: use useMemo to memoize this decision calculation
-    decision = {
-      isEnabled: optimizely.isFeatureEnabledNoSideEffects(
-        featureKey,
-        overrides.overrideUserId,
-        overrides.overrideAttributes
-      ),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-    };
-  } else {
-    decision = {
-      isEnabled: false,
-      variables: {},
-    };
-  }
-
-  return [false, {}, false, false];
-
-  // TODO: effect - subscribe to client updates from user or datafile to recalculate decision
-
-  // TODO: effect - dispatch event (call isFeatureEnabled)
-
-  // TODO: effect - subscribe to client ready promise to recalculate initialization state
-}
