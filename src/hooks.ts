@@ -19,7 +19,7 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { FeatureDecisionValues, OnReadyResult, ReactSDKClient } from './client';
+import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
 import { OptimizelyContext } from './Context';
 
 const hooksLogger: LoggerFacade = getLogger('ReactSDK');
@@ -46,6 +46,11 @@ type DidTimeout = boolean;
 interface InitializationState {
   clientReady: ClientReady;
   didTimeout: DidTimeout;
+}
+
+export interface FeatureDecisionValues {
+  isEnabled: boolean;
+  variables: VariableValuesObject;
 }
 
 // TODO - Get these from the core SDK once it's typed
