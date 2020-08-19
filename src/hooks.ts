@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useState } from 'react';
+import { Dispatch, EffectCallback, SetStateAction, useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
@@ -21,6 +21,8 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { FeatureDecisionValues, OnReadyResult, ReactSDKClient } from './client';
 import { OptimizelyContext } from './Context';
+
+const useFeatureLogger: LoggerFacade = getLogger('useFeature');
 
 enum HookType {
   EXPERIMENT = 'Experiment',
@@ -217,7 +219,7 @@ interface DecisionInputs {
   overrideAttributes?: UserAttributes;
 }
 
-function areDecisionPropsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
+function areDecisionInputsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
   return (
     previousDecisionProps.featureKey === newDecisionProps.featureKey &&
     previousDecisionProps.overrideUserId === newDecisionProps.overrideUserId &&
@@ -238,14 +240,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
-  const getCurrentDecisionValues = (): FeatureDecisionValues => ({
-    isEnabled: optimizely.isFeatureEnabledNoSideEffects(
-      featureKey,
-      overrides.overrideUserId,
-      overrides.overrideAttributes
-    ),
-    variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-  });
+  const getCurrentDecisionValues = (): FeatureDecisionValues => {
+    return {
+      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+    };
+  };
 
   const isClientReady = isServerSide || optimizely.isReady();
 
@@ -265,16 +265,16 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
   // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
-  // The use case here is falls into the general category "fetching external data when props change",
+  // The use case here falls into the general category "fetching external data when props change",
   // discussed here: https://reactjs.org/blog/2018/03/27/update-on-async-rendering.html#fetching-external-data-when-props-change.
-  const currentDecisionProps: DecisionInputs = {
+  const currentDecisionInputs: DecisionInputs = {
     featureKey,
     overrideUserId: overrides.overrideUserId,
     overrideAttributes: overrides.overrideAttributes,
   };
-  const [prevDecisionProps, setPrevDecisionProps] = useState<DecisionInputs>(currentDecisionProps);
-  if (!areDecisionPropsEqual(prevDecisionProps, currentDecisionProps)) {
-    setPrevDecisionProps(currentDecisionProps);
+  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    setPrevDecisionInputs(currentDecisionInputs);
     featureDecisionState = getCurrentDecisionValues();
     setFeatureDecisionState(featureDecisionState);
   }
@@ -284,41 +284,45 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     didTimeout: false,
   }));
 
+  // Use a ref to track override attrs as an effect dependency, in order to
+  // trigger the effect when the contents of the attributes object change.
+  const overrideAttrsRef = useRef<UserAttributes | undefined>();
+  if (!areAttributesEqual(overrideAttrsRef.current, overrides.overrideAttributes)) {
+    overrideAttrsRef.current = overrides.overrideAttributes;
+  }
   // Add listener to update decision state when datafile or user change
   useEffect(() => {
-    Object.assign;
     if (!isClientReady || options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, getLogger('useFeature'), () => {
         setFeatureDecisionState(getCurrentDecisionValues());
       });
     }
     return (): void => {};
-    // TODO: deps should include overrides
-  }, [optimizely, featureKey]);
+  }, [optimizely, featureKey, overrides.overrideUserId, overrideAttrsRef.current]);
 
   // Update initialization state when any of these occur:
   // - Client instance changed
   // - Timeout (obtained from provider or passed in) changed
-  // - onReady promise signaled timeout elapsed or client became ready
+  // - onReady promise signaled timeout elapsed
+  // - client became ready
   const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
     if (isClientReady) {
       return;
     }
 
-    const logger: LoggerFacade = getLogger('useFeature');
     optimizely
       .onReady({ timeout: finalReadyTimeout })
       .then((res: OnReadyResult) => {
         if (res.success) {
-          logger.info('Client became ready');
+          useFeatureLogger.info('Client became ready');
           setInitializationState({
             clientReady: true,
             didTimeout: false,
           });
           return;
         }
-        logger.info(
+        useFeatureLogger.info(
           `Client did not become ready before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
         );
         setInitializationState({
@@ -326,7 +330,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
           didTimeout: true,
         });
         res.dataReadyPromise!.then(() => {
-          logger.info('Client became ready after timeout already elapsed');
+          useFeatureLogger.info('Client became ready after timeout already elapsed');
           setInitializationState({
             clientReady: true,
             didTimeout: true,
@@ -334,15 +338,9 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         });
       })
       .catch(() => {
-        logger.error(`Error initializing client. The core client or user promise(s) rejected.`);
+        useFeatureLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
       });
   }, [optimizely, finalReadyTimeout]);
-
-  // TODO: finish implementing this effect for dispatching events.
-  // The above calculation of feature decision uses side-effect-free SDK methods.
-  useEffect(() => {
-    console.warn('---->>> event dispatched');
-  }, [optimizely, featureKey]);
 
   return [
     featureDecisionState.isEnabled,
@@ -351,3 +349,47 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     initializationState.didTimeout,
   ];
 };
+
+export function useFeatureNew(
+  featureKey: string,
+  options: HookOptions = {},
+  overrides: HookOverrides = {}
+): [UseFeatureState['isEnabled'], UseFeatureState['variables'], ClientReady, DidTimeout] {
+  const { isServerSide, optimizely, timeout } = useContext(OptimizelyContext);
+  if (!optimizely) {
+    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  }
+
+  const isClientReady = isServerSide || optimizely.isReady();
+
+  const [initializationState, setInitializationState] = useState<HookStateBase>(() => ({
+    clientReady: isClientReady,
+    didTimeout: false,
+  }));
+
+  let decision: FeatureDecisionValues;
+  if (isClientReady) {
+    // TODO: use useMemo to memoize this decision calculation
+    decision = {
+      isEnabled: optimizely.isFeatureEnabledNoSideEffects(
+        featureKey,
+        overrides.overrideUserId,
+        overrides.overrideAttributes
+      ),
+      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
+    };
+  } else {
+    decision = {
+      isEnabled: false,
+      variables: {},
+    };
+  }
+
+  return [false, {}, false, false];
+
+  // TODO: effect - subscribe to client updates from user or datafile to recalculate decision
+
+  // TODO: effect - dispatch event (call isFeatureEnabled)
+
+  // TODO: effect - subscribe to client ready promise to recalculate initialization state
+}
