@@ -134,8 +134,8 @@ function areDecisionInputsEqual(oldDecisionInputs: DecisionInputs, newDecisionIn
  * @param {string} entityKey
  * @param {Function} getCurrentDecisionValues
  * @param {DecisionType} initialDecision
- * @param {HookOptions} options
- * @param {HookOverrides} overrides
+ * @param {HookOptions} [options]
+ * @param {HookOverrides} [overrides]
  * @returns Array - A 2-item array of the decision type (generic, based on argument types), and the initialization state (clientReady, didTimeout)
  */
 function useDecision<DecisionType>(
@@ -145,8 +145,8 @@ function useDecision<DecisionType>(
   initialDecision: DecisionType,
   options: HookOptions = {},
   overrides: HookOverrides = {}
-): [DecisionType, InitializationState] {
-  const { isServerSide, timeout } = useContext(OptimizelyContext);
+): DecisionType {
+  const { isServerSide } = useContext(OptimizelyContext);
   const isClientReady = isServerSide || optimizely.isReady();
 
   const decisionStateAndSetter = useState<DecisionType>(() => {
@@ -174,14 +174,7 @@ function useDecision<DecisionType>(
     setDecisionState(decisionState);
   }
 
-  // TODO: Perhaps move initialization state into its own separate hook?
-  const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
-    clientReady: isClientReady,
-    didTimeout: false,
-  }));
-
   // We need to refresh the auto update listener whenever its dependencies change.
-
   // Use a ref to track override attrs as an effect dependency - since it's an object we can't
   // rely on the default Object.is equality test, so use this ref to manually update it according
   // to our custom equality function.
@@ -198,6 +191,25 @@ function useDecision<DecisionType>(
     }
     return (): void => {};
   }, [optimizely, entityKey, overrides.overrideUserId, overrideAttrsRef.current]);
+
+  return decisionState;
+}
+
+/**
+ * Hook providing access to initialization state for the argument client (readiness, and whether or not a timeout occurred
+ * based on the timeout passed in or set on the ancestor OptimizelyProvider)
+ * @param {ReactSDKClient} optimizely
+ * @param {HookOptions} [options]
+ * @returns InitializationState
+ */
+function useClientInitializationState(optimizely: ReactSDKClient, options: HookOptions = {}): InitializationState {
+  const { timeout } = useContext(OptimizelyContext);
+  const isClientReady = optimizely.isReady();
+
+  const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
+    clientReady: isClientReady,
+    didTimeout: false,
+  }));
 
   // Update initialization state when any of these occur:
   // - Client instance changed
@@ -241,7 +253,7 @@ function useDecision<DecisionType>(
       });
   }, [optimizely, finalReadyTimeout]);
 
-  return [decisionState, initializationState];
+  return initializationState;
 }
 
 /**
@@ -261,7 +273,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
   });
 
-  const [experimentDecision, initializationState] = useDecision<ExperimentDecisionValues>(
+  const experimentDecision = useDecision<ExperimentDecisionValues>(
     optimizely,
     experimentKey,
     getCurrentValues,
@@ -269,6 +281,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     options,
     overrides
   );
+  const initializationState = useClientInitializationState(optimizely, options);
   return [experimentDecision.variation, initializationState.clientReady, initializationState.didTimeout];
 };
 
@@ -292,7 +305,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     };
   };
 
-  const [featureDecision, initializationState] = useDecision<FeatureDecisionValues>(
+  const featureDecision = useDecision<FeatureDecisionValues>(
     optimizely,
     featureKey,
     getCurrentValues,
@@ -300,6 +313,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     options,
     overrides
   );
+  const initializationState = useClientInitializationState(optimizely, options);
   return [
     featureDecision.isEnabled,
     featureDecision.variables,
