@@ -93,6 +93,7 @@ describe('hooks', () => {
         id: 'testuser',
         attributes: {},
       },
+      isReady: () => readySuccess,
     } as unknown) as ReactSDKClient;
   });
 
@@ -141,12 +142,16 @@ describe('hooks', () => {
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('null|false|true'); // when didTimeout
+      readySuccess = true;
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
       expect(component.text()).toBe('12345|true|true'); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      readySuccess = false;
       activateMock.mockReturnValue('12345');
       getOnReadyPromise = () =>
         new Promise((res, rej) => {
@@ -248,12 +253,16 @@ describe('hooks', () => {
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('false|{}|false|true'); // when didTimeout
+      readySuccess = true;
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
       expect(component.text()).toBe('true|{"foo":"bar"}|true|true'); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      readySuccess = false;
       isFeatureEnabledMock.mockReturnValue(true);
       getOnReadyPromise = () =>
         new Promise((res, rej) => {
