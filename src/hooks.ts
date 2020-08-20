@@ -158,7 +158,7 @@ function useDecision<DecisionType>(
   let decisionState = decisionStateAndSetter[0];
   const setDecisionState = decisionStateAndSetter[1];
 
-  // Decision state is derived from featureKey and overrides arguments.
+  // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
   // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
