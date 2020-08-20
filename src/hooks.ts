@@ -19,7 +19,7 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
 
 const hooksLogger: LoggerFacade = getLogger('ReactSDK');
@@ -48,23 +48,20 @@ interface InitializationState {
   didTimeout: DidTimeout;
 }
 
-export interface FeatureDecisionValues {
-  isEnabled: boolean;
-  variables: VariableValuesObject;
-}
-
 // TODO - Get these from the core SDK once it's typed
 interface ExperimentDecisionValues {
   variation: string | null;
 }
 
-interface UseExperimentState extends InitializationState, ExperimentDecisionValues {}
-
-interface UseFeatureState extends InitializationState, FeatureDecisionValues {}
+// TODO - Get these from the core SDK once it's typed
+interface FeatureDecisionValues {
+  isEnabled: boolean;
+  variables: VariableValuesObject;
+}
 
 interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
-    UseExperimentState['variation'],
+    ExperimentDecisionValues['variation'],
     ClientReady,
     DidTimeout
   ];
@@ -72,13 +69,20 @@ interface UseExperiment {
 
 interface UseFeature {
   (featureKey: string, options?: HookOptions, overrides?: HookOverrides): [
-    UseFeatureState['isEnabled'],
-    UseFeatureState['variables'],
+    FeatureDecisionValues['isEnabled'],
+    FeatureDecisionValues['variables'],
     ClientReady,
     DidTimeout
   ];
 }
 
+/**
+ * Equality check applied to override user attributes passed into hooks. Used to determine when we need to recompute
+ * a decision because a new set of override attributes was passed into a hook.
+ * @param {UserAttributes|undefined} oldAttrs
+ * @param {UserAttributes|undefined} newAttrs
+ * @returns boolean
+ */
 function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
   if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
     // One went from undefined to object - must update
@@ -107,14 +111,33 @@ interface DecisionInputs {
   overrideAttributes?: UserAttributes;
 }
 
-function areDecisionInputsEqual(previousDecisionProps: DecisionInputs, newDecisionProps: DecisionInputs): boolean {
+/**
+ * Equality check applied to decision inputs passed into hooks (experiment/feature keys, override user IDs, and override user attributes).
+ * Used to determine when we need to recompute a decision because different inputs were passed into a hook.
+ * @param {DecisionInputs} oldDecisionInputs
+ * @param {DecisionInput} newDecisionInputs
+ * @returns boolean
+ */
+function areDecisionInputsEqual(oldDecisionInputs: DecisionInputs, newDecisionInputs: DecisionInputs): boolean {
   return (
-    previousDecisionProps.entityKey === newDecisionProps.entityKey &&
-    previousDecisionProps.overrideUserId === newDecisionProps.overrideUserId &&
-    areAttributesEqual(previousDecisionProps.overrideAttributes, newDecisionProps.overrideAttributes)
+    oldDecisionInputs.entityKey === newDecisionInputs.entityKey &&
+    oldDecisionInputs.overrideUserId === newDecisionInputs.overrideUserId &&
+    areAttributesEqual(oldDecisionInputs.overrideAttributes, newDecisionInputs.overrideAttributes)
   );
 }
 
+/**
+ * Generic hook providing access to decision values for features or experiments. Decisions are recomputed
+ * when the client becomes ready, triggers an update (via setupAutoUpdateListeners), or different entityKey/overrides
+ * are passed in.
+ * @param {ReactSDKClient} optimizely
+ * @param {string} entityKey
+ * @param {Function} getCurrentDecisionValues
+ * @param {DecisionType} initialDecision
+ * @param {HookOptions} options
+ * @param {HookOverrides} overrides
+ * @returns Array - A 2-item array of the decision type (generic, based on argument types), and the initialization state (clientReady, didTimeout)
+ */
 function useDecision<DecisionType>(
   optimizely: ReactSDKClient,
   entityKey: string,
@@ -151,6 +174,7 @@ function useDecision<DecisionType>(
     setDecisionState(decisionState);
   }
 
+  // TODO: Perhaps move initialization state into its own separate hook?
   const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
     clientReady: isClientReady,
     didTimeout: false,
@@ -221,6 +245,34 @@ function useDecision<DecisionType>(
 }
 
 /**
+ * A React Hook that retrieves the variation for an experiment, optionally
+ * auto updating that value based on underlying user or datafile changes.
+ *
+ * Note: The react client can become ready AFTER the timeout period.
+ *       ClientReady and DidTimeout provide signals to handle this scenario.
+ */
+export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
+  const { optimizely } = useContext(OptimizelyContext);
+  if (!optimizely) {
+    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  }
+
+  const getCurrentValues = (): ExperimentDecisionValues => ({
+    variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
+  });
+
+  const [experimentDecision, initializationState] = useDecision<ExperimentDecisionValues>(
+    optimizely,
+    experimentKey,
+    getCurrentValues,
+    { variation: null },
+    options,
+    overrides
+  );
+  return [experimentDecision.variation, initializationState.clientReady, initializationState.didTimeout];
+};
+
+/**
  * A React Hook that retrieves the status of a feature flag and its variables, optionally
  * auto updating those values based on underlying user or datafile changes.
  *
@@ -254,32 +306,4 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     initializationState.clientReady,
     initializationState.didTimeout,
   ];
-};
-
-/**
- * A React Hook that retrieves the variation for an experiment, optionally
- * auto updating that value based on underlying user or datafile changes.
- *
- * Note: The react client can become ready AFTER the timeout period.
- *       ClientReady and DidTimeout provide signals to handle this scenario.
- */
-export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
-  const { optimizely } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
-
-  const getCurrentValues = (): ExperimentDecisionValues => ({
-    variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
-  });
-
-  const [experimentDecision, initializationState] = useDecision<ExperimentDecisionValues>(
-    optimizely,
-    experimentKey,
-    getCurrentValues,
-    { variation: null },
-    options,
-    overrides
-  );
-  return [experimentDecision.variation, initializationState.clientReady, initializationState.didTimeout];
 };

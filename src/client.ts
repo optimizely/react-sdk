@@ -16,6 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
+import { UserAttributes } from "@optimizely/optimizely-sdk";
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -514,7 +515,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       feature,
       variable,
       user.id,
-      user.attributes
+      user.attributes,
     );
   }
 
