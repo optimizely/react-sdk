@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
@@ -127,75 +127,6 @@ function areDecisionInputsEqual(oldDecisionInputs: DecisionInputs, newDecisionIn
 }
 
 /**
- * Generic hook providing access to decision values for features or experiments. Decisions are recomputed
- * when the client becomes ready, triggers an update (via setupAutoUpdateListeners), or different entityKey/overrides
- * are passed in.
- * @param {ReactSDKClient} optimizely
- * @param {string} entityKey
- * @param {Function} getCurrentDecisionValues
- * @param {DecisionType} initialDecision
- * @param {HookOptions} [options]
- * @param {HookOverrides} [overrides]
- * @returns Array - A 2-item array of the decision type (generic, based on argument types), and the initialization state (clientReady, didTimeout)
- */
-function useDecision<DecisionType>(
-  optimizely: ReactSDKClient,
-  entityKey: string,
-  getCurrentDecisionValues: () => DecisionType,
-  initialDecision: DecisionType,
-  options: HookOptions = {},
-  overrides: HookOverrides = {}
-): DecisionType {
-  const { isServerSide } = useContext(OptimizelyContext);
-  const isClientReady = isServerSide || optimizely.isReady();
-
-  const decisionStateAndSetter = useState<DecisionType>(() => {
-    if (isClientReady) {
-      return getCurrentDecisionValues();
-    }
-    return initialDecision;
-  });
-  let decisionState = decisionStateAndSetter[0];
-  const setDecisionState = decisionStateAndSetter[1];
-
-  // Decision state is derived from entityKey and overrides arguments.
-  // Track the previous value of those arguments, and update state when they change.
-  // This is an instance of the derived state pattern recommended here:
-  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
-  const currentDecisionInputs: DecisionInputs = {
-    entityKey,
-    overrideUserId: overrides.overrideUserId,
-    overrideAttributes: overrides.overrideAttributes,
-  };
-  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
-  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
-    setPrevDecisionInputs(currentDecisionInputs);
-    decisionState = getCurrentDecisionValues();
-    setDecisionState(decisionState);
-  }
-
-  // We need to refresh the auto update listener whenever its dependencies change.
-  // Use a ref to track override attrs as an effect dependency - since it's an object we can't
-  // rely on the default Object.is equality test, so use this ref to manually update it according
-  // to our custom equality function.
-  const overrideAttrsRef = useRef<UserAttributes | undefined>();
-  if (!areAttributesEqual(overrideAttrsRef.current, overrides.overrideAttributes)) {
-    overrideAttrsRef.current = overrides.overrideAttributes;
-  }
-  useEffect(() => {
-    if (!isClientReady || options.autoUpdate) {
-      // TODO: pass correct hook type (not always FEATURE)
-      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, entityKey, hooksLogger, () => {
-        setDecisionState(getCurrentDecisionValues());
-      });
-    }
-    return (): void => {};
-  }, [optimizely, entityKey, overrides.overrideUserId, overrideAttrsRef.current]);
-
-  return decisionState;
-}
-
-/**
  * Hook providing access to initialization state for the argument client (readiness, and whether or not a timeout occurred
  * based on the timeout passed in or set on the ancestor OptimizelyProvider)
  * @param {ReactSDKClient} optimizely
@@ -251,9 +182,17 @@ function useClientInitializationState(optimizely: ReactSDKClient, options: HookO
       .catch(() => {
         hooksLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
       });
-  }, [optimizely, finalReadyTimeout]);
+  }, [isClientReady, optimizely, finalReadyTimeout]);
 
   return initializationState;
+}
+
+function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttributes | undefined {
+  const ref = useRef<UserAttributes | undefined>();
+  if (!areAttributesEqual(value, ref.current)) {
+    ref.current = value;
+  }
+  return ref.current;
 }
 
 /**
@@ -264,25 +203,56 @@ function useClientInitializationState(optimizely: ReactSDKClient, options: HookO
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
-  const { optimizely } = useContext(OptimizelyContext);
+  const { optimizely, isServerSide } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
-  const getCurrentValues = (): ExperimentDecisionValues => ({
-    variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrides.overrideAttributes),
-  });
-
-  const experimentDecision = useDecision<ExperimentDecisionValues>(
-    optimizely,
-    experimentKey,
-    getCurrentValues,
-    { variation: null },
-    options,
-    overrides
+  const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+  const getCurrentDecision: () => ExperimentDecisionValues = useCallback(
+    () => ({
+      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+    }),
+    [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
   );
+
+  const isClientReady = isServerSide || optimizely.isReady();
+  const decisionStateAndSetter = useState<ExperimentDecisionValues>(() => {
+    if (isClientReady) {
+      return getCurrentDecision();
+    }
+    return { variation: null };
+  });
+  let decisionState = decisionStateAndSetter[0];
+  const setDecisionState = decisionStateAndSetter[1];
+  // Decision state is derived from entityKey and overrides arguments.
+  // Track the previous value of those arguments, and update state when they change.
+  // This is an instance of the derived state pattern recommended here:
+  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+  const currentDecisionInputs: DecisionInputs = {
+    entityKey: experimentKey,
+    overrideUserId: overrides.overrideUserId,
+    overrideAttributes: overrideAttrs,
+  };
+  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    setPrevDecisionInputs(currentDecisionInputs);
+    decisionState = getCurrentDecision();
+    setDecisionState(decisionState);
+  }
+
+  useEffect(() => {
+    if (!isClientReady || options.autoUpdate) {
+      return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
+        setDecisionState(getCurrentDecision());
+      });
+    }
+    return (): void => {};
+  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, setDecisionState, getCurrentDecision]);
+
   const initializationState = useClientInitializationState(optimizely, options);
-  return [experimentDecision.variation, initializationState.clientReady, initializationState.didTimeout];
+
+  return [decisionState.variation, initializationState.clientReady, initializationState.didTimeout];
 };
 
 /**
@@ -293,30 +263,59 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
-  const { optimizely } = useContext(OptimizelyContext);
+  const { optimizely, isServerSide } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
-  const getCurrentValues = (): FeatureDecisionValues => {
-    return {
-      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrides.overrideAttributes),
-    };
-  };
-
-  const featureDecision = useDecision<FeatureDecisionValues>(
-    optimizely,
-    featureKey,
-    getCurrentValues,
-    { isEnabled: false, variables: {} },
-    options,
-    overrides
+  const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+  const getCurrentDecision: () => FeatureDecisionValues = useCallback(
+    () => ({
+      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs),
+      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs),
+    }),
+    [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
   );
+
+  const isClientReady = isServerSide || optimizely.isReady();
+  const decisionStateAndSetter = useState<FeatureDecisionValues>(() => {
+    if (isClientReady) {
+      return getCurrentDecision();
+    }
+    return { isEnabled: false, variables: {} };
+  });
+  let decisionState = decisionStateAndSetter[0];
+  const setDecisionState = decisionStateAndSetter[1];
+  // Decision state is derived from entityKey and overrides arguments.
+  // Track the previous value of those arguments, and update state when they change.
+  // This is an instance of the derived state pattern recommended here:
+  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+  const currentDecisionInputs: DecisionInputs = {
+    entityKey: featureKey,
+    overrideUserId: overrides.overrideUserId,
+    overrideAttributes: overrides.overrideAttributes,
+  };
+  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    setPrevDecisionInputs(currentDecisionInputs);
+    decisionState = getCurrentDecision();
+    setDecisionState(decisionState);
+  }
+
+  useEffect(() => {
+    if (!isClientReady || options.autoUpdate) {
+      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
+        setDecisionState(getCurrentDecision());
+      });
+    }
+    return (): void => {};
+  }, [isClientReady, options.autoUpdate, optimizely, featureKey, setDecisionState, getCurrentDecision]);
+
   const initializationState = useClientInitializationState(optimizely, options);
+
   return [
-    featureDecision.isEnabled,
-    featureDecision.variables,
+    decisionState.isEnabled,
+    decisionState.variables,
     initializationState.clientReady,
     initializationState.didTimeout,
   ];
