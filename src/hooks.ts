@@ -76,6 +76,13 @@ interface UseFeature {
   ];
 }
 
+function coerceUnknownAttrsValueForComparison(maybeAttrs: unknown): UserAttributes {
+  if (typeof maybeAttrs === 'object' && maybeAttrs !== null) {
+    return maybeAttrs;
+  }
+  return {};
+}
+
 /**
  * Equality check applied to override user attributes passed into hooks. Used to determine when we need to recompute
  * a decision because a new set of override attributes was passed into a hook.
@@ -83,17 +90,9 @@ interface UseFeature {
  * @param {UserAttributes|undefined} newAttrs
  * @returns boolean
  */
-function areAttributesEqual(oldAttrs: UserAttributes | undefined, newAttrs: UserAttributes | undefined): boolean {
-  if ((oldAttrs === undefined && newAttrs !== undefined) || (oldAttrs !== undefined && newAttrs === undefined)) {
-    // One went from undefined to object - must update
-    return false;
-  }
-  // Now we know, either they are both undefined, or both UserAttributes
-  // If either one is undefined, no need to update
-  if (oldAttrs === undefined || newAttrs === undefined) {
-    return true;
-  }
-  // Both objects, so must compare
+function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknown): boolean {
+  const oldAttrs = coerceUnknownAttrsValueForComparison(maybeOldAttrs);
+  const newAttrs = coerceUnknownAttrsValueForComparison(maybeNewAttrs);
   const oldAttrsKeys = Object.keys(oldAttrs);
   const newAttrsKeys = Object.keys(newAttrs);
   if (oldAttrsKeys.length !== newAttrsKeys.length) {
