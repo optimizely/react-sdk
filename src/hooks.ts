@@ -133,8 +133,8 @@ function areDecisionInputsEqual(oldDecisionInputs: DecisionInputs, newDecisionIn
  * @returns InitializationState
  */
 function useClientInitializationState(optimizely: ReactSDKClient, options: HookOptions = {}): InitializationState {
-  const { timeout } = useContext(OptimizelyContext);
-  const isClientReady = optimizely.isReady();
+  const { timeout, isServerSide } = useContext(OptimizelyContext);
+  const isClientReady = optimizely.isReady() || isServerSide;
 
   const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
     clientReady: isClientReady,
