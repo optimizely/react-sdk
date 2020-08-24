@@ -216,14 +216,12 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
-  const decisionStateAndSetter = useState<ExperimentDecisionValues>(() => {
+  const [decisionState, setDecisionState] = useState<ExperimentDecisionValues>(() => {
     if (isClientReady) {
       return getCurrentDecision();
     }
     return { variation: null };
   });
-  let decisionState = decisionStateAndSetter[0];
-  const setDecisionState = decisionStateAndSetter[1];
   // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
@@ -236,8 +234,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    decisionState = getCurrentDecision();
-    setDecisionState(decisionState);
+    setDecisionState(getCurrentDecision());
   }
 
   useEffect(() => {
@@ -277,14 +274,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
-  const decisionStateAndSetter = useState<FeatureDecisionValues>(() => {
+  const [decisionState, setDecisionState] = useState<FeatureDecisionValues>(() => {
     if (isClientReady) {
       return getCurrentDecision();
     }
     return { isEnabled: false, variables: {} };
   });
-  let decisionState = decisionStateAndSetter[0];
-  const setDecisionState = decisionStateAndSetter[1];
   // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
@@ -297,8 +292,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    decisionState = getCurrentDecision();
-    setDecisionState(decisionState);
+    setDecisionState(getCurrentDecision());
   }
 
   useEffect(() => {
