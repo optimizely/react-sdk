@@ -73,3 +73,31 @@ export function hoistStaticsAndForwardRefs<R, P extends AcceptsForwardedRef<R>>(
     React.ComponentType<any>
   >(React.forwardRef(forwardRef), Source);
 }
+
+function coerceUnknownAttrsValueForComparison(maybeAttrs: unknown): optimizely.UserAttributes {
+  if (typeof maybeAttrs === 'object' && maybeAttrs !== null) {
+    return maybeAttrs;
+  }
+  return {};
+}
+
+/**
+ * Equality check applied to override user attributes passed into hooks. Used to determine when we need to recompute
+ * a decision because a new set of override attributes was passed into a hook.
+ * @param {UserAttributes|undefined} oldAttrs
+ * @param {UserAttributes|undefined} newAttrs
+ * @returns boolean
+ */
+export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknown): boolean {
+  const oldAttrs = coerceUnknownAttrsValueForComparison(maybeOldAttrs);
+  const newAttrs = coerceUnknownAttrsValueForComparison(maybeNewAttrs);
+  const oldAttrsKeys = Object.keys(oldAttrs);
+  const newAttrsKeys = Object.keys(newAttrs);
+  if (oldAttrsKeys.length !== newAttrsKeys.length) {
+    // Different attr count - must update
+    return false;
+  }
+  return oldAttrsKeys.every((oldAttrKey: string) => {
+    return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
+  });
+}

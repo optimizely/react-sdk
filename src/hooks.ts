@@ -21,6 +21,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
+import { areAttributesEqual } from './utils';
 
 const hooksLogger: LoggerFacade = getLogger('ReactSDK');
 
@@ -74,34 +75,6 @@ interface UseFeature {
     ClientReady,
     DidTimeout
   ];
-}
-
-function coerceUnknownAttrsValueForComparison(maybeAttrs: unknown): UserAttributes {
-  if (typeof maybeAttrs === 'object' && maybeAttrs !== null) {
-    return maybeAttrs;
-  }
-  return {};
-}
-
-/**
- * Equality check applied to override user attributes passed into hooks. Used to determine when we need to recompute
- * a decision because a new set of override attributes was passed into a hook.
- * @param {UserAttributes|undefined} oldAttrs
- * @param {UserAttributes|undefined} newAttrs
- * @returns boolean
- */
-function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknown): boolean {
-  const oldAttrs = coerceUnknownAttrsValueForComparison(maybeOldAttrs);
-  const newAttrs = coerceUnknownAttrsValueForComparison(maybeNewAttrs);
-  const oldAttrsKeys = Object.keys(oldAttrs);
-  const newAttrsKeys = Object.keys(newAttrs);
-  if (oldAttrsKeys.length !== newAttrsKeys.length) {
-    // Different attr count - must update
-    return false;
-  }
-  return oldAttrsKeys.every((oldAttrKey: string) => {
-    return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
-  });
 }
 
 interface DecisionInputs {
