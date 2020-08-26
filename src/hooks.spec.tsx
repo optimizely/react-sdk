@@ -48,6 +48,9 @@ describe('hooks', () => {
   let optimizelyMock: ReactSDKClient;
   let readySuccess: boolean;
   let userUpdateCallbacks: Array<() => void>;
+  let UseExperimentLoggingComponent: React.FunctionComponent<any>;
+  let UseFeatureLoggingComponent: React.FunctionComponent<any>;
+  let mockLog: jest.Mock;
 
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
@@ -93,7 +96,21 @@ describe('hooks', () => {
         id: 'testuser',
         attributes: {},
       },
+      isReady: () => readySuccess,
     } as unknown) as ReactSDKClient;
+
+    mockLog = jest.fn();
+    UseExperimentLoggingComponent = ({ options = {}, overrides = {} }: any) => {
+      const [variation] = useExperiment('experiment1', { ...options }, { ...overrides });
+      mockLog(variation);
+      return <div>{variation}</div>;
+    };
+
+    UseFeatureLoggingComponent = ({ options = {}, overrides = {} }: any) => {
+      const [isEnabled] = useFeature('feature1', { ...options }, { ...overrides });
+      mockLog(isEnabled);
+      return <div>{isEnabled}</div>;
+    };
   });
 
   afterEach(async () => {
@@ -104,7 +121,7 @@ describe('hooks', () => {
   });
 
   describe('useExperiment', () => {
-    it('should render the variationId when provided', async () => {
+    it('should return a variation when activate returns a variation', async () => {
       activateMock.mockReturnValue('12345');
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
@@ -116,7 +133,7 @@ describe('hooks', () => {
       expect(component.text()).toBe('12345|true|false');
     });
 
-    it('should render false when the feature is disabled', async () => {
+    it('should return null when activate returns null', async () => {
       activateMock.mockReturnValue(null);
       featureVariables = {};
       const component = Enzyme.mount(
@@ -141,12 +158,16 @@ describe('hooks', () => {
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('null|false|true'); // when didTimeout
+      readySuccess = true;
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
       expect(component.text()).toBe('12345|true|true'); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      readySuccess = false;
       activateMock.mockReturnValue('12345');
       getOnReadyPromise = () =>
         new Promise((res, rej) => {
@@ -208,6 +229,128 @@ describe('hooks', () => {
       component.update();
       expect(component.text()).toBe('null|true|false');
     });
+
+    it('should return the variation immediately on the first call when the client is already ready', async () => {
+      readySuccess = true;
+      activateMock.mockReturnValue('12345');
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseExperimentLoggingComponent />
+        </OptimizelyProvider>
+      );
+      component.update();
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith('12345');
+    });
+
+    it('should re-render after the client becomes ready and triggers a config update notification', async () => {
+      readySuccess = false;
+      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
+      const readyPromise: Promise<any> = new Promise(res => {
+        resolveReadyPromise = (result): void => {
+          readySuccess = true;
+          res(result);
+        };
+      });
+      getOnReadyPromise = (): Promise<any> => readyPromise;
+      activateMock.mockReturnValue(null);
+
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseExperimentLoggingComponent />
+        </OptimizelyProvider>
+      );
+      component.update();
+
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(null);
+
+      mockLog.mockReset();
+      activateMock.mockReturnValue('12345');
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
+      resolveReadyPromise!({ success: true, dataReadyPromise: Promise.resolve() });
+      component.update();
+
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith('12345');
+    });
+
+    it('should re-render after updating the override user ID argument', async () => {
+      activateMock.mockReturnValue(null);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyExperimentComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('null|true|false');
+
+      activateMock.mockReturnValue('12345');
+      component.setProps({
+        children: <MyExperimentComponent options={{ autoUpdate: true }} overrides={{ overrideUserId: 'matt' }} />,
+      });
+      component.update();
+      expect(component.text()).toBe('12345|true|false');
+    });
+
+    it('should re-render after updating the override user attributes argument', async () => {
+      activateMock.mockReturnValue(null);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyExperimentComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('null|true|false');
+
+      activateMock.mockReturnValue('12345');
+      component.setProps({
+        children: (
+          <MyExperimentComponent options={{ autoUpdate: true }} overrides={{ overrideAttributes: { my_attr: 'x' } }} />
+        ),
+      });
+      component.update();
+      expect(component.text()).toBe('12345|true|false');
+
+      activateMock.mockReturnValue('67890');
+      component.setProps({
+        children: (
+          <MyExperimentComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { my_attr: 'z', other_attr: 25 } }}
+          />
+        ),
+      });
+      component.update();
+      expect(component.text()).toBe('67890|true|false');
+    });
+
+    it('should not recompute the decision when passed the same override attributes', async () => {
+      activateMock.mockReturnValue(null);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseExperimentLoggingComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { other_attr: 'y' } }}
+          />
+        </OptimizelyProvider>
+      );
+      expect(activateMock).toHaveBeenCalledTimes(1);
+      activateMock.mockReset();
+      component.setProps({
+        children: (
+          <UseExperimentLoggingComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { other_attr: 'y' } }}
+          />
+        ),
+      });
+      component.update();
+      expect(activateMock).not.toHaveBeenCalled();
+    });
   });
 
   describe('useFeature', () => {
@@ -248,12 +391,16 @@ describe('hooks', () => {
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('false|{}|false|true'); // when didTimeout
+      readySuccess = true;
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
       expect(component.text()).toBe('true|{"foo":"bar"}|true|true'); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      readySuccess = false;
       isFeatureEnabledMock.mockReturnValue(true);
       getOnReadyPromise = () =>
         new Promise((res, rej) => {
@@ -318,6 +465,129 @@ describe('hooks', () => {
       });
       component.update();
       expect(component.text()).toBe('false|{}|true|false');
+    });
+
+    it('should return the variation immediately on the first call when the client is already ready', async () => {
+      readySuccess = true;
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseFeatureLoggingComponent />
+        </OptimizelyProvider>
+      );
+      component.update();
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(false);
+    });
+
+    it('should re-render after the client becomes ready and triggers a config update notification', async () => {
+      readySuccess = false;
+      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
+      const readyPromise: Promise<any> = new Promise(res => {
+        resolveReadyPromise = (result): void => {
+          readySuccess = true;
+          res(result);
+        };
+      });
+      getOnReadyPromise = (): Promise<any> => readyPromise;
+      isFeatureEnabledMock.mockReturnValue(false);
+
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseFeatureLoggingComponent />
+        </OptimizelyProvider>
+      );
+      component.update();
+
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(false);
+
+      mockLog.mockReset();
+      isFeatureEnabledMock.mockReturnValue(true);
+      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
+      notificationListenerCallbacks[0]();
+      resolveReadyPromise!({ success: true, dataReadyPromise: Promise.resolve() });
+      component.update();
+
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(true);
+    });
+
+    it('should re-render after updating the override user ID argument', async () => {
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyFeatureComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{"foo":"bar"}|true|false');
+
+      isFeatureEnabledMock.mockReturnValue(true);
+      component.setProps({
+        children: <MyFeatureComponent options={{ autoUpdate: true }} overrides={{ overrideUserId: 'matt' }} />,
+      });
+      component.update();
+      expect(component.text()).toBe('true|{"foo":"bar"}|true|false');
+    });
+
+    it('should re-render after updating the override user attributes argument', async () => {
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyFeatureComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{"foo":"bar"}|true|false');
+
+      isFeatureEnabledMock.mockReturnValue(true);
+      component.setProps({
+        children: (
+          <MyFeatureComponent options={{ autoUpdate: true }} overrides={{ overrideAttributes: { my_attr: 'x' } }} />
+        ),
+      });
+      component.update();
+      expect(component.text()).toBe('true|{"foo":"bar"}|true|false');
+
+      isFeatureEnabledMock.mockReturnValue(false);
+      featureVariables = { myvar: 3 };
+      component.setProps({
+        children: (
+          <MyFeatureComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { my_attr: 'z', other_attr: 25 } }}
+          />
+        ),
+      });
+      component.update();
+      expect(component.text()).toBe('false|{"myvar":3}|true|false');
+    });
+
+    it('should not recompute the decision when passed the same override attributes', async () => {
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseFeatureLoggingComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { other_attr: 'y' } }}
+          />
+        </OptimizelyProvider>
+      );
+      expect(isFeatureEnabledMock).toHaveBeenCalledTimes(1);
+      isFeatureEnabledMock.mockReset();
+      component.setProps({
+        children: (
+          <UseFeatureLoggingComponent
+            options={{ autoUpdate: true }}
+            overrides={{ overrideAttributes: { other_attr: 'y' } }}
+          />
+        ),
+      });
+      component.update();
+      expect(isFeatureEnabledMock).not.toHaveBeenCalled();
     });
   });
 });

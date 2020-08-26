@@ -52,6 +52,7 @@ describe('<OptimizelyFeature>', () => {
         id: 'testuser',
         attributes: {},
       },
+      isReady: jest.fn().mockReturnValue(false),
     } as unknown) as ReactSDKClient;
   });
   it('throws an error when not rendered in the context of an OptimizelyProvider', () => {
@@ -75,7 +76,10 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
+
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
+      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -99,7 +103,10 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
+
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
+      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -123,7 +130,10 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
+
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
+      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -147,7 +157,10 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
+
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
+      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -169,7 +182,10 @@ describe('<OptimizelyFeature>', () => {
 
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
+
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
+      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -194,7 +210,11 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(component.text()).toBe('');
+
+        // Simulate client becoming ready
+        const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
         resolver.resolve({ success: true });
+        updateFn();
 
         await optimizelyMock.onReady();
 
@@ -204,7 +224,6 @@ describe('<OptimizelyFeature>', () => {
         expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);
         expect(component.text()).toBe('true|bar');
 
-        const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
         // change the return value of activate
         const mockIFE = optimizelyMock.isFeatureEnabled as jest.Mock;
         mockIFE.mockImplementationOnce(() => false);
@@ -236,6 +255,9 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(component.text()).toBe('');
+
+        // Simulate client becoming ready
+        (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
         resolver.resolve({ success: true });
 
         await optimizelyMock.onReady();
@@ -281,6 +303,8 @@ describe('<OptimizelyFeature>', () => {
         expect(component.text()).toBe('');
         resolver.resolve({ success: false, reason: 'fail', dataReadyPromise: Promise.resolve() });
 
+        // Simulate config update notification firing after datafile fetched
+        (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
         await optimizelyMock.onReady().then(res => res.dataReadyPromise);
 
         component.update();
