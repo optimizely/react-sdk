@@ -79,7 +79,7 @@ describe('ReactSDKClient', () => {
   it('provides access to the underlying client', () => {
     const instance = createInstance(config);
     expect(createInstanceSpy).toBeCalledTimes(1);
-    expect(createInstanceSpy.mock.results[0].isThrow).toBe(false);
+    expect(createInstanceSpy.mock.results[0].type).toBe('return');
     expect(createInstanceSpy.mock.results[0].value).toBe(instance.client);
   });
 
