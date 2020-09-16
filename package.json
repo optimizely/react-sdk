@@ -48,8 +48,6 @@
     "@typescript-eslint/eslint-plugin": "^2.23.0",
     "@typescript-eslint/parser": "^2.23.0",
     "acorn": "^8.0.1",
-    "mixin-deep": "^2.0.1",
-    "set-value": "^3.0.2",
     "enzyme": "^3.8.0",
     "enzyme-adapter-react-16": "^1.7.1",
     "eslint": "^6.8.0",
