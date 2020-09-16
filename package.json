@@ -37,7 +37,8 @@
   },
   "resolutions": {
     "mixin-deep": "^1.3.2",
-    "set-value": "^2.0.1"
+    "set-value": "^2.0.1",
+    "minimist": "^1.2.5"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
@@ -62,6 +63,7 @@
     "eslint-plugin-react-hooks": "^4.1.0",
     "jest": "^26.4.2",
     "mixin-deep": "^1.3.2",
+    "minimist": "^1.2.5",
 	"set-value": "^2.0.1",
     "prettier": "1.19.1",
     "react": "^16.8.0",
