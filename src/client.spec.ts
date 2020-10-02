@@ -89,7 +89,7 @@ describe('ReactSDKClient', () => {
     expect(createInstanceSpy).toBeCalledWith({
       ...config,
       clientEngine: 'react-sdk',
-      clientVersion: '2.3.0-beta',
+      clientVersion: '2.3.0',
     });
   });
 

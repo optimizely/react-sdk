@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.3.0] - October 2nd, 2020
+Upgrade `@optimizely/optimizely-sdk` to [4.2.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.2.0)
+
+### New Features
+  - `useExperiment` and `useFeature` hooks re-render when override user ID or attributes change([#64](https://github.com/optimizely/react-sdk/pull/64))
+
+### Bug fixes
+  - `useExperiment` and `useFeature` hooks return up-to-date decision values on the first call after the client is ready ([#64](https://github.com/optimizely/react-sdk/pull/64))
+
 ## [2.3.0-beta] - August 27th, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.2.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.2.0)
 
