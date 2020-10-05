@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [2.3.1] - October 5nd, 2020
+## [2.3.1] - October 5th, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.3.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.1)
 
 ## [2.3.0] - October 2nd, 2020
