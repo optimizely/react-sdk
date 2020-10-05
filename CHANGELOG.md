@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.3.1] - October 5th, 2020
+Upgrade `@optimizely/optimizely-sdk` to [4.3.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.1). Added support for version audience evaluation and datafile accessor. See [@optimizely/optimizely-sdk Release 4.3.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.0) for more details.
+
 ## [2.3.0] - October 2nd, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.2.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.2.0)
 

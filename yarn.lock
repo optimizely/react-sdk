@@ -26,10 +26,10 @@
     core-js-pure "^3.0.0"
     regenerator-runtime "^0.13.4"
 
-"@optimizely/js-sdk-datafile-manager@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.7.0.tgz#cc001f1b02594611d8f2d996824bfcee3ca36370"
-  integrity sha512-pphm9o9ats3TCPgKiSfZm35Fk/tF0Tz/RXSqcEJZd1u6Bm1kYNze0ZBHCr3NTH927vo0gglNZZxB/UEELpdYBg==
+"@optimizely/js-sdk-datafile-manager@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.8.0.tgz#de213b45777236b1e41082eeb63eaceea267e0fb"
+  integrity sha512-eTpWhLisgXLlUFy0Qz6SP0yKYYwyP8DDLt6nwZky33lka2kustQMnfI0uhNN8EAdx/vayxuTdmaYRWBy+pS7Vg==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.4.0"
@@ -64,12 +64,12 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@4.2.1":
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.2.1.tgz#8c1f6999bc6a4df443c47bdbde3ed7903f7d0265"
-  integrity sha512-uG5BK5f6NhA+kJIj/yGD8LW8hm5MaFwRJpCUWOLFgT7O8NxsxtXeDpKIfaCS0sAtoqufJ61IR0f0Fs8/kr0kUA==
+"@optimizely/optimizely-sdk@4.3.1":
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.3.1.tgz#667666bb55a5c9909764d3ebaafecbca66c8c6f6"
+  integrity sha512-22wglT1USthyVRn+TocFCQ4x0Z9sgQTe9dKhebE+tF6CJu/ocHexQY8cKMbPr4qvO270Y4zbNEYjdg3MvMeeDQ==
   dependencies:
-    "@optimizely/js-sdk-datafile-manager" "^0.7.0"
+    "@optimizely/js-sdk-datafile-manager" "^0.8.0"
     "@optimizely/js-sdk-event-processor" "^0.6.0"
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.4.0"
