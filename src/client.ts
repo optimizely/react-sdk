@@ -16,7 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { UserAttributes } from "@optimizely/optimizely-sdk";
+import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -95,21 +95,21 @@ export interface ReactSDKClient extends optimizely.Client {
     featureKey: string,
     variableKey: string,
     overrideUserId?: string,
-    overrideAttributes?: optimizely.UserAttributes,
-  ): unknown
+    overrideAttributes?: optimizely.UserAttributes
+  ): unknown;
 
   getFeatureVariable(
     featureKey: string,
     variableKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): unknown
+  ): unknown;
 
   getAllFeatureVariables(
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown }
+  ): { [variableKey: string]: unknown };
 
   isFeatureEnabled(
     featureKey: string,
@@ -296,7 +296,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideUserId?: string | optimizely.EventTags,
     overrideAttributes?: optimizely.UserAttributes,
     eventTags?: optimizely.EventTags
-  ) {
+  ): void {
     if (typeof overrideUserId !== 'undefined' && typeof overrideUserId !== 'string') {
       eventTags = overrideUserId;
       overrideUserId = undefined;
@@ -509,14 +509,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): unknown {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
-      return null
+      return null;
     }
-    return this._client.getFeatureVariableJSON(
-      feature,
-      variable,
-      user.id,
-      user.attributes,
-    );
+    return this._client.getFeatureVariableJSON(feature, variable, user.id, user.attributes);
   }
 
   /**
@@ -530,21 +525,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @memberof OptimizelyReactSDKClient
    */
   getFeatureVariable(
-      featureKey: string,
-      variableKey: string,
-      overrideUserId: string,
-      overrideAttributes?: optimizely.UserAttributes
+    featureKey: string,
+    variableKey: string,
+    overrideUserId: string,
+    overrideAttributes?: optimizely.UserAttributes
   ): unknown {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
-      return null
+      return null;
     }
-    return this._client.getFeatureVariable(
-        featureKey,
-        variableKey,
-        user.id,
-        user.attributes,
-    );
+    return this._client.getFeatureVariable(featureKey, variableKey, user.id, user.attributes);
   }
 
   /**
@@ -564,11 +554,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return {};
     }
-    return this._client.getAllFeatureVariables(
-      featureKey,
-      user.id,
-      user.attributes,
-    );
+    return this._client.getAllFeatureVariables(featureKey, user.id, user.attributes);
   }
 
   /**
