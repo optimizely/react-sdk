@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Upgrade `@optimizely/optimizely-sdk` to [4.3.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.3):
   - Exported Optimizely Config Entities types from TypeScript type definitions. See [@optimizely/optimizely-sdk Release 4.3.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.3) for more details.
   - Fixed return type of `getAllFeatureVariables` method in TypeScript type definitions. See [@optimizely/optimizely-sdk Release 4.3.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.2) for more details.
+
 ### Bug fixes
   - Fixed return type of `getAllFeatureVariables` method in ReactSDKClient ([#76](https://github.com/optimizely/react-sdk/pull/76))
 
