@@ -39,7 +39,9 @@ describe('ReactSDKClient', () => {
       getFeatureVariableBoolean: jest.fn(() => null),
       getFeatureVariableDouble: jest.fn(() => null),
       getFeatureVariableJSON: jest.fn(() => null),
-      getAllFeatureVariables: jest.fn(() => { return {} }),
+      getAllFeatureVariables: jest.fn(() => {
+        return {};
+      }),
       getFeatureVariable: jest.fn(() => null),
       getFeatureVariableInteger: jest.fn(() => null),
       getFeatureVariableString: jest.fn(() => null),
@@ -508,7 +510,7 @@ describe('ReactSDKClient', () => {
         anyClient.getFeatureVariableInteger.mockReturnValue(10);
         anyClient.getFeatureVariableDouble.mockReturnValue(-10.5);
         anyClient.getFeatureVariableJSON.mockReturnValue({
-          value: 'json value'
+          value: 'json value',
         });
         const instance = createInstance(config);
         instance.setUser({
@@ -521,15 +523,15 @@ describe('ReactSDKClient', () => {
           ivar: 10,
           dvar: -10.5,
           jvar: {
-            value: 'json value'
-          }
+            value: 'json value',
+          },
         });
       });
     });
 
     describe('getAllFeatureVariables', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
-        const anyClient =  mockInnerClient.getAllFeatureVariables as jest.Mock;
+        const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
         anyClient.mockReturnValue({});
         const instance = createInstance(config);
         const result = instance.getAllFeatureVariables('feat1', 'user1');
@@ -537,15 +539,15 @@ describe('ReactSDKClient', () => {
       });
 
       it('returns an object with variables of all types returned from the inner sdk ', () => {
-        const anyClient =  mockInnerClient.getAllFeatureVariables as jest.Mock;
+        const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
         anyClient.mockReturnValue({
           bvar: true,
           svar: 'whatsup',
           ivar: 10,
           dvar: -10.5,
           jvar: {
-            value: 'json value'
-          }
+            value: 'json value',
+          },
         });
         const instance = createInstance(config);
         instance.setUser({
@@ -558,8 +560,8 @@ describe('ReactSDKClient', () => {
           ivar: 10,
           dvar: -10.5,
           jvar: {
-            value: 'json value'
-          }
+            value: 'json value',
+          },
         });
       });
 
@@ -571,8 +573,8 @@ describe('ReactSDKClient', () => {
           ivar: 10,
           dvar: -10.5,
           jvar: {
-            value: 'json value'
-          }
+            value: 'json value',
+          },
         });
         const instance = createInstance(config);
         instance.setUser({
@@ -588,8 +590,8 @@ describe('ReactSDKClient', () => {
           ivar: 10,
           dvar: -10.5,
           jvar: {
-            value: 'json value'
-          }
+            value: 'json value',
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('feat1', 'user1', {
@@ -602,8 +604,8 @@ describe('ReactSDKClient', () => {
           ivar: 11,
           dvar: -11.5,
           jvar: {
-            value: 'json another value'
-          }
+            value: 'json another value',
+          },
         });
         result = instance.getAllFeatureVariables('feat1', 'user2', {
           bar: 'baz',
@@ -614,8 +616,8 @@ describe('ReactSDKClient', () => {
           ivar: 11,
           dvar: -11.5,
           jvar: {
-            value: 'json another value'
-          }
+            value: 'json another value',
+          },
         });
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledTimes(1);
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
