@@ -360,40 +360,17 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
     const userAttributes = user.attributes;
     const variableObj: { [key: string]: any } = {};
-    const config = (this._client as any).projectConfigManager.getConfig();
-    if (!config) {
+    const optlyConfig = this._client.getOptimizelyConfig();
+    if (!optlyConfig) {
       return {};
     }
-    const feature = config.featureKeyMap[featureKey];
+    const feature = optlyConfig.featuresMap[featureKey];
     if (!feature) {
       return {};
     }
-    const variables: object[] = feature.variables;
-    variables.forEach((variableDef: any) => {
-      const type: any = variableDef.type;
-      const key: any = variableDef.key;
-
-      switch (type) {
-        case 'string':
-          variableObj[key] = this._client.getFeatureVariableString(featureKey, key, userId, userAttributes);
-          break;
-
-        case 'boolean':
-          variableObj[key] = this._client.getFeatureVariableBoolean(featureKey, key, userId, userAttributes);
-          break;
-
-        case 'integer':
-          variableObj[key] = this._client.getFeatureVariableInteger(featureKey, key, userId, userAttributes);
-          break;
-
-        case 'double':
-          variableObj[key] = this._client.getFeatureVariableDouble(featureKey, key, userId, userAttributes);
-          break;
-
-        case 'json':
-          variableObj[key] = this._client.getFeatureVariableJSON(featureKey, key, userId, userAttributes);
-          break;
-      }
+    Object.keys(feature.variablesMap).forEach(key => {
+      const variable = feature.variablesMap[key];
+      variableObj[variable.key] = this._client.getFeatureVariable(featureKey, variable.key, userId, userAttributes);
     });
 
     return variableObj;
