@@ -460,58 +460,69 @@ describe('ReactSDKClient', () => {
 
     describe('getFeatureVariables', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
-        const anyClient = mockInnerClient as any;
-        anyClient.getFeatureVariableBoolean.mockReturnValue(null);
-        anyClient.getFeatureVariableString.mockReturnValue(null);
-        anyClient.getFeatureVariableInteger.mockReturnValue(null);
-        anyClient.getFeatureVariableDouble.mockReturnValue(null);
-        anyClient.getFeatureVariableJSON.mockReturnValue(null);
+        (mockInnerClient.getFeatureVariable as jest.Mock).mockReturnValue(null);
         const instance = createInstance(config);
         const result = instance.getFeatureVariables('feat1');
         expect(result).toEqual({});
       });
 
       it('returns an object with variables of all types returned from the inner sdk ', () => {
-        const anyClient = mockInnerClient as any;
-        anyClient.projectConfigManager = {
-          getConfig() {
-            return {
-              featureKeyMap: {
-                feat1: {
-                  variables: [
-                    {
-                      type: 'boolean',
-                      key: 'bvar',
-                    },
-                    {
-                      type: 'string',
-                      key: 'svar',
-                    },
-                    {
-                      type: 'integer',
-                      key: 'ivar',
-                    },
-                    {
-                      type: 'double',
-                      key: 'dvar',
-                    },
-                    {
-                      type: 'json',
-                      key: 'jvar',
-                    },
-                  ],
+        (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
+          featuresMap: {
+            feat1: {
+              variablesMap: {
+                bvar: {
+                  id: '0',
+                  key: 'bvar',
+                  type: 'boolean',
+                  value: 'false',
+                },
+                svar: {
+                  id: '1',
+                  key: 'svar',
+                  type: 'string',
+                  value: '',
+                },
+                ivar: {
+                  id: '2',
+                  key: 'ivar',
+                  type: 'integer',
+                  value: '0',
+                },
+                dvar: {
+                  id: '3',
+                  key: 'dvar',
+                  type: 'double',
+                  value: '0',
+                },
+                jvar: {
+                  id: '4',
+                  key: 'jvar',
+                  type: 'json',
+                  value: '{}',
                 },
               },
-            };
+            },
           },
-        };
-        anyClient.getFeatureVariableBoolean.mockReturnValue(true);
-        anyClient.getFeatureVariableString.mockReturnValue('whatsup');
-        anyClient.getFeatureVariableInteger.mockReturnValue(10);
-        anyClient.getFeatureVariableDouble.mockReturnValue(-10.5);
-        anyClient.getFeatureVariableJSON.mockReturnValue({
-          value: 'json value',
         });
+        (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
+          (featureKey: string, variableKey: string) => {
+            switch (variableKey) {
+              case 'bvar':
+                return true;
+              case 'svar':
+                return 'whatsup';
+              case 'ivar':
+                return 10;
+              case 'dvar':
+                return -10.5;
+              case 'jvar':
+                return { value: 'json value' };
+              default:
+                return null;
+            }
+          }
+        );
         const instance = createInstance(config);
         instance.setUser({
           id: 'user1123',
