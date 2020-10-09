@@ -35,7 +35,7 @@ export type OnReadyResult = {
 };
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '2.3.1';
+const REACT_SDK_CLIENT_VERSION = '2.3.2';
 
 export interface ReactSDKClient extends optimizely.Client {
   user: UserContext;
@@ -109,7 +109,7 @@ export interface ReactSDKClient extends optimizely.Client {
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown };
+  ): { [variableKey: string]: unknown } | null;
 
   isFeatureEnabled(
     featureKey: string,
@@ -526,7 +526,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown } {
+  ): { [variableKey: string]: unknown } | null {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       return {};

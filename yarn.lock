@@ -64,10 +64,10 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@4.3.1":
-  version "4.3.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.3.1.tgz#667666bb55a5c9909764d3ebaafecbca66c8c6f6"
-  integrity sha512-22wglT1USthyVRn+TocFCQ4x0Z9sgQTe9dKhebE+tF6CJu/ocHexQY8cKMbPr4qvO270Y4zbNEYjdg3MvMeeDQ==
+"@optimizely/optimizely-sdk@^4.3.4":
+  version "4.3.4"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.3.4.tgz#b323b91dc8af9656dde8bcf696801bd71443e202"
+  integrity sha512-DqaEg9YwiwnfDjaDmbST2cu0/7W/yQJqQ+tBwIEwh/HqiSgs8oQJX7sNG2Ql2fFwlIzG7APkIx/oxwbXpp8LPg==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.8.0"
     "@optimizely/js-sdk-event-processor" "^0.6.0"
