@@ -4,10 +4,10 @@
   "description": "React SDK for Optimizely Full Stack and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
-  "module": "dist/react-sdk.mjs",
+  "module": "dist/react-sdk.esm.js",
   "types": "dist/index.d.ts",
-  "main": "dist/react-sdk.js",
-  "browser": "dist/react-sdk.js",
+  "main": "dist/react-sdk.cjs.js",
+  "browser": "dist/react-sdk.cjs.js",
   "directories": {
     "lib": "lib"
   },
@@ -19,7 +19,8 @@
   ],
   "scripts": {
     "tsc": "rm -rf lib/ && tsc",
-    "build": "rm -rf dist/ && node ./scripts/build.js",
+    "prebuild": "rm -rf dist/",
+    "build": "rollup -c",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build"
