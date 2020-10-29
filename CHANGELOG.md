@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Bug fixes
+- Fix `logOnlyEventDispatcher` to conform to `EventDispatcher` type from @optimizely/optimizely-sdk ([#81](https://github.com/optimizely/react-sdk/pull/81))
+
 ## [2.3.2] - October 9th, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.3.4](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.4):
   - Exported Optimizely Config Entities types from TypeScript type definitions. See [@optimizely/optimizely-sdk Release 4.3.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.3.3) for more details.
