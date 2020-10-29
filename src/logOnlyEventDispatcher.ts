@@ -25,7 +25,7 @@ const logger = logging.getLogger('ReactSDK');
  * all event dispatching.
  */
 const logOnlyEventDispatcher: optimizely.EventDispatcher = {
-  dispatchEvent(event: optimizely.Event, callback: () => void): void {
+  dispatchEvent(event: optimizely.Event, callback: (response: { statusCode: number }) => void): void {
     logger.debug('Event not dispatched by disabled event dispatcher: %s', () => {
       let eventStr: string;
       try {
@@ -35,6 +35,7 @@ const logOnlyEventDispatcher: optimizely.EventDispatcher = {
       }
       return eventStr;
     });
+    callback({ statusCode: 200 });
   },
 };
 
