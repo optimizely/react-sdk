@@ -35,7 +35,7 @@ const logOnlyEventDispatcher: optimizely.EventDispatcher = {
       }
       return eventStr;
     });
-    callback({ statusCode: 200 });
+    callback({ statusCode: 204 });
   },
 };
 
