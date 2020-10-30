@@ -32,7 +32,7 @@ const umdName = 'optimizelyReactSdk'
 
 console.log("\nBuilding ES modules...");
 
-exec(`./node_modules/.bin/rollup -c scripts/config.js -f es -o dist/${packageName}.mjs`);
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f es -o dist/${packageName}.es.js`);
 
 console.log("\nBuilding CommonJS modules...");
 
