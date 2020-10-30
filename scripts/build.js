@@ -40,8 +40,8 @@ exec(`./node_modules/.bin/rollup -c scripts/config.js -f cjs -o dist/${packageNa
 
 console.log("\nBuilding UMD modules...");
 
-exec(`./node_modules/.bin/rollup -c scripts/config.js -f umd -o dist/${packageName}.umd.js`);
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f umd -o dist/${packageName}.umd.js --name ${umdName}`, {EXTERNALS: 'forBrowsers'});
 
 console.log("\nBuilding SystemJS modules...");
 
-exec(`./node_modules/.bin/rollup -c scripts/config.js -f system -o dist/${packageName}.system.js`);
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f system -o dist/${packageName}.system.js`, {EXTERNALS: 'forBrowsers'});

@@ -15,26 +15,30 @@
  */
 
 const typescript = require('rollup-plugin-typescript2')
-const commonjs = require('rollup-plugin-commonjs')
-const replace = require('rollup-plugin-replace')
-const resolve = require('rollup-plugin-node-resolve')
+const commonjs = require('@rollup/plugin-commonjs')
+const replace = require('@rollup/plugin-replace')
+const { nodeResolve } = require('@rollup/plugin-node-resolve')
 const { uglify } = require('rollup-plugin-uglify')
 
 const packageDeps = require('../package.json').dependencies || {}
 const packagePeers = require('../package.json').peerDependencies || {}
 
 function getExternals(externals) {
+  if(externals === 'forBrowsers') {
+    return ['react']
+  }
   return externals === 'peers'
     ? Object.keys(packagePeers)
     : Object.keys(packageDeps).concat(Object.keys(packagePeers))
 }
 
-function getPlugins(env) {
+function getPlugins(env, externals) {
   const plugins = [
-    resolve(),
+    nodeResolve({
+      browser: externals === 'forBrowsers',
+    }),
     commonjs({
       include: /node_modules/,
-      namedExports: { '@optimizely/js-sdk-logging': ['getLogger'] },
     }),
   ]
 
@@ -63,7 +67,7 @@ const config = {
     },
   },
   external: getExternals(process.env.EXTERNALS),
-  plugins: getPlugins(process.env.BUILD_ENV),
+  plugins: getPlugins(process.env.BUILD_ENV, process.env.EXTERNALS),
 }
 
 module.exports = config
