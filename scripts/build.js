@@ -37,3 +37,11 @@ exec(`./node_modules/.bin/rollup -c scripts/config.js -f es -o dist/${packageNam
 console.log("\nBuilding CommonJS modules...");
 
 exec(`./node_modules/.bin/rollup -c scripts/config.js -f cjs -o dist/${packageName}.js`);
+
+console.log("\nBuilding UMD modules...");
+
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f umd -o dist/${packageName}.umd.js --name ${umdName}`, {EXTERNALS: 'forBrowsers', BUILD_ENV: 'production' });
+
+console.log("\nBuilding SystemJS modules...");
+
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f system -o dist/${packageName}.system.js`, {EXTERNALS: 'forBrowsers', BUILD_ENV: 'production' });
