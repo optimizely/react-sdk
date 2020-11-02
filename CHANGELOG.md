@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+Upgrade `@optimizely/optimizely-sdk` to [4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0):
+ - Added support for sending flag decisions along with decision metadata. See [@optimizely/optimizely-sdk Release 4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0) for more details.
 
 ### Bug fixes
 - Fix `logOnlyEventDispatcher` to conform to `EventDispatcher` type from @optimizely/optimizely-sdk ([#81](https://github.com/optimizely/react-sdk/pull/81))
