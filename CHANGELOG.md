@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.4.0] - November 2nd, 2020
+Upgrade `@optimizely/optimizely-sdk` to [4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0):
+ - Added support for upcoming application-controlled introduction of tracking for non-experiment Flag decisions. See [@optimizely/optimizely-sdk Release 4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0) for more details.
+
+### New features
+- Add UMD and System build targets, available at `dist/react-sdk.umd.js` and `dist/react-sdk.system.js`, respectively ([#80](https://github.com/optimizely/react-sdk/pull/80))
+
 ### Bug fixes
 - Fix `logOnlyEventDispatcher` to conform to `EventDispatcher` type from @optimizely/optimizely-sdk ([#81](https://github.com/optimizely/react-sdk/pull/81))
 - Change the file extension of the ES module bundle from .mjs to .es.js. Resolves issues using React SDK with Gatsby ([#82](https://github.com/optimizely/react-sdk/pull/82)).
