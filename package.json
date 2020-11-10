@@ -1,5 +1,5 @@
 {
-  "name": "@optimizely/react-sdk",
+  "name": "@wettercom/optimizely-react-sdk",
   "version": "2.4.1",
   "description": "React SDK for Optimizely Full Stack and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
