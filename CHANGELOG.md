@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.4.1] - November 23rd, 2020
+Upgrade `@optimizely/optimizely-sdk` to [4.4.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.3):
+ - Allowed using `--isolatedModules` flag in TSConfig file by fixing exports in event processor . See [Issue #84](https://github.com/optimizely/react-sdk/issues/84) and [@optimizely/optimizely-sdk Release 4.4.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.1) for more details.
+ - Added `enabled` field to decision metadata structure to support upcoming application-controlled introduction of tracking for non-experiment Flag decisions. See [@optimizely/optimizely-sdk Release 4.4.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.2) for more details.
+ - Refactored imports in `optimizely-sdk` TypeScript type definitions to prevent compilation of TS source code. See [@optimizely/optimizely-sdk Release 4.4.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.2) and [@optimizely/optimizely-sdk Release 4.4.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.3) for more details.
+
 ## [2.4.0] - November 2nd, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0):
  - Added support for upcoming application-controlled introduction of tracking for non-experiment Flag decisions. See [@optimizely/optimizely-sdk Release 4.4.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.0) for more details.
