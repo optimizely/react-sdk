@@ -477,10 +477,10 @@
     "@optimizely/js-sdk-utils" "^0.4.0"
     decompress-response "^4.2.1"
 
-"@optimizely/js-sdk-event-processor@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-event-processor/-/js-sdk-event-processor-0.7.0.tgz#e5ff9d36bfa13891fd8a647f5b10e1df1a9bdce7"
-  integrity sha512-HFXPeM5xCCy2qRrVcYeYcy6JIwaGRVb8GnoDQjEsyB8M5AgNzoOTBFWPstCMFHE5jyjrE+QbhXpRcTBLBvRnEA==
+"@optimizely/js-sdk-event-processor@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-event-processor/-/js-sdk-event-processor-0.8.0.tgz#67a8dbcdc0008078d50f13295eb657e38492b5fa"
+  integrity sha512-fq1OcZtYIkMLGXB60I+aetkMWmBl7jjeHEFbaiAmbwwqLcdxQZXIfRhGnCJ+I3MA8OGvqzxZK+dlS5PqeoGt9g==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.4.0"
@@ -506,13 +506,13 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.4.0.tgz#fba299e8892e058efdfd584bdf1ceef60bd578bc"
-  integrity sha512-AfleAEBGXMcWiYr4uIAUSX7pzSx641rPHk9PIG8LAyAHpkJYLNQ7tBQIKgcyIF4UPAaJ6haRQMk6uDS8wAWZpw==
+"@optimizely/optimizely-sdk@^4.4.3":
+  version "4.4.3"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.4.3.tgz#67f975a36515270183cbbe8ee64962d65befa5b2"
+  integrity sha512-BLpjVzHSeZ6egxmIQMpGx63gUpw8GQMDjQmI7FF0tnqyW7wA+Uf0l3OVpTt3lbnRnHaQs29tR+vkhvZrrH5zuQ==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.8.0"
-    "@optimizely/js-sdk-event-processor" "^0.7.0"
+    "@optimizely/js-sdk-event-processor" "^0.8.0"
     "@optimizely/js-sdk-logging" "^0.1.0"
     "@optimizely/js-sdk-utils" "^0.4.0"
     json-schema "^0.2.3"
