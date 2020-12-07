@@ -76,7 +76,6 @@ describe('<OptimizelyExperiment>', () => {
 
       // Simulate client becoming ready: onReady resolving, firing config update notification
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -101,7 +100,6 @@ describe('<OptimizelyExperiment>', () => {
 
       // Simulate client becoming ready: onReady resolving, firing config update notification
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -121,9 +119,8 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready: onReady resolving, firing config update notification
+      // Simulate client becoming ready,
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -144,9 +141,8 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready: onReady resolving, firing config update notification
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -212,9 +208,8 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready: onReady resolving, firing config update notification
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -237,9 +232,8 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready: onReady resolving, firing config update notification
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -285,9 +279,8 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready: onReady resolving, firing config update notification
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
@@ -298,11 +291,11 @@ describe('<OptimizelyExperiment>', () => {
       expect(component.text()).toBe('variationResult');
 
       // capture the OPTIMIZELY_CONFIG_UPDATE function
-      const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
       // change the return value of activate
       const mockActivate = optimizelyMock.activate as jest.Mock;
       mockActivate.mockImplementationOnce(() => 'newVariation');
 
+      const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
       updateFn();
       expect(optimizelyMock.activate).toBeCalledTimes(2);
 
@@ -324,10 +317,9 @@ describe('<OptimizelyExperiment>', () => {
       expect(optimizelyMock.onReady).toHaveBeenCalledWith({ timeout: 100 });
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
-      resolver.resolve({ success: true });
 
-      // Simulate config update update notification firing after datafile becomes available.
-      (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
+      // Simulate client becoming ready
+      resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();
 

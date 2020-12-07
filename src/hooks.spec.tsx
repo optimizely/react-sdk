@@ -147,20 +147,24 @@ describe('hooks', () => {
     });
 
     it('should respect the timeout option passed', async () => {
-      activateMock.mockReturnValue('12345');
+      activateMock.mockReturnValue(null);
       readySuccess = false;
+
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyExperimentComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>
       );
       expect(component.text()).toBe('null|false|false'); // initial render
+
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('null|false|true'); // when didTimeout
-      readySuccess = true;
-      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
-      notificationListenerCallbacks[0]();
+
+      // Simulate datafile fetch completing after timeout has already passed
+      // Activate now returns a variation
+      activateMock.mockReturnValue('12345');
+      // Wait for completion of dataReadyPromise
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
       expect(component.text()).toBe('12345|true|true'); // when clientReady
@@ -243,7 +247,7 @@ describe('hooks', () => {
       expect(mockLog).toHaveBeenCalledWith('12345');
     });
 
-    it('should re-render after the client becomes ready and triggers a config update notification', async () => {
+    it('should re-render after the client becomes ready', async () => {
       readySuccess = false;
       let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
       const readyPromise: Promise<any> = new Promise(res => {
@@ -266,10 +270,14 @@ describe('hooks', () => {
       expect(mockLog).toHaveBeenCalledWith(null);
 
       mockLog.mockReset();
+
+      // Simulate datafile fetch completing after timeout has already passed
+      // Activate now returns a variation
       activateMock.mockReturnValue('12345');
-      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
-      notificationListenerCallbacks[0]();
-      resolveReadyPromise!({ success: true, dataReadyPromise: Promise.resolve() });
+      // Wait for completion of dataReadyPromise
+      const dataReadyPromise = Promise.resolve();
+      resolveReadyPromise!({ success: true, dataReadyPromise });
+      await dataReadyPromise;
       component.update();
 
       expect(mockLog).toHaveBeenCalledTimes(1);
@@ -380,22 +388,36 @@ describe('hooks', () => {
     });
 
     it('should respect the timeout option passed', async () => {
-      isFeatureEnabledMock.mockReturnValue(true);
+      isFeatureEnabledMock.mockReturnValue(false);
+      featureVariables = {};
       readySuccess = false;
+
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyFeatureComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>
       );
       expect(component.text()).toBe('false|{}|false|false'); // initial render
+
       await optimizelyMock.onReady();
       component.update();
       expect(component.text()).toBe('false|{}|false|true'); // when didTimeout
-      readySuccess = true;
-      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
-      notificationListenerCallbacks[0]();
+
+      // Simulate datafile fetch completing after timeout has already passed
+      // isFeatureEnabled now returns true, getFeatureVariables returns variable values
+      isFeatureEnabledMock.mockReturnValue(true);
+      featureVariables = mockFeatureVariables;
+      // Wait for completion of dataReadyPromise
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
+
+      // Simulate datafile fetch completing after timeout has already passed
+      // Activate now returns a variation
+      activateMock.mockReturnValue('12345');
+      // Wait for completion of dataReadyPromise
+      await optimizelyMock.onReady().then(res => res.dataReadyPromise);
+      component.update();
+
       expect(component.text()).toBe('true|{"foo":"bar"}|true|true'); // when clientReady
     });
 
@@ -480,7 +502,7 @@ describe('hooks', () => {
       expect(mockLog).toHaveBeenCalledWith(false);
     });
 
-    it('should re-render after the client becomes ready and triggers a config update notification', async () => {
+    it('should re-render after the client becomes ready', async () => {
       readySuccess = false;
       let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
       const readyPromise: Promise<any> = new Promise(res => {
@@ -503,10 +525,14 @@ describe('hooks', () => {
       expect(mockLog).toHaveBeenCalledWith(false);
 
       mockLog.mockReset();
+
+      // Simulate datafile fetch completing after timeout has already passed
+      // isFeatureEnabled now returns true
       isFeatureEnabledMock.mockReturnValue(true);
-      // Simulate CONFIG_UPDATE notification, causing decision state to recompute
-      notificationListenerCallbacks[0]();
-      resolveReadyPromise!({ success: true, dataReadyPromise: Promise.resolve() });
+      // Wait for completion of dataReadyPromise
+      const dataReadyPromise = Promise.resolve();
+      resolveReadyPromise!({ success: true, dataReadyPromise });
+      await dataReadyPromise;
       component.update();
 
       expect(mockLog).toHaveBeenCalledTimes(1);
