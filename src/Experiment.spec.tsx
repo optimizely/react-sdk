@@ -119,7 +119,7 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(component.text()).toBe('');
 
-      // Simulate client becoming ready,
+      // Simulate client becoming ready
       resolver.resolve({ success: true });
 
       await optimizelyMock.onReady();

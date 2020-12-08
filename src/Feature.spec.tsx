@@ -79,7 +79,6 @@ describe('<OptimizelyFeature>', () => {
 
       // Simulate client becoming ready
       resolver.resolve({ success: true });
-      // (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1]();
 
       await optimizelyMock.onReady();
 
