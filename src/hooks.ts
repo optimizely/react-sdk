@@ -208,7 +208,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         });
       });
     }
-  }, [isClientReady, finalReadyTimeout, setState, getCurrentDecision, optimizely]);
+  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
     if (options.autoUpdate) {
@@ -220,7 +220,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, setState, getCurrentDecision]);
+  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
   return [state.variation, state.clientReady, state.didTimeout];
 };
@@ -284,7 +284,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         });
       });
     }
-  }, [isClientReady, finalReadyTimeout, setState, getCurrentDecision, optimizely]);
+  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
     if (options.autoUpdate) {
@@ -296,7 +296,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, featureKey, setState, getCurrentDecision]);
+  }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
