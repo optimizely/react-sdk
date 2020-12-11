@@ -35,7 +35,7 @@ export type OnReadyResult = {
 };
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '2.4.1';
+const REACT_SDK_CLIENT_VERSION = '2.4.2';
 
 export interface ReactSDKClient extends optimizely.Client {
   user: UserContext;

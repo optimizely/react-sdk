@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.4.2] - December 11th, 2020
+### Bug fixes
+- Always recompute decision after resolution of ready promise ([#91](https://github.com/optimizely/react-sdk/pull/91))
+
 ## [2.4.1] - November 23rd, 2020
 Upgrade `@optimizely/optimizely-sdk` to [4.4.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.3):
  - Allowed using `--isolatedModules` flag in TSConfig file by fixing exports in event processor . See [Issue #84](https://github.com/optimizely/react-sdk/issues/84) and [@optimizely/optimizely-sdk Release 4.4.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.1) for more details.
