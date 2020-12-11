@@ -99,64 +99,47 @@ function areDecisionInputsEqual(oldDecisionInputs: DecisionInputs, newDecisionIn
 }
 
 /**
- * Hook providing access to initialization state for the argument client (readiness, and whether or not a timeout occurred
- * based on the timeout passed in or set on the ancestor OptimizelyProvider)
+ * Subscribe to changes in initialization state of the argument client. onInitStateChange callback
+ * is called on the following events:
+ * - optimizely successfully becomes ready
+ * - timeout is reached prior to optimizely becoming ready
+ * - optimizely becomes ready after the timeout has already passed
  * @param {ReactSDKClient} optimizely
- * @param {HookOptions} [options]
- * @returns InitializationState
+ * @param {number|undefined} timeout
+ * @param {Function} onInitStateChange
  */
-function useClientInitializationState(optimizely: ReactSDKClient, options: HookOptions = {}): InitializationState {
-  const { timeout, isServerSide } = useContext(OptimizelyContext);
-  const isClientReady = optimizely.isReady() || isServerSide;
-
-  const [initializationState, setInitializationState] = useState<InitializationState>(() => ({
-    clientReady: isClientReady,
-    didTimeout: false,
-  }));
-
-  // Update initialization state when any of these occur:
-  // - Client instance changed
-  // - Timeout (obtained from provider or passed in) changed
-  // - onReady promise signaled timeout elapsed
-  // - client became ready
-  const finalReadyTimeout: number | undefined = options.timeout !== undefined ? options.timeout : timeout;
-  useEffect(() => {
-    if (isClientReady) {
-      return;
-    }
-
-    optimizely
-      .onReady({ timeout: finalReadyTimeout })
-      .then((res: OnReadyResult) => {
-        if (res.success) {
-          hooksLogger.info('Client became ready');
-          setInitializationState({
-            clientReady: true,
-            didTimeout: false,
-          });
-          return;
-        }
-        hooksLogger.info(
-          `Client did not become ready before timeout of ${finalReadyTimeout}ms, reason="${res.reason || ''}"`
-        );
-        setInitializationState({
-          clientReady: false,
+function subscribeToInitialization(
+  optimizely: ReactSDKClient,
+  timeout: number | undefined,
+  onInitStateChange: (initState: InitializationState) => void
+): void {
+  optimizely
+    .onReady({ timeout })
+    .then((res: OnReadyResult) => {
+      if (res.success) {
+        hooksLogger.info('Client became ready');
+        onInitStateChange({
+          clientReady: true,
+          didTimeout: false,
+        });
+        return;
+      }
+      hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
+      onInitStateChange({
+        clientReady: false,
+        didTimeout: true,
+      });
+      res.dataReadyPromise!.then(() => {
+        hooksLogger.info('Client became ready after timeout already elapsed');
+        onInitStateChange({
+          clientReady: true,
           didTimeout: true,
         });
-        res.dataReadyPromise!.then(() => {
-          hooksLogger.info('Client became ready after timeout already elapsed');
-          setInitializationState({
-            clientReady: true,
-            didTimeout: true,
-          });
-        });
-      })
-      .catch(() => {
-        hooksLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
       });
-  }, [isClientReady, optimizely, finalReadyTimeout]);
-
-  return initializationState;
+    })
+    .catch(() => {
+      hooksLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
+    });
 }
 
 function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttributes | undefined {
@@ -175,7 +158,7 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
-  const { optimizely, isServerSide } = useContext(OptimizelyContext);
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
@@ -189,11 +172,13 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
-  const [decisionState, setDecisionState] = useState<ExperimentDecisionValues>(() => {
-    if (isClientReady) {
-      return getCurrentDecision();
-    }
-    return { variation: null };
+  const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
+    const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
+    return {
+      ...decisionState,
+      clientReady: isClientReady,
+      didTimeout: false,
+    };
   });
   // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
@@ -207,21 +192,37 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    setDecisionState(getCurrentDecision());
+    setState(prevState => ({
+      ...prevState,
+      ...getCurrentDecision(),
+    }));
   }
 
+  const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady || options.autoUpdate) {
+    if (!isClientReady) {
+      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+        setState({
+          ...getCurrentDecision(),
+          ...initState,
+        });
+      });
+    }
+  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+
+  useEffect(() => {
+    if (options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
-        setDecisionState(getCurrentDecision());
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, setDecisionState, getCurrentDecision]);
+  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  const initializationState = useClientInitializationState(optimizely, options);
-
-  return [decisionState.variation, initializationState.clientReady, initializationState.didTimeout];
+  return [state.variation, state.clientReady, state.didTimeout];
 };
 
 /**
@@ -232,7 +233,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
-  const { optimizely, isServerSide } = useContext(OptimizelyContext);
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
@@ -247,11 +248,13 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
-  const [decisionState, setDecisionState] = useState<FeatureDecisionValues>(() => {
-    if (isClientReady) {
-      return getCurrentDecision();
-    }
-    return { isEnabled: false, variables: {} };
+  const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
+    const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
+    return {
+      ...decisionState,
+      clientReady: isClientReady,
+      didTimeout: false,
+    };
   });
   // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
@@ -265,24 +268,35 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    setDecisionState(getCurrentDecision());
+    setState(prevState => ({
+      ...prevState,
+      ...getCurrentDecision(),
+    }));
   }
 
+  const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady || options.autoUpdate) {
+    if (!isClientReady) {
+      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+        setState({
+          ...getCurrentDecision(),
+          ...initState,
+        });
+      });
+    }
+  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+
+  useEffect(() => {
+    if (options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
-        setDecisionState(getCurrentDecision());
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, featureKey, setDecisionState, getCurrentDecision]);
+  }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
-  const initializationState = useClientInitializationState(optimizely, options);
-
-  return [
-    decisionState.isEnabled,
-    decisionState.variables,
-    initializationState.clientReady,
-    initializationState.didTimeout,
-  ];
+  return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
