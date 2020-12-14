@@ -324,7 +324,7 @@ _returns_
 
   _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
 
-### Render something if feature is enabled
+### Render something if a user is bucketed into the experiment
 
 ```jsx
 import { useEffect } from 'react';
@@ -340,7 +340,7 @@ function LoginComponent() {
   );
   useEffect(() => {
     document.title = variation ? 'login1' : 'login2';
-  }, [isEnabled]);
+  }, [variation]);
 
   return (
     <p>
