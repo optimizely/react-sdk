@@ -16,7 +16,6 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { UserAttributes } from '@optimizely/optimizely-sdk';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -37,7 +36,7 @@ export type OnReadyResult = {
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.4.2';
 
-export interface ReactSDKClient extends optimizely.Client {
+export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserContext;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -131,6 +130,26 @@ export interface ReactSDKClient extends optimizely.Client {
   setForcedVariation(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string | null): boolean;
 
   getForcedVariation(experiment: string, overrideUserId?: string): string | null;
+
+  decide(
+    key: string,
+    options?: optimizely.OptimizelyDecideOptions[],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): optimizely.OptimizelyDecision | null
+
+  decideAll(
+    options?: optimizely.OptimizelyDecideOptions[],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): { [key: string]: optimizely.OptimizelyDecision } | null
+
+  decideForKeys(
+    keys: string[],
+    options?: optimizely.OptimizelyDecideOptions[],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): { [key: string]: optimizely.OptimizelyDecision } | null
 }
 
 type UserContext = {
@@ -260,6 +279,59 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
     return this._client.activate(experimentKey, user.id, user.attributes);
+  }
+
+  public decide(
+    key: string,
+    options: optimizely.OptimizelyDecideOptions[] = [],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): optimizely.OptimizelyDecision | null {    
+    const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+    if (user.id === null) {
+      logger.info('Not Evaluating feature "%s" because userId is not set', key);
+      return null;
+    }    
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    if (optlyUserContext) {
+      return optlyUserContext.decide(key, options);
+    }
+    return null;
+  }
+
+  public decideForKeys(
+    keys: string[],
+    options: optimizely.OptimizelyDecideOptions[] = [],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): { [key: string]: optimizely.OptimizelyDecision } | null {
+    const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+    if (user.id === null) {
+      logger.info('Not Evaluating features because userId is not set');
+      return null;
+    }    
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    if (optlyUserContext) {
+      return optlyUserContext.decideForKeys(keys, options);
+    }
+    return null;
+  }
+
+  public decideAll(    
+    options: optimizely.OptimizelyDecideOptions[] = [],
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): { [key: string]: optimizely.OptimizelyDecision } | null {
+    const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+    if (user.id === null) {
+      logger.info('Not Evaluating features because userId is not set');
+      return null;
+    }    
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    if (optlyUserContext) {
+      return optlyUserContext.decideAll(options);
+    }
+    return null;
   }
 
   /**
