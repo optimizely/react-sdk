@@ -1,0 +1,112 @@
+{
+  "experiments": [], 
+  "featureFlags": [
+    {
+      "id": "3", 
+      "key": "f3", 
+      "rolloutId": "rollout-3-4", 
+      "experimentIds": [], 
+      "variables": []
+    }, 
+    {
+      "id": "2", 
+      "key": "f2", 
+      "rolloutId": "rollout-2-4", 
+      "experimentIds": [], 
+      "variables": []
+    }, 
+    {
+      "id": "1", 
+      "key": "f1", 
+      "rolloutId": "rollout-1-4", 
+      "experimentIds": [], 
+      "variables": []
+    }
+  ], 
+  "rollouts": [
+    {
+      "id": "rollout-3-4", 
+      "experiments": [
+        {
+          "id": "default-rollout-3-4", 
+          "key": "default-rollout-3-4", 
+          "status": "Running", 
+          "layerId": "default-layer-rollout-3-4", 
+          "variations": [
+            {
+              "id": "5", 
+              "key": "off", 
+              "featureEnabled": false, 
+              "variables": []
+            }
+          ], 
+          "trafficAllocation": [
+            {
+              "entityId": "5", 
+              "endOfRange": 10000
+            }
+          ], 
+          "forcedVariations": {}, 
+          "audienceIds": [], 
+          "audienceConditions": []
+        }
+      ]
+    }, 
+    {
+      "id": "rollout-2-4", 
+      "experiments": [
+        {
+          "id": "default-rollout-2-4", 
+          "key": "default-rollout-2-4", 
+          "status": "Running", 
+          "layerId": "default-layer-rollout-2-4", 
+          "variations": [
+            {
+              "id": "3", 
+              "key": "off", 
+              "featureEnabled": false, 
+              "variables": []
+            }
+          ], 
+          "trafficAllocation": [
+            {
+              "entityId": "3", 
+              "endOfRange": 10000
+            }
+          ], 
+          "forcedVariations": {}, 
+          "audienceIds": [], 
+          "audienceConditions": []
+        }
+      ]
+    }, 
+    {
+      "id": "rollout-1-4", 
+      "experiments": [
+        {
+          "id": "default-rollout-1-4", 
+          "key": "default-rollout-1-4", 
+          "status": "Running", 
+          "layerId": "default-layer-rollout-1-4", 
+          "variations": [
+            {
+              "id": "1", 
+              "key": "off", 
+              "featureEnabled": false, 
+              "variables": []
+            }
+          ], 
+          "trafficAllocation": [
+            {
+              "entityId": "1", 
+              "endOfRange": 10000
+            }
+          ], 
+          "forcedVariations": {}, 
+          "audienceIds": [], 
+          "audienceConditions": []
+        }
+      ]
+    }
+  ]
+}

@@ -19,7 +19,7 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult, ForcedVariations } from './client';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual } from './utils';
 
@@ -64,7 +64,8 @@ interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     ExperimentDecisionValues['variation'],
     ClientReady,
-    DidTimeout
+    DidTimeout,
+    ForcedVariations
   ];
 }
 
@@ -222,7 +223,18 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  return [state.variation, state.clientReady, state.didTimeout];
+  const [forcedVariations, setForcedVariations] = useState(() => optimizely.getForcedVariations());
+  useEffect(
+    () =>
+      optimizely.onForcedVariationsUpdate((newForcedVariations: ForcedVariations) =>
+        // Using the spread operator to pass a new object to every setState call. We want to trigger a
+        // re-render every time.
+        setForcedVariations({ ...newForcedVariations })
+      ),
+    [optimizely]
+  );
+
+  return [state.variation, state.clientReady, state.didTimeout, forcedVariations];
 };
 
 /**
