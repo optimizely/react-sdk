@@ -19,7 +19,7 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult, ForcedVariations } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult, ForcedVariationsForUser } from './client';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual } from './utils';
 
@@ -65,7 +65,7 @@ interface UseExperiment {
     ExperimentDecisionValues['variation'],
     ClientReady,
     DidTimeout,
-    ForcedVariations
+    ForcedVariationsForUser
   ];
 }
 
@@ -223,15 +223,15 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  const [forcedVariations, setForcedVariations] = useState(() => optimizely.getForcedVariations());
+  const [forcedVariations, setForcedVariations] = useState(() =>
+    optimizely.getForcedVariations(overrides.overrideUserId)
+  );
   useEffect(
     () =>
-      optimizely.onForcedVariationsUpdate((newForcedVariations: ForcedVariations) =>
-        // Using the spread operator to pass a new object to every setState call. We want to trigger a
-        // re-render every time.
-        setForcedVariations({ ...newForcedVariations })
+      optimizely.onForcedVariationsUpdate(() =>
+        setForcedVariations(optimizely.getForcedVariations(overrides.overrideUserId))
       ),
-    [optimizely]
+    [optimizely, overrides.overrideUserId]
   );
 
   return [state.variation, state.clientReady, state.didTimeout, forcedVariations];

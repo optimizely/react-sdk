@@ -28,11 +28,11 @@ type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserContext) => void;
 
-export interface ForcedVariations {
-  readonly [userId: string]: { readonly [experimentId: string]: string };
+export interface ForcedVariationsForUser {
+  [experimentId: string]: string;
 }
 
-type OnForcedVariationsUpdateHandler = (forcedVariations: ForcedVariations) => void;
+type OnForcedVariationsUpdateHandler = () => void;
 
 export type OnReadyResult = {
   success: boolean;
@@ -140,7 +140,7 @@ export interface ReactSDKClient extends optimizely.Client {
 
   onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn;
 
-  getForcedVariations(): ForcedVariations;
+  getForcedVariations(overrideUserId?: string): ForcedVariationsForUser;
 }
 
 type UserContext = {
@@ -248,6 +248,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
+  /**
+   * Register a handler to be called whenever setForcedVariation is called on
+   * this client. Returns a function that un-registers the handler when called.
+   * @param {OnForcedVariationsUpdateHandler} handler
+   * @returns {DisposeFn}
+   */
   onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn {
     this.onForcedVariationsUpdateHandlers.push(handler);
 
@@ -617,12 +623,39 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false;
     }
     const result = this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
-    this.onForcedVariationsUpdateHandlers.forEach(handler => handler(this.getForcedVariations()));
+    this.onForcedVariationsUpdateHandlers.forEach(handler => handler());
     return result;
   }
 
-  public getForcedVariations(): ForcedVariations {
-    return (this._client as any).decisionService.forcedVariationMap;
+  /**
+   * Gets the forced variation for the current user, or argument override user,
+   * and all experiments listed in the current OptimizelyConfig object.
+   * @param {string} [overrideUserId]
+   * @returns {ForcedVariationsForUser}
+   * @memberof OptimizelyReactSDKClient
+   */
+  public getForcedVariations(overrideUserId?: string): ForcedVariationsForUser {
+    const forcedVariations: ForcedVariationsForUser = {};
+
+    const optlyConfig = this._client.getOptimizelyConfig();
+    if (!optlyConfig) {
+      return forcedVariations;
+    }
+
+    const user = this.getUserContextWithOverrides(overrideUserId);
+    const userId = user.id;
+    if (userId === null) {
+      return forcedVariations;
+    }
+
+    Object.keys(optlyConfig.experimentsMap).forEach(expKey => {
+      const forcedVariation = this._client.getForcedVariation(expKey, userId);
+      if (forcedVariation !== null) {
+        forcedVariations[expKey] = forcedVariation;
+      }
+    });
+
+    return forcedVariations;
   }
 
   /**

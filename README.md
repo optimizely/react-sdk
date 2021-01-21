@@ -321,7 +321,7 @@ _returns_
   - `variation : string` - The `activate` return value (variation) for the `experiment` provided.
   - `clientReady : boolean` - Whether or not the underlying `ReactSDKClient` instance is ready or not.
   - `didTimeout : boolean` - Whether or not the underlying `ReactSDKClient` became ready within the allowed `timeout` range.
-  - `forcedVariations : Object` - An object describing any forced variations that have been set on the client via `setForcedVariation`. Top-level keys are user IDs. Values are objects with keys being experiment IDs, and values being variation IDs (the variation that the user is forced into for that experiment).s
+  - `forcedVariationsForUser : Object` - An object describing any forced variations that have been set on the client via `setForcedVariation`, for the current user. The object's keys are experiment keys, and values are variation keys that have been forced for that experiment for the current user.
 
   _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
 
