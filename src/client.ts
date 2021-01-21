@@ -28,10 +28,6 @@ type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserContext) => void;
 
-export interface ForcedVariationsForUser {
-  [experimentId: string]: string;
-}
-
 type OnForcedVariationsUpdateHandler = () => void;
 
 export type OnReadyResult = {
@@ -139,8 +135,6 @@ export interface ReactSDKClient extends optimizely.Client {
   getForcedVariation(experiment: string, overrideUserId?: string): string | null;
 
   onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn;
-
-  getForcedVariations(overrideUserId?: string): ForcedVariationsForUser;
 }
 
 type UserContext = {
@@ -625,37 +619,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const result = this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
     this.onForcedVariationsUpdateHandlers.forEach(handler => handler());
     return result;
-  }
-
-  /**
-   * Gets the forced variation for the current user, or argument override user,
-   * and all experiments listed in the current OptimizelyConfig object.
-   * @param {string} [overrideUserId]
-   * @returns {ForcedVariationsForUser}
-   * @memberof OptimizelyReactSDKClient
-   */
-  public getForcedVariations(overrideUserId?: string): ForcedVariationsForUser {
-    const forcedVariations: ForcedVariationsForUser = {};
-
-    const optlyConfig = this._client.getOptimizelyConfig();
-    if (!optlyConfig) {
-      return forcedVariations;
-    }
-
-    const user = this.getUserContextWithOverrides(overrideUserId);
-    const userId = user.id;
-    if (userId === null) {
-      return forcedVariations;
-    }
-
-    Object.keys(optlyConfig.experimentsMap).forEach(expKey => {
-      const forcedVariation = this._client.getForcedVariation(expKey, userId);
-      if (forcedVariation !== null) {
-        forcedVariations[expKey] = forcedVariation;
-      }
-    });
-
-    return forcedVariations;
   }
 
   /**

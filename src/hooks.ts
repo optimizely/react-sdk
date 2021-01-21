@@ -19,7 +19,7 @@ import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult, ForcedVariationsForUser } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual } from './utils';
 
@@ -64,8 +64,7 @@ interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     ExperimentDecisionValues['variation'],
     ClientReady,
-    DidTimeout,
-    ForcedVariationsForUser
+    DidTimeout
   ];
 }
 
@@ -223,18 +222,18 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  const [forcedVariations, setForcedVariations] = useState(() =>
-    optimizely.getForcedVariations(overrides.overrideUserId)
-  );
   useEffect(
     () =>
-      optimizely.onForcedVariationsUpdate(() =>
-        setForcedVariations(optimizely.getForcedVariations(overrides.overrideUserId))
-      ),
-    [optimizely, overrides.overrideUserId]
+      optimizely.onForcedVariationsUpdate(() => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      }),
+    [getCurrentDecision, optimizely]
   );
 
-  return [state.variation, state.clientReady, state.didTimeout, forcedVariations];
+  return [state.variation, state.clientReady, state.didTimeout];
 };
 
 /**
