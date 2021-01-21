@@ -367,7 +367,7 @@ describe('hooks', () => {
       expect(activateMock).not.toHaveBeenCalled();
     });
 
-    it.only('should re-render after setForcedVariation is called on the client', async () => {
+    it('should re-render after setForcedVariation is called on the client', async () => {
       activateMock.mockReturnValue(null);
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
