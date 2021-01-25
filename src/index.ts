@@ -29,7 +29,7 @@ export {
   enums,
   eventDispatcher,
   OptimizelyDecision,
-  OptimizelyDecideOptions,
+  OptimizelyDecideOption,
 } from '@optimizely/optimizely-sdk';
 
 export { createInstance, ReactSDKClient } from './client';

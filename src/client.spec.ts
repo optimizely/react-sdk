@@ -501,7 +501,7 @@ describe('ReactSDKClient', () => {
           variables: {},
           variationKey: 'varition2',
         });
-        result = instance.decide('exp1', [optimizely.OptimizelyDecideOptions.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        result = instance.decide('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
         expect(result).toEqual({
           enabled: true,
           flagKey: 'theFlag2',
@@ -512,7 +512,7 @@ describe('ReactSDKClient', () => {
           variationKey: 'varition2',
         });
         expect(mockFn).toBeCalledTimes(1);
-        expect(mockFn).toBeCalledWith('exp1', [optimizely.OptimizelyDecideOptions.INCLUDE_REASONS]);
+        expect(mockFn).toBeCalledWith('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
         expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
       });
 
@@ -557,7 +557,7 @@ describe('ReactSDKClient', () => {
             variationKey: 'varition2',
           }
         });
-        result = instance.decideAll([optimizely.OptimizelyDecideOptions.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        result = instance.decideAll([optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
         expect(result).toEqual({
           'theFlag2': {
             enabled: true,
@@ -570,7 +570,7 @@ describe('ReactSDKClient', () => {
           }
         });
         expect(mockFn).toBeCalledTimes(1);
-        expect(mockFn).toBeCalledWith([optimizely.OptimizelyDecideOptions.INCLUDE_REASONS]);
+        expect(mockFn).toBeCalledWith([optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
         expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
       });
 
@@ -615,7 +615,7 @@ describe('ReactSDKClient', () => {
             variationKey: 'varition2',
           }
         });
-        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOptions.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
         expect(result).toEqual({
           'theFlag2': {
             enabled: true,
@@ -628,7 +628,7 @@ describe('ReactSDKClient', () => {
           }
         });
         expect(mockFn).toBeCalledTimes(1);
-        expect(mockFn).toBeCalledWith(['theFlag1'], [optimizely.OptimizelyDecideOptions.INCLUDE_REASONS]);
+        expect(mockFn).toBeCalledWith(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
         expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
       });
     });

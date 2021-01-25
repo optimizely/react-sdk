@@ -133,20 +133,20 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   decide(
     key: string,
-    options?: optimizely.OptimizelyDecideOptions[],
+    options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): optimizely.OptimizelyDecision | null
 
   decideAll(
-    options?: optimizely.OptimizelyDecideOptions[],
+    options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: optimizely.OptimizelyDecision } | null
 
   decideForKeys(
     keys: string[],
-    options?: optimizely.OptimizelyDecideOptions[],
+    options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: optimizely.OptimizelyDecision } | null
@@ -283,7 +283,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public decide(
     key: string,
-    options: optimizely.OptimizelyDecideOptions[] = [],
+    options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): optimizely.OptimizelyDecision | null {    
@@ -301,7 +301,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public decideForKeys(
     keys: string[],
-    options: optimizely.OptimizelyDecideOptions[] = [],
+    options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: optimizely.OptimizelyDecision } | null {
@@ -318,7 +318,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public decideAll(    
-    options: optimizely.OptimizelyDecideOptions[] = [],
+    options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: optimizely.OptimizelyDecision } | null {
