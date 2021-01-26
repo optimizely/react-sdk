@@ -19,14 +19,9 @@ import { getLogger } from '@optimizely/js-sdk-logging';
 
 import { OptimizelyContextProvider } from './Context';
 import { ReactSDKClient } from './client';
-import { areUsersEqual } from './utils';
+import { areUsersEqual, UserInfo } from './utils';
 
 const logger = getLogger('<OptimizelyProvider>');
-
-type UserInfo = {
-  id: string;
-  attributes?: UserAttributes;
-};
 
 interface OptimizelyProviderProps {
   optimizely: ReactSDKClient;

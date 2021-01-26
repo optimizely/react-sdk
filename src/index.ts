@@ -20,6 +20,7 @@ export { useFeature, useExperiment } from './hooks';
 export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely';
 export { OptimizelyExperiment } from './Experiment';
 export { OptimizelyVariation } from './Variation';
+export { OptimizelyDecision } from './utils';
 
 export {
   logging,
@@ -28,7 +29,6 @@ export {
   setLogLevel,
   enums,
   eventDispatcher,
-  OptimizelyDecision,
   OptimizelyDecideOption,
 } from '@optimizely/optimizely-sdk';
 

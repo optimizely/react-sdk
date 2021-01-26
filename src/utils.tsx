@@ -23,6 +23,15 @@ type User = {
   attributes: optimizely.UserAttributes;
 };
 
+export type UserInfo = {
+  id: string;
+  attributes?: optimizely.UserAttributes;
+};
+
+export interface OptimizelyDecision extends Omit<optimizely.OptimizelyDecision, 'userContext'> {
+   userContext: UserInfo
+};
+
 export function areUsersEqual(user1: User, user2: User): boolean {
   if (user1.id !== user2.id) {
     return false;
@@ -100,4 +109,19 @@ export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknow
   return oldAttrsKeys.every((oldAttrKey: string) => {
     return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
   });
+}
+
+export function getOptimizelyDecision(clientOptimizelyDecision: optimizely.OptimizelyDecision, userId: string, attributes?: optimizely.UserAttributes): OptimizelyDecision {
+  return {
+    enabled: clientOptimizelyDecision.enabled,
+    flagKey: clientOptimizelyDecision.flagKey,
+    reasons: clientOptimizelyDecision.reasons,
+    ruleKey: clientOptimizelyDecision.ruleKey,
+    variables: clientOptimizelyDecision.variables,
+    variationKey: clientOptimizelyDecision.variationKey,
+    userContext: {
+      id: userId,
+      attributes: attributes
+    }
+  }
 }

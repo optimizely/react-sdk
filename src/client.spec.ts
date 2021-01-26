@@ -484,13 +484,16 @@ describe('ReactSDKClient', () => {
           flagKey: 'theFlag1',
           reasons: [],
           ruleKey: '',
-          userContext: mockOptimizelyUserContext,
+          userContext: {
+            id: 'user1',
+            attributes: { foo: 'bar' },
+          },
           variables: {},
           variationKey: 'varition1',
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('exp1', []);
-        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });        
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
         mockFn.mockReset();
         mockFn.mockReturnValue({
           enabled: true,
@@ -507,7 +510,10 @@ describe('ReactSDKClient', () => {
           flagKey: 'theFlag2',
           reasons: [],
           ruleKey: '',
-          userContext: mockOptimizelyUserContext,
+          userContext: {
+            id: 'user2',
+            attributes: { bar: 'baz' },
+          },
           variables: {},
           variationKey: 'varition2',
         });
@@ -537,7 +543,10 @@ describe('ReactSDKClient', () => {
             flagKey: 'theFlag1',
             reasons: [],
             ruleKey: '',
-            userContext: mockOptimizelyUserContext,
+            userContext: {
+              id: 'user1',
+              attributes: { foo: 'bar' },
+            },
             variables: {},
             variationKey: 'varition1',
           }
@@ -564,7 +573,10 @@ describe('ReactSDKClient', () => {
             flagKey: 'theFlag2',
             reasons: [],
             ruleKey: '',
-            userContext: mockOptimizelyUserContext,
+            userContext: {
+              id: 'user2',
+              attributes: { bar: 'baz' },
+            },
             variables: {},
             variationKey: 'varition2',
           }
@@ -595,7 +607,10 @@ describe('ReactSDKClient', () => {
             flagKey: 'theFlag1',
             reasons: [],
             ruleKey: '',
-            userContext: mockOptimizelyUserContext,
+            userContext: {
+              id: 'user1',
+              attributes: { foo: 'bar' },
+            },
             variables: {},
             variationKey: 'varition1',
           }
@@ -622,7 +637,10 @@ describe('ReactSDKClient', () => {
             flagKey: 'theFlag2',
             reasons: [],
             ruleKey: '',
-            userContext: mockOptimizelyUserContext,
+            userContext: {
+              id: 'user2',
+              attributes: { bar: 'baz' },
+            },
             variables: {},
             variationKey: 'varition2',
           }
