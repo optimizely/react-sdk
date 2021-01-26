@@ -16,7 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { OptimizelyDecision, getOptimizelyDecision } from './utils';
+import { OptimizelyDecision } from './utils';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -295,7 +295,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
-      return getOptimizelyDecision(optlyUserContext.decide(key, options), user.id, user.attributes);
+      return {
+        ... optlyUserContext.decide(key, options),
+        userContext: {
+          id: user.id,
+          attributes: user.attributes
+        }
+      }
     }
     return null;
   }
@@ -313,11 +319,17 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
-      const clientOptimizelyDecisions: { [key: string]: optimizely.OptimizelyDecision } = optlyUserContext.decideForKeys(keys, options);
-      return Object.keys(clientOptimizelyDecisions).reduce((decisions: { [key: string]: OptimizelyDecision }, key): { [key: string]: OptimizelyDecision } => {
-        decisions[key] = getOptimizelyDecision(clientOptimizelyDecisions[key], user.id || '', user.attributes);
-        return decisions;
-      }, {});
+      return Object.entries(optlyUserContext.decideForKeys(keys, options))
+        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+          decisions[key] = {
+            ... decision,
+            userContext: {
+              id: user.id || '',
+              attributes: user.attributes,
+            }
+          }
+          return decisions;
+        }, {});
     }
     return null;
   }
@@ -334,11 +346,17 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
-      const clientOptimizelyDecisions: { [key: string]: optimizely.OptimizelyDecision } = optlyUserContext.decideAll(options);
-      return Object.keys(clientOptimizelyDecisions).reduce((decisions: { [key: string]: OptimizelyDecision }, key): { [key: string]: OptimizelyDecision } => {
-        decisions[key] = getOptimizelyDecision(clientOptimizelyDecisions[key], user.id || '', user.attributes);
-        return decisions;
-      }, {});
+      return Object.entries(optlyUserContext.decideAll(options))
+        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+          decisions[key] = {
+            ... decision,
+            userContext: {
+              id: user.id || '',
+              attributes: user.attributes,
+            }
+          }
+          return decisions;
+        }, {});
     }
     return null;
   }

@@ -110,13 +110,3 @@ export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknow
     return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
   });
 }
-
-export function getOptimizelyDecision(clientOptimizelyDecision: optimizely.OptimizelyDecision, userId: string, attributes?: optimizely.UserAttributes): OptimizelyDecision {
-  return {
-    ... clientOptimizelyDecision,
-    userContext: {
-      id: userId,
-      attributes: attributes
-    }
-  }
-}
