@@ -113,12 +113,7 @@ export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknow
 
 export function getOptimizelyDecision(clientOptimizelyDecision: optimizely.OptimizelyDecision, userId: string, attributes?: optimizely.UserAttributes): OptimizelyDecision {
   return {
-    enabled: clientOptimizelyDecision.enabled,
-    flagKey: clientOptimizelyDecision.flagKey,
-    reasons: clientOptimizelyDecision.reasons,
-    ruleKey: clientOptimizelyDecision.ruleKey,
-    variables: clientOptimizelyDecision.variables,
-    variationKey: clientOptimizelyDecision.variationKey,
+    ... clientOptimizelyDecision,
     userContext: {
       id: userId,
       attributes: attributes
