@@ -51,6 +51,7 @@ describe('hooks', () => {
   let UseExperimentLoggingComponent: React.FunctionComponent<any>;
   let UseFeatureLoggingComponent: React.FunctionComponent<any>;
   let mockLog: jest.Mock;
+  let forcedVariationUpdateCallbacks: Array<() => void>;
 
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
@@ -76,6 +77,7 @@ describe('hooks', () => {
     mockDelay = 10;
     readySuccess = true;
     notificationListenerCallbacks = [];
+    forcedVariationUpdateCallbacks = [];
 
     optimizelyMock = ({
       activate: activateMock,
@@ -97,6 +99,11 @@ describe('hooks', () => {
         attributes: {},
       },
       isReady: () => readySuccess,
+      onForcedVariationsUpdate: jest.fn().mockImplementation(handler => {
+        forcedVariationUpdateCallbacks.push(handler);
+        return () => {};
+      }),
+      getForcedVariations: jest.fn().mockReturnValue({}),
     } as unknown) as ReactSDKClient;
 
     mockLog = jest.fn();
@@ -358,6 +365,24 @@ describe('hooks', () => {
       });
       component.update();
       expect(activateMock).not.toHaveBeenCalled();
+    });
+
+    it('should re-render after setForcedVariation is called on the client', async () => {
+      activateMock.mockReturnValue(null);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyExperimentComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('null|true|false');
+
+      activateMock.mockReturnValue('12345');
+      forcedVariationUpdateCallbacks[0]();
+
+      component.update();
+      expect(component.text()).toBe('12345|true|false');
     });
   });
 

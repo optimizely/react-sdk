@@ -491,7 +491,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 - `isFeatureEnabled(featureKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): boolean` Return the enabled status for the given feature and user
 - `getEnabledFeatures(overrideUserId?: string, overrideAttributes?: UserAttributes): Array<string>`: Return the keys of all features enabled for the given user
 - `track(eventKey: string, overrideUserId?: string | EventTags, overrideAttributes?: UserAttributes, eventTags?: EventTags): void` Track an event to the Optimizely results backend
-- `setForcedVariation(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string | null): boolean` Set a forced variation for the given experiment, variation, and user
+- `setForcedVariation(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string | null): boolean` Set a forced variation for the given experiment, variation, and user. **Note**: calling `setForcedVariation` on a given client will trigger a re-render of all `useExperiment` hooks and `OptimizelyExperiment` components that are using that client.
 - `getForcedVariation(experiment: string, overrideUserId?: string): string | null` Get the forced variation for the given experiment, variation, and user
 
 ## Rollout or experiment a feature user-by-user
@@ -586,60 +586,60 @@ First-party code subject to copyrights held by Optimizely, Inc. and its contribu
 
 This repository includes the following third party open source code:
 
-[**hoist-non-react-statics**](https://github.com/mridgway/hoist-non-react-statics)  
+[**hoist-non-react-statics**](https://github.com/mridgway/hoist-non-react-statics)
 Copyright &copy; 2015 Yahoo!, Inc.
 License: [BSD](https://github.com/mridgway/hoist-non-react-statics/blob/master/LICENSE.md)
 
-[**js-tokens**](https://github.com/lydell/js-tokens)  
+[**js-tokens**](https://github.com/lydell/js-tokens)
 Copyright &copy; 2014, 2015, 2016, 2017, 2018, 2019 Simon Lydell
 License: [MIT](https://github.com/lydell/js-tokens/blob/master/LICENSE)
 
-[**json-schema**](https://github.com/kriszyp/json-schema)  
+[**json-schema**](https://github.com/kriszyp/json-schema)
 Copyright &copy; 2005-2015, The Dojo Foundation
 License: [BSD](https://github.com/kriszyp/json-schema/blob/master/LICENSE)
 
-[**lodash**](https://github.com/lodash/lodash/)  
+[**lodash**](https://github.com/lodash/lodash/)
 Copyright &copy; JS Foundation and other contributors
 License: [MIT](https://github.com/lodash/lodash/blob/master/LICENSE)
 
-[**loose-envify**](https://github.com/zertosh/loose-envify)  
+[**loose-envify**](https://github.com/zertosh/loose-envify)
 Copyright &copy; 2015 Andres Suarez <zertosh@gmail.com>
 License: [MIT](https://github.com/zertosh/loose-envify/blob/master/LICENSE)
 
-[**node-murmurhash**](https://github.com/perezd/node-murmurhash)  
+[**node-murmurhash**](https://github.com/perezd/node-murmurhash)
 Copyright &copy; 2012 Gary Court, Derek Perez
 License: [MIT](https://github.com/perezd/node-murmurhash/blob/master/README.md)
 
-[**object-assign**](https://github.com/sindresorhus/object-assign)  
+[**object-assign**](https://github.com/sindresorhus/object-assign)
 Copyright &copy; Sindre Sorhus (sindresorhus.com)
 License: [MIT](https://github.com/sindresorhus/object-assign/blob/master/license)
 
-[**promise-polyfill**](https://github.com/taylorhakes/promise-polyfill)  
+[**promise-polyfill**](https://github.com/taylorhakes/promise-polyfill)
 Copyright &copy; 2014 Taylor Hakes
 Copyright &copy; 2014 Forbes Lindesay
 License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICENSE)
 
-[**prop-types**](https://github.com/facebook/prop-types)  
+[**prop-types**](https://github.com/facebook/prop-types)
 Copyright &copy; 2013-present, Facebook, Inc.
 License: [MIT](https://github.com/facebook/prop-types/blob/master/LICENSE)
 
-[**react-is**](https://github.com/facebook/react)  
+[**react-is**](https://github.com/facebook/react)
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
 
-[**react**](https://github.com/facebook/react)  
+[**react**](https://github.com/facebook/react)
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
 
-[**scheduler**](https://github.com/facebook/react)  
+[**scheduler**](https://github.com/facebook/react)
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
 
-[**utility-types**](https://github.com/piotrwitek/utility-types)  
+[**utility-types**](https://github.com/piotrwitek/utility-types)
 Copyright &copy; 2016 Piotr Witek <piotrek.witek@gmail.com>
 License: [MIT](https://github.com/piotrwitek/utility-types/blob/master/LICENSE)
 
-[**node-uuid**](https://github.com/kelektiv/node-uuid)  
+[**node-uuid**](https://github.com/kelektiv/node-uuid)
 Copyright &copy; 2010-2016 Robert Kieffer and other contributors
 License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)
 

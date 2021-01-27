@@ -52,6 +52,7 @@ describe('<OptimizelyExperiment>', () => {
         attributes: {},
       },
       isReady: jest.fn().mockReturnValue(false),
+      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
     } as unknown) as ReactSDKClient;
   });
 
