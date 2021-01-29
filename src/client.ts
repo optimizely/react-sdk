@@ -16,7 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { OptimizelyDecision } from './utils';
+import { OptimizelyDecision, UserInfo } from './utils';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -26,7 +26,7 @@ export type VariableValuesObject = {
 
 type DisposeFn = () => void;
 
-type OnUserUpdateHandler = (userInfo: UserContext) => void;
+type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 export type OnReadyResult = {
   success: boolean;
@@ -38,10 +38,10 @@ const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.4.2';
 
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
-  user: UserContext;
+  user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
-  setUser(userInfo: { id: string; attributes?: { [key: string]: any } }): void;
+  setUser(userInfo: UserInfo): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
 
@@ -153,20 +153,15 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   ): { [key: string]: OptimizelyDecision } | null
 }
 
-type UserContext = {
-  id: string | null;
-  attributes: optimizely.UserAttributes;
-};
-
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config;
-  public user: UserContext = {
+  public user: UserInfo = { 
     id: null,
     attributes: {},
   };
-  private userPromiseResovler: (user: UserContext) => void;
+  private userPromiseResovler: (user: UserInfo) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
@@ -231,7 +226,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
   }
 
-  setUser(userInfo: { id?: string; attributes?: { [key: string]: any } }): void {
+  setUser(userInfo: UserInfo): void {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
@@ -725,9 +720,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   protected getUserContextWithOverrides(
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): UserContext {
+  ): UserInfo {
     const finalUserId: string | null = overrideUserId === undefined ? this.user.id : overrideUserId;
-    const finalUserAttributes: optimizely.UserAttributes =
+    const finalUserAttributes: optimizely.UserAttributes | undefined =
       overrideAttributes === undefined ? this.user.attributes : overrideAttributes;
 
     return {
