@@ -43,7 +43,7 @@ export interface ReactSDKClient extends optimizely.Client {
   user: UserContext;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
-  setUser(userInfo: { id: string; attributes?: { [key: string]: any } }): void;
+  setUser(userInfo: { id: string; attributes?: { [key: string]: string | number | boolean | null } }): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
 
