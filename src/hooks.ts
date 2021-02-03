@@ -222,6 +222,17 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
+  useEffect(
+    () =>
+      optimizely.onForcedVariationsUpdate(() => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      }),
+    [getCurrentDecision, optimizely]
+  );
+
   return [state.variation, state.clientReady, state.didTimeout];
 };
 

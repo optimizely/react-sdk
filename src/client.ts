@@ -28,6 +28,8 @@ type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
+type OnForcedVariationsUpdateHandler = () => void;
+
 export type OnReadyResult = {
   success: boolean;
   reason?: string;
@@ -132,6 +134,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   getForcedVariation(experiment: string, overrideUserId?: string): string | null;
 
+  onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn;
+
   decide(
     key: string,
     options?: optimizely.OptimizelyDecideOption[],
@@ -165,6 +169,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
+  private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
   private readonly _client: optimizely.Client;
 
@@ -248,6 +253,23 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       const ind = this.onUserUpdateHandlers.indexOf(handler);
       if (ind > -1) {
         this.onUserUpdateHandlers.splice(ind, 1);
+      }
+    };
+  }
+
+  /**
+   * Register a handler to be called whenever setForcedVariation is called on
+   * this client. Returns a function that un-registers the handler when called.
+   * @param {OnForcedVariationsUpdateHandler} handler
+   * @returns {DisposeFn}
+   */
+  onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn {
+    this.onForcedVariationsUpdateHandlers.push(handler);
+
+    return (): void => {
+      const ind = this.onForcedVariationsUpdateHandlers.indexOf(handler);
+      if (ind > -1) {
+        this.onForcedVariationsUpdateHandlers.splice(ind, 1);
       }
     };
   }
@@ -688,7 +710,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (finalUserId === null) {
       return false;
     }
-    return this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
+    const result = this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
+    this.onForcedVariationsUpdateHandlers.forEach(handler => handler());
+    return result;
   }
 
   /**

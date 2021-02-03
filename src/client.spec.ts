@@ -828,4 +828,32 @@ describe('ReactSDKClient', () => {
       });
     });
   });
+
+  describe('onForcedVariationsUpdate', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+      instance.setUser({
+        id: 'xxfueaojfe8&86',
+        attributes: {
+          foo: 'bar',
+        },
+      });
+    });
+
+    it('calls the handler function when setForcedVariation is called', () => {
+      const handler = jest.fn();
+      instance.onForcedVariationsUpdate(handler);
+      instance.setForcedVariation('my_exp', 'xxfueaojfe8&86', 'variation_a');
+      expect(handler).toBeCalledTimes(1);
+    });
+
+    it('removes the handler when the cleanup fn is called', () => {
+      const handler = jest.fn();
+      const cleanup = instance.onForcedVariationsUpdate(handler);
+      cleanup();
+      instance.setForcedVariation('my_exp', 'xxfueaojfe8&86', 'variation_a');
+      expect(handler).not.toBeCalled();
+    });
+  });
 });
