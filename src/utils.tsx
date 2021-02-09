@@ -108,3 +108,18 @@ export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknow
     return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
   });
 }
+
+export function createFailedDecision(flagKey: string, message: string, user: UserInfo): OptimizelyDecision {
+  return {
+    enabled: false,
+    flagKey: flagKey,
+    ruleKey: null,
+    variationKey: null,
+    variables: {},
+    reasons: [message],
+    userContext: {
+      id: user.id,
+      attributes: user.attributes
+    }
+  }
+}

@@ -16,8 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { OptimizelyDecision, UserInfo } from './utils';
-import Optimizely from '@optimizely/optimizely-sdk/lib/optimizely';
+import { OptimizelyDecision, UserInfo, createFailedDecision } from './utils';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -309,18 +308,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating feature "%s" because userId is not set', key);
-      return {
-        enabled: false,
-        flagKey: key,
-        ruleKey: null,
-        variationKey: null,
-        variables: {},
-        reasons: [`Not Evaluating feature ${key} because userId is not set`],
-        userContext: {
-          id: user.id,
-          attributes: user.attributes
-        }
-      }
+      return createFailedDecision(key, `Not Evaluating flag ${key} because userId is not set`, user);
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
@@ -332,18 +320,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         }
       }
     }
-    return {
-      enabled: false,
-      flagKey: key,
-      ruleKey: null,
-      variationKey: null,
-      variables: {},
-      reasons: [`Not Evaluating feature ${key} because user context is not set`],
-      userContext: {
-        id: user.id,
-        attributes: user.attributes
-      }
-    }
+    return createFailedDecision(key, `Not Evaluating flag ${key} because user id or attributes are not valid`, user);
   }
 
   public decideForKeys(
@@ -351,11 +328,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } | null {
+  ): { [key: string]: OptimizelyDecision } {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
-      return null;
+      return {};
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
@@ -371,18 +348,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           return decisions;
         }, {});
     }
-    return null;
+    return {};
   }
 
   public decideAll(    
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } | null {
+  ): { [key: string]: OptimizelyDecision } {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
-      return null;
+      return {};
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
@@ -398,7 +375,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           return decisions;
         }, {});
     }
-    return null;
+    return {};
   }
 
   /**
