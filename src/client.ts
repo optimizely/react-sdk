@@ -17,6 +17,7 @@
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
 import { OptimizelyDecision, UserInfo } from './utils';
+import Optimizely from '@optimizely/optimizely-sdk/lib/optimizely';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -304,11 +305,22 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision | null {    
+  ): OptimizelyDecision {    
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating feature "%s" because userId is not set', key);
-      return null;
+      return {
+        enabled: false,
+        flagKey: key,
+        ruleKey: null,
+        variationKey: null,
+        variables: {},
+        reasons: [`Not Evaluating feature ${key} because userId is not set`],
+        userContext: {
+          id: user.id,
+          attributes: user.attributes
+        }
+      }
     }    
     const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
     if (optlyUserContext) {
@@ -320,7 +332,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         }
       }
     }
-    return null;
+    return {
+      enabled: false,
+      flagKey: key,
+      ruleKey: null,
+      variationKey: null,
+      variables: {},
+      reasons: [`Not Evaluating feature ${key} because user context is not set`],
+      userContext: {
+        id: user.id,
+        attributes: user.attributes
+      }
+    }
   }
 
   public decideForKeys(
