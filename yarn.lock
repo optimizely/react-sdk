@@ -508,8 +508,8 @@
 
 "@optimizely/optimizely-sdk@^4.5.0-beta":
   version "4.5.0-beta"
-  resolved "https://optimizely.jfrog.io/optimizely/api/npm/npm/@optimizely/optimizely-sdk/-/optimizely-sdk-4.5.0-beta.tgz#69bbb82ab6abac9d56ed7e581aacabda3332d855"
-  integrity sha1-abu4KrarrJ1W7X5YGqyr2jMy2FU=
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.5.0-beta.tgz#69bbb82ab6abac9d56ed7e581aacabda3332d855"
+  integrity sha512-7lleaatiuBBwW2YL8WXylo7NB6vB7t02npSrqd4iuKDc7114xJogrNq0nGQgLw48SgYbY6pHFL2ipDCNIZ3f5w==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.8.0"
     "@optimizely/js-sdk-event-processor" "^0.8.0"
