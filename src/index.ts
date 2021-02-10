@@ -20,8 +20,17 @@ export { useFeature, useExperiment } from './hooks';
 export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely';
 export { OptimizelyExperiment } from './Experiment';
 export { OptimizelyVariation } from './Variation';
+export { OptimizelyDecision } from './utils';
 
-export { logging, errorHandler, setLogger, setLogLevel, enums, eventDispatcher } from '@optimizely/optimizely-sdk';
+export {
+  logging,
+  errorHandler,
+  setLogger,
+  setLogLevel,
+  enums,
+  eventDispatcher,
+  OptimizelyDecideOption,
+} from '@optimizely/optimizely-sdk';
 
 export { createInstance, ReactSDKClient } from './client';
 

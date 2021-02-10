@@ -25,10 +25,18 @@ describe('ReactSDKClient', () => {
   };
 
   let mockInnerClient: optimizely.Client;
+  let mockOptimizelyUserContext: optimizely.OptimizelyUserContext;
   let createInstanceSpy: jest.Mock<optimizely.Client, [optimizely.Config]>;
 
   beforeEach(() => {
+    mockOptimizelyUserContext = {
+      decide: jest.fn(),
+      decideAll: jest.fn(),
+      decideForKeys: jest.fn(),
+    } as any;
+
     mockInnerClient = {
+      createUserContext: jest.fn(() => mockOptimizelyUserContext),
       activate: jest.fn(() => null),
       track: jest.fn(),
       isFeatureEnabled: jest.fn(() => false),
@@ -55,6 +63,7 @@ describe('ReactSDKClient', () => {
         clearAllNotificationListeners: jest.fn(),
       },
     };
+
     const anyOptly = optimizely as any;
     anyOptly.createInstance.mockReturnValue(mockInnerClient);
     createInstanceSpy = optimizely.createInstance as jest.Mock<optimizely.Client, [optimizely.Config]>;
@@ -455,6 +464,190 @@ describe('ReactSDKClient', () => {
         expect(result).toBe(null);
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('exp1', 'user2');
+      });
+
+      it('can use pre-set and override user for decide', () => {
+        const mockFn = mockOptimizelyUserContext.decide as jest.Mock;
+        const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
+        mockFn.mockReturnValue({
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: mockOptimizelyUserContext,
+          variables: {},
+          variationKey: 'varition1',
+        });
+        let result = instance.decide('exp1');
+        expect(result).toEqual({
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: {
+            id: 'user1',
+            attributes: { foo: 'bar' },
+          },
+          variables: {},
+          variationKey: 'varition1',
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith('exp1', []);
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
+        mockFn.mockReset();
+        mockFn.mockReturnValue({
+          enabled: true,
+          flagKey: 'theFlag2',
+          reasons: [],
+          ruleKey: '',
+          userContext: mockOptimizelyUserContext,
+          variables: {},
+          variationKey: 'varition2',
+        });
+        result = instance.decide('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        expect(result).toEqual({
+          enabled: true,
+          flagKey: 'theFlag2',
+          reasons: [],
+          ruleKey: '',
+          userContext: {
+            id: 'user2',
+            attributes: { bar: 'baz' },
+          },
+          variables: {},
+          variationKey: 'varition2',
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
+        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
+      });
+
+      it('can use pre-set and override user for decideAll', () => {
+        const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
+        const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
+        mockFn.mockReturnValue({
+          'theFlag1': {
+            enabled: true,
+            flagKey: 'theFlag1',
+            reasons: [],
+            ruleKey: '',
+            userContext: mockOptimizelyUserContext,
+            variables: {},
+            variationKey: 'varition1',
+          }
+        });
+        let result = instance.decideAll();
+        expect(result).toEqual({
+          'theFlag1': {
+            enabled: true,
+            flagKey: 'theFlag1',
+            reasons: [],
+            ruleKey: '',
+            userContext: {
+              id: 'user1',
+              attributes: { foo: 'bar' },
+            },
+            variables: {},
+            variationKey: 'varition1',
+          }
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith([]);
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });        
+        mockFn.mockReset();
+        mockFn.mockReturnValue({
+          'theFlag2': {
+            enabled: true,
+            flagKey: 'theFlag2',
+            reasons: [],
+            ruleKey: '',
+            userContext: mockOptimizelyUserContext,
+            variables: {},
+            variationKey: 'varition2',
+          }
+        });
+        result = instance.decideAll([optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        expect(result).toEqual({
+          'theFlag2': {
+            enabled: true,
+            flagKey: 'theFlag2',
+            reasons: [],
+            ruleKey: '',
+            userContext: {
+              id: 'user2',
+              attributes: { bar: 'baz' },
+            },
+            variables: {},
+            variationKey: 'varition2',
+          }
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith([optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
+        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
+      });
+
+      it('can use pre-set and override user for decideForKeys', () => {
+        const mockFn = mockOptimizelyUserContext.decideForKeys as jest.Mock;
+        const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
+        mockFn.mockReturnValue({
+          'theFlag1': {
+            enabled: true,
+            flagKey: 'theFlag1',
+            reasons: [],
+            ruleKey: '',
+            userContext: mockOptimizelyUserContext,
+            variables: {},
+            variationKey: 'varition1',
+          }
+        });
+        let result = instance.decideForKeys(['theFlag1']);
+        expect(result).toEqual({
+          'theFlag1': {
+            enabled: true,
+            flagKey: 'theFlag1',
+            reasons: [],
+            ruleKey: '',
+            userContext: {
+              id: 'user1',
+              attributes: { foo: 'bar' },
+            },
+            variables: {},
+            variationKey: 'varition1',
+          }
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith(['theFlag1'], []);
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
+        mockFn.mockReset();
+        mockFn.mockReturnValue({
+          'theFlag2': {
+            enabled: true,
+            flagKey: 'theFlag2',
+            reasons: [],
+            ruleKey: '',
+            userContext: mockOptimizelyUserContext,
+            variables: {},
+            variationKey: 'varition2',
+          }
+        });
+        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        expect(result).toEqual({
+          'theFlag2': {
+            enabled: true,
+            flagKey: 'theFlag2',
+            reasons: [],
+            ruleKey: '',
+            userContext: {
+              id: 'user2',
+              attributes: { bar: 'baz' },
+            },
+            variables: {},
+            variationKey: 'varition2',
+          }
+        });
+        expect(mockFn).toBeCalledTimes(1);
+        expect(mockFn).toBeCalledWith(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
+        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
       });
     });
 

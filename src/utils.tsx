@@ -18,20 +18,27 @@ import hoistNonReactStatics from 'hoist-non-react-statics';
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as React from 'react';
 
-type User = {
-  id: string;
-  attributes: optimizely.UserAttributes;
+export type UserInfo = {
+  id: string | null;
+  attributes?: optimizely.UserAttributes;
 };
 
-export function areUsersEqual(user1: User, user2: User): boolean {
+export interface OptimizelyDecision extends Omit<optimizely.OptimizelyDecision, 'userContext'> {
+   userContext: UserInfo
+};
+
+export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
   if (user1.id !== user2.id) {
     return false;
   }
 
-  const user1keys = Object.keys(user1.attributes);
-  const user2keys = Object.keys(user2.attributes);
+  const user1keys = Object.keys(user1.attributes || {});
+  const user2keys = Object.keys(user2.attributes || {});
   user1keys.sort();
   user2keys.sort();
+
+  const user1Attributes = user1.attributes || {}
+  const user2Attributes = user2.attributes || {}
 
   const areKeysLenEqual = user1keys.length === user2keys.length;
   if (!areKeysLenEqual) {
@@ -45,7 +52,7 @@ export function areUsersEqual(user1: User, user2: User): boolean {
       return false;
     }
 
-    if (user1.attributes[key1] !== user2.attributes[key2]) {
+    if (user1Attributes[key1] !== user2Attributes[key2]) {
       return false;
     }
   }
@@ -100,4 +107,19 @@ export function areAttributesEqual(maybeOldAttrs: unknown, maybeNewAttrs: unknow
   return oldAttrsKeys.every((oldAttrKey: string) => {
     return oldAttrKey in newAttrs && oldAttrs[oldAttrKey] === newAttrs[oldAttrKey];
   });
+}
+
+export function createFailedDecision(flagKey: string, message: string, user: UserInfo): OptimizelyDecision {
+  return {
+    enabled: false,
+    flagKey: flagKey,
+    ruleKey: null,
+    variationKey: null,
+    variables: {},
+    reasons: [message],
+    userContext: {
+      id: user.id,
+      attributes: user.attributes
+    }
+  }
 }

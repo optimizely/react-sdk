@@ -19,14 +19,9 @@ import { getLogger } from '@optimizely/js-sdk-logging';
 
 import { OptimizelyContextProvider } from './Context';
 import { ReactSDKClient } from './client';
-import { areUsersEqual } from './utils';
+import { areUsersEqual, UserInfo } from './utils';
 
 const logger = getLogger('<OptimizelyProvider>');
-
-type UserInfo = {
-  id: string;
-  attributes?: UserAttributes;
-};
 
 interface OptimizelyProviderProps {
   optimizely: ReactSDKClient;
@@ -48,10 +43,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     const { optimizely, userId, userAttributes, user } = props;
 
     // check if user id/attributes are provided as props and set them ReactSDKClient
-    let finalUser: {
-      id: string;
-      attributes: UserAttributes;
-    } | null = null;
+    let finalUser: UserInfo | null = null;
 
     if (user) {
       if ('then' in user) {
@@ -93,7 +85,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
         !areUsersEqual(
           {
             id: optimizely.user.id,
-            attributes: optimizely.user.attributes,
+            attributes: optimizely.user.attributes || {},
           },
           {
             id: this.props.user.id,
