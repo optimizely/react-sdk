@@ -21,7 +21,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
-import { areAttributesEqual, OptimizelyDecision } from './utils';
+import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
 const hooksLogger: LoggerFacade = getLogger('ReactSDK');
 
@@ -62,10 +62,6 @@ interface FeatureDecisionValues {
   variables: VariableValuesObject;
 }
 
-interface DecideDecisionValues {
-  decision: OptimizelyDecision | null;
-}
-
 interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     ExperimentDecisionValues['variation'],
@@ -85,7 +81,7 @@ interface UseFeature {
 
 interface UseDecide {
   (featureKey: string, options?: decideHooksOptions, overrides?: HookOverrides): [
-    DecideDecisionValues['decision'],
+    OptimizelyDecision,
     ClientReady,
     DidTimeout
   ];
@@ -327,29 +323,30 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 };
 
 /**
- * A React Hook that retrieves the status of a feature flag and its variables, optionally
+ * A React Hook that retrieves the flag decision, optionally
  * auto updating those values based on underlying user or datafile changes.
  *
  * Note: The react client can become ready AFTER the timeout period.
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
-export const useDecide: UseDecide = (featureKey, options = {}, overrides = {}) => {
+export const useDecide: UseDecide = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision: () => DecideDecisionValues = useCallback(
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
     () => ({
-      decision: optimizely.decide(featureKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
     }),
-    [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
+    [optimizely, flagKey, overrides.overrideUserId, overrideAttrs]
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
-  const [state, setState] = useState<DecideDecisionValues & InitializationState>(() => {
-    const decisionState = isClientReady ? getCurrentDecision() : { decision: null };
+  const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
+    const decisionState = isClientReady? getCurrentDecision()
+      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -361,7 +358,7 @@ export const useDecide: UseDecide = (featureKey, options = {}, overrides = {}) =
   // This is an instance of the derived state pattern recommended here:
   // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
   const currentDecisionInputs: DecisionInputs = {
-    entityKey: featureKey,
+    entityKey: flagKey,
     overrideUserId: overrides.overrideUserId,
     overrideAttributes: overrides.overrideAttributes,
   };
@@ -388,7 +385,7 @@ export const useDecide: UseDecide = (featureKey, options = {}, overrides = {}) =
 
   useEffect(() => {
     if (options.autoUpdate) {
-      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
+      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
           ...getCurrentDecision(),
@@ -396,7 +393,7 @@ export const useDecide: UseDecide = (featureKey, options = {}, overrides = {}) =
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
+  }, [isClientReady, options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
   return [state.decision, state.clientReady, state.didTimeout];
 };

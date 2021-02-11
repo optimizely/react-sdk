@@ -141,20 +141,20 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision | null
+  ): OptimizelyDecision
 
   decideAll(
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } | null
+  ): { [key: string]: OptimizelyDecision }
 
   decideForKeys(
     keys: string[],
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } | null
+  ): { [key: string]: OptimizelyDecision }
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
