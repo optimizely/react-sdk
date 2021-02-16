@@ -35,7 +35,7 @@ type HookOptions = {
   timeout?: number;
 };
 
-type decideHooksOptions = HookOptions & { decideOptions?: OptimizelyDecideOption[] };
+type DecideHooksOptions = HookOptions & { decideOptions?: OptimizelyDecideOption[] };
 
 type HookOverrides = {
   overrideUserId?: string;
@@ -80,7 +80,7 @@ interface UseFeature {
 }
 
 interface UseDecide {
-  (featureKey: string, options?: decideHooksOptions, overrides?: HookOverrides): [
+  (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
     OptimizelyDecision,
     ClientReady,
     DidTimeout
@@ -340,7 +340,7 @@ export const useDecide: UseDecide = (flagKey, options = {}, overrides = {}) => {
     () => ({
       decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
     }),
-    [optimizely, flagKey, overrides.overrideUserId, overrideAttrs]
+    [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
