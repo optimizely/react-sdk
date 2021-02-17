@@ -15,13 +15,13 @@
  */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
-import { UserAttributes } from '@optimizely/optimizely-sdk';
+import { UserAttributes, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { OptimizelyContext } from './Context';
-import { areAttributesEqual } from './utils';
+import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
 const hooksLogger: LoggerFacade = getLogger('ReactSDK');
 
@@ -34,6 +34,8 @@ type HookOptions = {
   autoUpdate?: boolean;
   timeout?: number;
 };
+
+type DecideHooksOptions = HookOptions & { decideOptions?: OptimizelyDecideOption[] };
 
 type HookOverrides = {
   overrideUserId?: string;
@@ -72,6 +74,14 @@ interface UseFeature {
   (featureKey: string, options?: HookOptions, overrides?: HookOverrides): [
     FeatureDecisionValues['isEnabled'],
     FeatureDecisionValues['variables'],
+    ClientReady,
+    DidTimeout
+  ];
+}
+
+interface UseDecide {
+  (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
+    OptimizelyDecision,
     ClientReady,
     DidTimeout
   ];
@@ -310,4 +320,80 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
+};
+
+/**
+ * A React Hook that retrieves the flag decision, optionally
+ * auto updating those values based on underlying user or datafile changes.
+ *
+ * Note: The react client can become ready AFTER the timeout period.
+ *       ClientReady and DidTimeout provide signals to handle this scenario.
+ */
+export const useDecide: UseDecide = (flagKey, options = {}, overrides = {}) => {
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+  if (!optimizely) {
+    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  }
+
+  const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
+    () => ({
+      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+    }),
+    [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
+  );
+
+  const isClientReady = isServerSide || optimizely.isReady();
+  const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
+    const decisionState = isClientReady? getCurrentDecision()
+      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
+    return {
+      ...decisionState,
+      clientReady: isClientReady,
+      didTimeout: false,
+    };
+  });
+  // Decision state is derived from entityKey and overrides arguments.
+  // Track the previous value of those arguments, and update state when they change.
+  // This is an instance of the derived state pattern recommended here:
+  // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
+  const currentDecisionInputs: DecisionInputs = {
+    entityKey: flagKey,
+    overrideUserId: overrides.overrideUserId,
+    overrideAttributes: overrides.overrideAttributes,
+  };
+  const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+  if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
+    setPrevDecisionInputs(currentDecisionInputs);
+    setState(prevState => ({
+      ...prevState,
+      ...getCurrentDecision(),
+    }));
+  }
+
+  const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
+  useEffect(() => {
+    if (!isClientReady) {
+      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+        setState({
+          ...getCurrentDecision(),
+          ...initState,
+        });
+      });
+    }
+  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+
+  useEffect(() => {
+    if (options.autoUpdate) {
+      return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      });
+    }
+    return (): void => {};
+  }, [isClientReady, options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
+
+  return [state.decision, state.clientReady, state.didTimeout];
 };
