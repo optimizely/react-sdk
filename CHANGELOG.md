@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.4.3] - March 2nd, 2021
+### Bug fixes
+- This version of React SDK depends on [4.4.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.3) of `@optimizely/optimizely-sdk`. The dependency was defined to use the latest available minor version which is no more compatible. Fixed the dependency to use the exact version.
+
 ## [2.4.2] - December 11th, 2020
 ### Bug fixes
 - Always recompute decision after resolution of ready promise ([#91](https://github.com/optimizely/react-sdk/pull/91))
