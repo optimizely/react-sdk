@@ -79,7 +79,7 @@ interface UseFeature {
   ];
 }
 
-interface UseDecide {
+interface UseDecision {
   (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
     OptimizelyDecision,
     ClientReady,
@@ -329,7 +329,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  * Note: The react client can become ready AFTER the timeout period.
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
-export const useDecide: UseDecide = (flagKey, options = {}, overrides = {}) => {
+export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
