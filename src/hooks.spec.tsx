@@ -20,7 +20,7 @@ import { act } from 'react-dom/test-utils';
 
 import { OptimizelyProvider } from './Provider';
 import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
-import { useExperiment, useFeature, useDecide } from './hooks';
+import { useExperiment, useFeature, useDecision } from './hooks';
 import { OptimizelyDecision } from './utils';
 
 Enzyme.configure({ adapter: new Adapter() });
@@ -46,7 +46,7 @@ const MyExperimentComponent = ({ options = {}, overrides = {} }: any) => {
 };
 
 const MyDecideComponent = ({ options = {}, overrides = {} }: any) => {
-  const [decision, clientReady, didTimeout] = useDecide('feature1', { ...options }, { ...overrides });
+  const [decision, clientReady, didTimeout] = useDecision('feature1', { ...options }, { ...overrides });
   return <>{`${(decision.enabled) ? 'true' : 'false'}|${JSON.stringify(decision.variables)}|${clientReady}|${didTimeout}`}</>;
 };
 
@@ -66,7 +66,7 @@ describe('hooks', () => {
   let userUpdateCallbacks: Array<() => void>;
   let UseExperimentLoggingComponent: React.FunctionComponent<any>;
   let UseFeatureLoggingComponent: React.FunctionComponent<any>;
-  let UseDecideLoggingComponent: React.FunctionComponent<any>;
+  let UseDecisionLoggingComponent: React.FunctionComponent<any>;
   let mockLog: jest.Mock;
   let forcedVariationUpdateCallbacks: Array<() => void>;
   let decideMock: jest.Mock<OptimizelyDecision>;
@@ -139,8 +139,8 @@ describe('hooks', () => {
       return <div>{isEnabled}</div>;
     };
 
-    UseDecideLoggingComponent = ({ options = {}, overrides = {} }: any) => {
-      const [decision] = useDecide('feature1', { ...options }, { ...overrides });
+    UseDecisionLoggingComponent = ({ options = {}, overrides = {} }: any) => {
+      const [decision] = useDecision('feature1', { ...options }, { ...overrides });
       mockLog(decision.enabled);
       return <div>{decision.enabled}</div>;
     };
@@ -668,7 +668,7 @@ describe('hooks', () => {
     });
   });
 
-  describe('useDecide', () => {
+  describe('useDecision', () => {
     it('should render true when the flag is enabled', async () => {
       decideMock.mockReturnValue({
         ... defaultDecision,
@@ -813,7 +813,7 @@ describe('hooks', () => {
       decideMock.mockReturnValue({ ...defaultDecision });
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <UseDecideLoggingComponent />
+          <UseDecisionLoggingComponent />
         </OptimizelyProvider>
       );
       component.update();
@@ -835,7 +835,7 @@ describe('hooks', () => {
 
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <UseDecideLoggingComponent />
+          <UseDecisionLoggingComponent />
         </OptimizelyProvider>
       );
       component.update();
@@ -914,7 +914,7 @@ describe('hooks', () => {
       decideMock.mockReturnValue({ ...defaultDecision });
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <UseDecideLoggingComponent
+          <UseDecisionLoggingComponent
             options={{ autoUpdate: true }}
             overrides={{ overrideAttributes: { other_attr: 'y' } }}
           />
@@ -924,7 +924,7 @@ describe('hooks', () => {
       decideMock.mockReset();
       component.setProps({
         children: (
-          <UseDecideLoggingComponent
+          <UseDecisionLoggingComponent
             options={{ autoUpdate: true }}
             overrides={{ overrideAttributes: { other_attr: 'y' } }}
           />
