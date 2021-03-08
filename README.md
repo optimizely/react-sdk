@@ -97,13 +97,13 @@ const optimizely = createInstance({
 
 ## `<OptimizelyProvider>`
 
-Required at the root level. Leverages React’s `Context` API to allow access to the `ReactSDKClient` to components like `<OptimizelyFeature>` and `<OptimizelyExperiment>`.
+Required at the root level. Leverages React’s `Context` API to allow access to the `ReactSDKClient` to the `useDecision` hook.
 
 _props_
 
 - `optimizely : ReactSDKClient` created from `createInstance`
 - `user: { id: string; attributes?: { [key: string]: any } } | Promise` User info object - `id` and `attributes` will be passed to the SDK for every feature flag, A/B test, or `track` call, or a `Promise` for the same kind of object
-- `timeout : Number` (optional) The amount of time for OptimizelyExperiment and OptimizelyFeature components to render `null` while waiting for the SDK instance to become ready, before resolving..
+- `timeout : Number` (optional) The amount of time for `useDecision` to return `null` flag Decision while waiting for the SDK instance to become ready, before resolving..
 - `isServerSide : Boolean` (optional) must pass `true` here for server side rendering
 - `userId : String` (optional) **_Deprecated, prefer using `user` instead_**. Another way to provide user id. The `user` object prop takes precedence when both are provided.
 - `userAttributes : Object` : (optional) **_Deprecated, prefer using `user` instead_**. Another way to provide user attributes. The `user` object prop takes precedence when both are provided.
@@ -196,7 +196,7 @@ class AppWrapper extends React.Component {
 }
 ```
 
-## `useExperiment` Hook
+## `useDecision` Hook
 
 A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
 
