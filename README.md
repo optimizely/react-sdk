@@ -24,14 +24,23 @@ The React SDK is compatible with `React 16.3.0 +`
 import {
   createInstance,
   OptimizelyProvider,
-  OptimizelyExperiment,
-  OptimizelyVariation,
-  OptimizelyFeature,
+  useDecision,
 } from '@optimizely/react-sdk';
 
-const optimizely = createInstance({
+const optimizelyClient = createInstance({
   sdkKey: 'your-optimizely-sdk-key',
 });
+
+function MyComponent() {
+  const [decision] = useDecision('sort-algorithm');
+  return (
+    <React.Fragment>
+      <SearchComponent algorithm={decision.variables.algorithm} />
+      { decision.variationKey === 'bluebutton' && <BlueButton /> }
+      { decision.variationKey === 'greenbutton' && <GreenButton /> }
+    </React.Fragment>
+  );
+}
 
 class App extends React.Component {
   render() {
@@ -41,27 +50,7 @@ class App extends React.Component {
         timeout={500}
         user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
       >
-        <OptimizelyExperiment experiment="ab-test">
-          {variation => <p>got variation {variation}</p>}
-        </OptimizelyExperiment>
-
-        <OptimizelyExperiment experiment="button-color">
-          <OptimizelyVariation variation="blue">
-            <BlueButton />
-          </OptimizelyVariation>
-
-          <OptimizelyVariation variation="green">
-            <GreenButton />
-          </OptimizelyVariation>
-
-          <OptimizelyVariation default>
-            <DefaultButton />
-          </OptimizelyVariation>
-        </OptimizelyExperiment>
-
-        <OptimizelyFeature feature="sort-algorithm">
-          {(isEnabled, variables) => <SearchComponent algorithm={variables.algorithm} />}
-        </OptimizelyFeature>
+        <MyComponent />
       </OptimizelyProvider>
     );
   }
@@ -130,14 +119,14 @@ Synchronous loading is the preferred method to ensure that Optimizely is always 
 ```jsx
 import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 
-const optimizely = createInstance({
+const optimizelyClient = createInstance({
   datafile: window.datafile,
 });
 
 class AppWrapper extends React.Component {
   render() {
     return (
-      <OptimizelyProvider optimizely={optimizely} user={{ id: window.userId }}>
+      <OptimizelyProvider optimizely={optimizelyClient} user={{ id: window.userId }}>
         <App />
       </OptimizelyProvider>
     );
@@ -147,24 +136,35 @@ class AppWrapper extends React.Component {
 
 #### Load the datafile asynchronously
 
-If you don't have the datafile downloaded, the `ReactSDKClient` can fetch the datafile for you. However, instead of waiting for the datafile to fetch before you render your app, you can immediately render your app and provide a `timeout` option to `<OptimizelyProvider optimizely={optimizely} timeout={200}>`. This will block rendering of `<OptimizelyExperiment>` and `<OptimizelyFeature>` components until the datafile loads or the timeout is up (in this case, `variation` is `null` and `isFeatureEnabled` is `false`).
+If you don't have the datafile downloaded, the `ReactSDKClient` can fetch the datafile for you. However, instead of waiting for the datafile to fetch before you render your app, you can immediately render your app and provide a `timeout` option to `<OptimizelyProvider optimizely={optimizely} timeout={200}>`. The `useDecision` hook returns `isClientReady` and `didTimeout`. You can use these to block rendering of component until the datafile loads or the timeout is over.
 
 ```jsx
-import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
+import { OptimizelyProvider, createInstance, useDecision } from '@optimizely/react-sdk';
 
-const optimizely = createInstance({
+const optimizelyClient = createInstance({
   sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
 });
+
+function MyComponent() {
+  const [decision, isClientReady, didTimeout] = useDecision('the-flag');
+  return (
+    <React.Fragment>
+      { isClientReady && <div>The Component</div> }
+      { didTimeout && <div>Default Component</div>}
+      { /* If client is not ready and time out has not occured yet, do not render anything */ }
+    </React.Fragment>
+  );
+}
 
 class App extends React.Component {
   render() {
     return (
       <OptimizelyProvider
-        optimizely={optimizely}
+        optimizely={optimizelyClient}
         timeout={500}
         user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
       >
-        <HomePage />
+        <MyComponent />
       </OptimizelyProvider>
     );
   }
@@ -196,206 +196,52 @@ class AppWrapper extends React.Component {
 }
 ```
 
-## `OptimizelyExperiment`
-
-_props_
-
-- `experiment : string` Key of the experiment
-- `autoUpdate : boolean` (optional) If true, this component will re-render in response to datafile or user changes. Default: `false`.
-- `timeout : number` (optional) Rendering timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`.
-- `overrideUserId : string` (optional) Override the userId for calls to `activate` for this component.
-- `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `activate` for this component.
-- `children : React.ReactNode | Function` Content or function returning content to be rendered based on the experiment variation. See usage examples below.
-
-### Render different components based on variation
-
-You can use OptimizelyExperiment via a child render function. If the component contains a function as a child, `<OptimizelyExperiment>` will call that function, with the result of `optimizely.activate(experimentKey)`.
-
-```jsx
-import { OptimizelyExperiment } from '@optimizely/react-sdk';
-
-function ExperimentComponent() {
-  return (
-    <OptimizelyExperiment experiment="exp1">
-      {variation => (variation === 'simple' ? <SimpleComponent /> : <DetailedComponent />)}
-    </OptimizelyExperiment>
-  );
-}
-```
-
-You can also use the `<OptimizelyVariation>` component (see below):
-
-## `OptimizelyVariation`
-
-`OptimizelyVariation` is used with a parent `OptimizelyExperiment` to render different content for different variations.
-
-_props_
-
-- `variation : string` Key of variation for which child content should be rendered
-- `default : boolean` (optional) When `true`, child content will be rendered in the default case (`null` variation returned from the client)
-- `children: React.ReactNode` Content to be rendered for this variation
-
-```jsx
-import { OptimizelyExperiment, OptimizelyVariation } from '@optimizely/react-sdk';
-
-function ExperimentComponent() {
-  return (
-    <OptimizelyExperiment experiment="exp1">
-      <OptimizelyVariation variation="simple">
-        <SimpleComponent />
-      </OptimizelyVariation>
-
-      <OptimizelyVariation variation="detailed">
-        <ComplexComponent />
-      </OptimizelyVariation>
-
-      <OptimizelyVariation default>
-        <SimpleComponent />
-      </OptimizelyVariation>
-    </OptimizelyExperiment>
-  );
-}
-```
-
-**Note: If you are loading the datafile or the user asynchronously, be sure to include an `<OptimizelyVariation default>` component as the render path if the datafile or user fails to load.**
-
-## `OptimizelyFeature`
-
-_props_
-
-- `feature : string` Key of the feature
-- `autoUpdate : boolean` (optional) If true, this component will re-render in response to datafile or user changes. Default: `false`.
-- `timeout : number` (optional) Rendering timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`.
-- `overrideUserId : string` (optional) Override the userId for calls to `isFeatureEnabled` for this component.
-- `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `isFeatureEnabled` for this component.
-- `children : React.ReactNode | Function` Content or function returning content to be rendered based on the enabled status and variable values of the feature. See usage examples below.
-
-### Render something if feature is enabled
-
-```jsx
-import { OptimizelyFeature } from '@optimizely/react-sdk';
-
-function FeatureComponent() {
-  return (
-    <OptimizelyFeature feature="new-login-page">
-      {isEnabled => <a href={isEnabled ? '/login' : '/login2'}>Login</a>}
-    </OptimizelyFeature>
-  );
-}
-```
-
-### Render feature variables
-
-`variables` provide additional configuration for a feature and is a [feature of Optimizely FullStack](https://docs.developers.optimizely.com/full-stack/docs/define-feature-variables). `variables` are not available in Optimizely Rollouts.
-
-```jsx
-import { OptimizelyFeature } from '@optimizely/react-sdk';
-
-function FeatureComponent() {
-  return (
-    <OptimizelyFeature feature="new-login-page">
-      {(isEnabled, variables) => <a href={isEnabled ? '/login' : '/login2'}>{variables.loginText}</a>}
-    </OptimizelyFeature>
-  );
-}
-```
-
 ## `useExperiment` Hook
 
-A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the variation for an experiment, optionally auto updating that value based on underlying user or datafile changes. This can be useful as an alternative to the `<OptimizelyExperiment>` component or to use an experiment inside code that is not explicitly rendered.
+A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
 
 _arguments_
 
-- `experiment : string` Key of the experiment
+- `flagKey : string` The key of the feature flag.
 - `options : Object`
-  - `autoUpdate : boolean` (optional) If true, this hook will update the variation value in response to datafile or user changes. Default: `false`.
+  - `autoUpdate : boolean` (optional) If true, this hook will update the flag decision in response to datafile or user changes. Default: `false`.
   - `timeout : number` (optional) Client timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`.
+  - `decideOption: OptimizelyDecideOption[]` (optional) Array of OptimizelyDecideOption enums.
 - `overrides : Object`
-  - `overrideUserId : string` (optional) Override the userId for calls to `isFeatureEnabled` for this hook.
-  - `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `isFeatureEnabled` for this hook.
+  - `overrideUserId : string` (optional) Override the userId to be used to obtain the decision result for this hook.
+  - `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes to be used to obtain the decision result for this hook.
 
 _returns_
 
 - `Array` of:
 
-  - `variation : string` - The `activate` return value (variation) for the `experiment` provided.
+  - `decision : OptimizelyDecision` - Decision result for the flag key.
   - `clientReady : boolean` - Whether or not the underlying `ReactSDKClient` instance is ready or not.
   - `didTimeout : boolean` - Whether or not the underlying `ReactSDKClient` became ready within the allowed `timeout` range.
 
   _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
 
-### Render something if feature is enabled
+### Render something if flag is enabled
 
 ```jsx
 import { useEffect } from 'react';
-import { useExperiment } from '@optimizely/react-sdk';
+import { useDecision } from '@optimizely/react-sdk';
 
 function LoginComponent() {
-  const [variation, clientReady] = useExperiment(
-    'experiment1',
+  const [decision, clientReady] = useDecision(
+    'login-flag',
     { autoUpdate: true },
     {
       /* (Optional) User overrides */
     }
   );
   useEffect(() => {
-    document.title = variation ? 'login1' : 'login2';
-  }, [isEnabled]);
+    document.title = decision.variationKey === 'login-new' ? 'login-new' : 'login-default';
+  }, [decision.enabled]);
 
   return (
     <p>
-      <a href={variation ? '/login' : '/login2'}>Click to login</a>
-    </p>
-  );
-}
-```
-
-## `useFeature` Hook
-
-A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the status of a feature flag and its variables. This can be useful as an alternative to the `<OptimizelyFeature>` component or to use features & variables inside code that is not explicitly rendered.
-
-_arguments_
-
-- `feature : string` Key of the feature
-- `options : Object`
-  - `autoUpdate : boolean` (optional) If true, this hook will update the feature and it's variables in response to datafile or user changes. Default: `false`.
-  - `timeout : number` (optional) Client timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`.
-- `overrides : Object`
-  - `overrideUserId : string` (optional) Override the userId for calls to `isFeatureEnabled` for this hook.
-  - `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes for calls to `isFeatureEnabled` for this hook.
-
-_returns_
-
-- `Array` of:
-
-  - `isFeatureEnabled : boolean` - The `isFeatureEnabled` value for the `feature` provided.
-  - `variables : VariableValuesObject` - The variable values for the `feature` provided
-  - `clientReady : boolean` - Whether or not the underlying `ReactSDKClient` instance is ready or not.
-  - `didTimeout : boolean` - Whether or not the underlying `ReactSDKClient` became ready within the allowed `timeout` range.
-
-  _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
-
-### Render something if feature is enabled
-
-```jsx
-import { useEffect } from 'react';
-import { useFeature } from '@optimizely/react-sdk';
-
-function LoginComponent() {
-  const [isEnabled, variables] = useFeature(
-    'feature1',
-    { autoUpdate: true },
-    {
-      /* (Optional) User overrides */
-    }
-  );
-  useEffect(() => {
-    document.title = isEnabled ? 'login1' : 'login2';
-  }, [isEnabled]);
-
-  return (
-    <p>
-      <a href={isEnabled ? '/login' : '/login2'}>{variables.loginText}</a>
+      <a href={decision.variationKey === 'login-new' ? '/login-new' : '/login-default'}>Click to login</a>
     </p>
   );
 }
@@ -425,12 +271,11 @@ class MyComp extends React.Component {
   constructor(props) {
     super(props);
     const { optimizely } = this.props;
-    const isFeat1Enabled = optimizely.isFeatureEnabled('feat1');
-    const feat1Variables = optimizely.getFeatureVariables('feat1');
+    const decision = optimizely.decide('feat1');    
 
     this.state = {
-      isFeat1Enabled,
-      feat1Variables,
+      decision.enabled,
+      decision.variables,
     };
   }
 
@@ -481,6 +326,9 @@ The following type definitions are used in the `ReactSDKClient` interface:
 - `user: User` The current user associated with this client instance
 - `setUser(userInfo: User | Promise<User>): void` Call this to update the current user
 - `onUserUpdate(handler: (userInfo: User) => void): () => void` Subscribe a callback to be called when this instance's current user changes. Returns a function that will unsubscribe the callback.
+- `decide(key: string, options?: optimizely.OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): OptimizelyDecision` Returns a decision result for a flag key for a user. The decision result is returned in an OptimizelyDecision object, and contains all data required to deliver the flag rule.
+- `decideAll(options?: optimizely.OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): { [key: string]: OptimizelyDecision }` Returns decisions for all active (unarchived) flags for a user.
+- `decideForKeys(keys: string[], options?: optimizely.OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): { [key: string]: OptimizelyDecision }` Returns an object of decision results mapped by flag keys.
 - `activate(experimentKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): string | null` Activate an experiment, and return the variation for the given user.
 - `getVariation(experimentKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): string | null` Return the variation for the given experiment and user.
 - `getFeatureVariables(featureKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): VariableValuesObject`: Decide and return variable values for the given feature and user <br /> <b>Warning:</b> Deprecated since 2.1.0 <br /> `getAllFeatureVariables` is added in JavaScript SDK which is similarly returning all the feature variables, but it sends only single notification of type `all-feature-variables` instead of sending for each variable. As `getFeatureVariables` was added when this functionality wasn't provided by `JavaScript SDK`, so there is no need of it now and it would be removed in next major release
@@ -530,12 +378,22 @@ import * as ReactDOMServer from 'react-dom/server';
 import {
   createInstance,
   OptimizelyProvider,
-  OptimizelyFeature,
-  OptimizelyExperiment,
-  OptimizelyVariation,
+  useDecision,
 } from '@optimizely/react-sdk';
 
 const fetch = require('node-fetch');
+
+function MyComponent() {
+  const [decision] = useDecision('flag1');
+  return (
+    <React.Fragment>
+      { decision.enabled && <p>The feature is enabled</p> }
+      { !decision.enabled && <p>The feature is not enabled</p> }
+      { decision.variationKey === 'variation1' && <p>Variation 1</p> }
+      { decision.variationKey === 'variation2' && <p>Variation 2</p> }
+    </React.Fragment>
+  );
+}
 
 async function main() {
   const resp = await fetch('https://cdn.optimizely.com/datafiles/<Your-SDK-Key>.json');
@@ -546,18 +404,7 @@ async function main() {
 
   const output = ReactDOMServer.renderToString(
     <OptimizelyProvider optimizely={optimizely} user={{ id: 'user1' }} isServerSide={true}>
-      <OptimizelyFeature feature="feature1">
-        {featureEnabled => (featureEnabled ? <p>enabled</p> : <p>disabled</p>)}
-      </OptimizelyFeature>
-
-      <OptimizelyExperiment experiment="abtest1">
-        <OptimizelyVariation variation="var1">
-          <p>variation 1</p>
-        </OptimizelyVariation>
-        <OptimizelyVariation default>
-          <p>default variation</p>
-        </OptimizelyVariation>
-      </OptimizelyExperiment>
+      <MyComponent />
     </OptimizelyProvider>
   );
   console.log('output', output);
