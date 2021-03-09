@@ -46,7 +46,7 @@ class App extends React.Component {
   render() {
     return (
       <OptimizelyProvider
-        optimizely={optimizely}
+        optimizely={optimizelyClient}
         timeout={500}
         user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
       >
@@ -103,7 +103,7 @@ _props_
 
 - `optimizely : ReactSDKClient` created from `createInstance`
 - `user: { id: string; attributes?: { [key: string]: any } } | Promise` User info object - `id` and `attributes` will be passed to the SDK for every feature flag, A/B test, or `track` call, or a `Promise` for the same kind of object
-- `timeout : Number` (optional) The amount of time for `useDecision` to return `null` flag Decision while waiting for the SDK instance to become ready, before resolving..
+- `timeout : Number` (optional) The amount of time for `useDecision` to return `null` flag Decision while waiting for the SDK instance to become ready, before resolving.
 - `isServerSide : Boolean` (optional) must pass `true` here for server side rendering
 - `userId : String` (optional) **_Deprecated, prefer using `user` instead_**. Another way to provide user id. The `user` object prop takes precedence when both are provided.
 - `userAttributes : Object` : (optional) **_Deprecated, prefer using `user` instead_**. Another way to provide user attributes. The `user` object prop takes precedence when both are provided.
@@ -236,12 +236,12 @@ function LoginComponent() {
     }
   );
   useEffect(() => {
-    document.title = decision.variationKey === 'login-new' ? 'login-new' : 'login-default';
+    document.title = decision.enabled ? 'login-new' : 'login-default';
   }, [decision.enabled]);
 
   return (
     <p>
-      <a href={decision.variationKey === 'login-new' ? '/login-new' : '/login-default'}>Click to login</a>
+      <a href={decision.enabled ? '/login-new' : '/login-default'}>Click to login</a>
     </p>
   );
 }
@@ -398,12 +398,12 @@ function MyComponent() {
 async function main() {
   const resp = await fetch('https://cdn.optimizely.com/datafiles/<Your-SDK-Key>.json');
   const datafile = await resp.json();
-  const optimizely = createInstance({
+  const optimizelyClient = createInstance({
     datafile,
   });
 
   const output = ReactDOMServer.renderToString(
-    <OptimizelyProvider optimizely={optimizely} user={{ id: 'user1' }} isServerSide={true}>
+    <OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={true}>
       <MyComponent />
     </OptimizelyProvider>
   );
