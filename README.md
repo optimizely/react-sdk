@@ -121,6 +121,7 @@ import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 
 const optimizelyClient = createInstance({
   datafile: window.datafile,
+  sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
 });
 
 class AppWrapper extends React.Component {
