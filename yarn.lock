@@ -508,7 +508,7 @@
 
 "@optimizely/optimizely-sdk@^4.5.1":
   version "4.5.1"
-  resolved "https://nexus.prod.optimizely.com/repository/npm/@optimizely/optimizely-sdk/-/optimizely-sdk-4.5.1.tgz#cab05df1b6062ae31909e77a419b5f7662738374"
+  resolved "https://registry.npmjs.org/@optimizely/optimizely-sdk/-/optimizely-sdk-4.5.1.tgz#cab05df1b6062ae31909e77a419b5f7662738374"
   integrity sha512-u/AaI/Dte0TPrxB7K3ihYRjZK9bQbFEjZ3Rh6pbFHsMLEzfvBSH2AEtEsrXjzCSdXdRhYQYG74Rf9+eFMXa8Ew==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.8.0"
