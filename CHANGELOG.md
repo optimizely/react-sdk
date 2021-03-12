@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.5.0] - March 12th, 2021
+- Upgrade `@optimizely/optimizely-sdk` to [4.5.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.5.1)
+- Added support for new set of decide APIs ([#98](https://github.com/optimizely/react-sdk/pull/98))
+- Introducing `useDecision` hook to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes ([#100](https://github.com/optimizely/react-sdk/pull/100), [#105](https://github.com/optimizely/react-sdk/pull/105))
+- For details, refer to our documentation page: [https://docs.developers.optimizely.com/full-stack/v4.0/docs/javascript-react-sdk](https://docs.developers.optimizely.com/full-stack/v4.0/docs/javascript-react-sdk)
+
 ## [2.4.3] - March 2nd, 2021
 ### Bug fixes
 - This version of React SDK depends on [4.4.3](https://github.com/optimizely/javascript-sdk/releases/tag/v4.4.3) of `@optimizely/optimizely-sdk`. The dependency was defined to use the latest available minor version which is no more compatible. Fixed the dependency to use the exact version.
