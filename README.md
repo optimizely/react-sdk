@@ -12,7 +12,7 @@ Optimizely Rollouts is free feature flags for development teams. Easily roll out
 - User ID + attributes memoization
 - Render blocking until datafile is ready via a React API
 - Optimizely timeout (only block rendering up to the number of milliseconds you specify)
-- Library of React components to use with [feature flags](https://docs.developers.optimizely.com/full-stack/docs/use-feature-flags) and [A/B tests](https://docs.developers.optimizely.com/full-stack/docs/run-a-b-tests)
+- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/full-stack/v4.0/docs/create-feature-flags)
 
 ### Compatibility
 
@@ -36,8 +36,8 @@ function MyComponent() {
   return (
     <React.Fragment>
       <SearchComponent algorithm={decision.variables.algorithm} />
-      { decision.variationKey === 'bluebutton' && <BlueButton /> }
-      { decision.variationKey === 'greenbutton' && <GreenButton /> }
+      { decision.variationKey === 'relevant_first' && <RelevantFirstList /> }
+      { decision.variationKey === 'recent_first' && <RecentFirstList /> }
     </React.Fragment>
   );
 }
@@ -80,8 +80,8 @@ The `ReactSDKClient` client created via `createInstance` is the programmatic API
 _arguments_
 
 - `config : object` Object with SDK configuration parameters. This has the same format as the object passed to the `createInstance` method of the core `@optimizely/javascript-sdk` module. For details on this object, see the following pages from the developer docs:
-  - [Instantiate](https://docs.developers.optimizely.com/full-stack/docs/initialize-sdk-react)
-  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/full-stack/docs/javascript-client-side-implementation)
+  - [Instantiate](https://docs.developers.optimizely.com/full-stack/v4.0/docs/initialize-sdk-react)
+  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/full-stack/v4.0/docs/javascript-client-side-implementation)
 
 _returns_
 
@@ -114,13 +114,14 @@ Before rendering real content, both the datafile and the user must be available 
 
 #### Load the datafile synchronously
 
-Synchronous loading is the preferred method to ensure that Optimizely is always ready and doesn't add any delay or asynchronous complexity to your application.
+Synchronous loading is the preferred method to ensure that Optimizely is always ready and doesn't add any delay or asynchronous complexity to your application. When initializing with both the SDK key and datafile, the SDK will use the given datafile to start, then download the latest version of the datafile in the background.
 
 ```jsx
 import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 
 const optimizelyClient = createInstance({
   datafile: window.datafile,
+  sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
 });
 
 class AppWrapper extends React.Component {
