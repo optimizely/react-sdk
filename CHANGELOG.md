@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Upgrade `@optimizely/optimizely-sdk` to [4.6.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.0)
 
 ## [2.5.0] - March 12th, 2021
 - Upgrade `@optimizely/optimizely-sdk` to [4.5.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.5.1)
