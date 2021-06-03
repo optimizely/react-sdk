@@ -506,7 +506,7 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@4.6.0":
+"@optimizely/optimizely-sdk@^4.6.0":
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.6.0.tgz#03850983c7b36ea97ac181d44707fa61a912f28e"
   integrity sha512-xhTWe3Jg4YFCy8VG0c0depur0wumhgD3AnlSnHrTnaDNjuCvmBVrYV3cV3RMt8OJoZZxwQvJ2SJKjj73LMplBQ==
