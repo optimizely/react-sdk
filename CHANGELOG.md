@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.1] - July 8th, 2021
+
+### Bug fixes
+- Upgrade `@optimizely/optimizely-sdk` to [4.6.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.1). Fixed serving incorrect variation issue in projects containing multiple flags with same key rules. See [@optimizely/optimizely-sdk Release 4.6.1](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.1) for more details.
+
 ## [2.6.0] - June 8th, 2021
 Upgrade `@optimizely/optimizely-sdk` to [4.6.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.0)
  - Added support for multiple concurrent prioritized experiments per flag. See [@optimizely/optimizely-sdk Release 4.6.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.0) for more details.
