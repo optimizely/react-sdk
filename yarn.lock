@@ -506,10 +506,10 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@^4.6.1":
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.6.1.tgz#40c98a6d50d23c1f6066a607a04aa8fa343ea4b5"
-  integrity sha512-cMOAssKYigNfVQtYH5ZfwG735DFhVay5nx+dgzdwOvJaYR+hazvd0Mw/4PdEvrC0KUIo7186O5qlixRebar9hA==
+"@optimizely/optimizely-sdk@^4.6.2":
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.6.2.tgz#2f6ed23d88970f9f3420286f93ed6120dfcf14ea"
+  integrity sha512-ohXLafoShX6i5daZWbu+hHpAtw8i9QTOiwkHMRNIwBc70fcTDpUwl0UXsGbyJAmF1rTgcIknvqZKifVXLr/hgg==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.8.1"
     "@optimizely/js-sdk-event-processor" "^0.8.2"
