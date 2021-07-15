@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.2] - July 15th, 2021
+
+### Bug fixes
+- Upgrade `@optimizely/optimizely-sdk` to [4.6.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.2). Fixed incorrect impression event payload in projects containing multiple flags with duplicate key rules. See [@optimizely/optimizely-sdk Release 4.6.2](https://github.com/optimizely/javascript-sdk/releases/tag/v4.6.2) for more details.
+
 ## [2.6.1] - July 8th, 2021
 
 ### Bug fixes
