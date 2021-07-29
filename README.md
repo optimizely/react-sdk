@@ -318,7 +318,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 
 - `UserAttributes : { [name: string]: any }`
 - `User : { id: string | null, attributes: userAttributes }`
-- `VariableValuesObject : { [key: string]: unknown }`
+- `VariableValuesObject : { [key: string]: any }`
 - `EventTags : { [key: string]: string | number | boolean; }`
 
 `ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely X Full Stack developer docs site](https://docs.developers.optimizely.com/full-stack/docs). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.

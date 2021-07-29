@@ -21,7 +21,7 @@ import { OptimizelyDecision, UserInfo, createFailedDecision } from './utils';
 const logger = logging.getLogger('ReactSDK');
 
 export type VariableValuesObject = {
-  [key: string]: unknown;
+  [key: string]: any;
 };
 
 type DisposeFn = () => void;
