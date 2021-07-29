@@ -21,7 +21,7 @@ import { OptimizelyDecision, UserInfo, createFailedDecision } from './utils';
 const logger = logging.getLogger('ReactSDK');
 
 export type VariableValuesObject = {
-  [key: string]: boolean | number | string | null;
+  [key: string]: any;
 };
 
 type DisposeFn = () => void;
@@ -475,7 +475,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return {};
     }
     const userAttributes = user.attributes;
-    const variableObj: { [key: string]: any } = {};
+    const variableObj: VariableValuesObject = {};
     const optlyConfig = this._client.getOptimizelyConfig();
     if (!optlyConfig) {
       return {};
