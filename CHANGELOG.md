@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.6.3] - July 29th, 2021
+
 ### Bug fixes
-- Update `VariableValuesObject` type to handle JSON type variable ([#118](https://github.com/optimizely/react-sdk/pull/118)).
+- Update `VariableValuesObject` type to handle JSON type variable and avoid TS compiler error when specifying variable type ([#118](https://github.com/optimizely/react-sdk/pull/118)).
 
 ## [2.6.2] - July 15th, 2021
 
