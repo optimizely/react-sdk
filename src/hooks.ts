@@ -319,6 +319,17 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
+  useEffect(
+    () =>
+      optimizely.onForcedVariationsUpdate(() => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      }),
+    [getCurrentDecision, optimizely]
+  );
+
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
 

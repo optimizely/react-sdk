@@ -666,6 +666,24 @@ describe('hooks', () => {
       component.update();
       expect(isFeatureEnabledMock).not.toHaveBeenCalled();
     });
+
+    it('should re-render after setForcedVariation is called on the client', async () => {
+      isFeatureEnabledMock.mockReturnValue(false);
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyFeatureComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{"foo":"bar"}|true|false');
+
+      isFeatureEnabledMock.mockReturnValue(true);
+      forcedVariationUpdateCallbacks[0]();
+
+      component.update();
+      expect(component.text()).toBe('true|{"foo":"bar"}|true|false');
+    });
   });
 
   describe('useDecision', () => {
