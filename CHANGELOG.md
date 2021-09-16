@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.7.0] - September 16th, 2021
+Upgrade `@optimizely/optimizely-sdk` to [4.7.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.7.0):
+ - Added new public properties to `OptimizelyConfig` . See [@optimizely/optimizely-sdk Release 4.7.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.7.0) for details
+ - Deprecated `OptimizelyFeature.experimentsMap` of `OptimizelyConfig`. See [@optimizely/optimizely-sdk Release 4.7.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.7.0) for details
+ - For more information, refer to our documentation page: [https://docs.developers.optimizely.com/full-stack/v4.0/docs/optimizelyconfig-react](https://docs.developers.optimizely.com/full-stack/v4.0/docs/optimizelyconfig-react)
+
 ## [2.6.3] - July 29th, 2021
 
 ### Bug fixes
