@@ -53,6 +53,7 @@ describe('<OptimizelyFeature>', () => {
         attributes: {},
       },
       isReady: jest.fn().mockReturnValue(false),
+      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
     } as unknown) as ReactSDKClient;
   });
   it('throws an error when not rendered in the context of an OptimizelyProvider', () => {
