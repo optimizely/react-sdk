@@ -384,7 +384,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (isClientReady && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,

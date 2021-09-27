@@ -165,18 +165,19 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     id: null,
     attributes: {},
   };
-  private userPromiseResovler: (user: UserInfo) => void;
+  private userPromiseResolver: (user: UserInfo) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
+  private isClientReady: boolean = false;
+  private isUserReady: boolean = false;
+
   private readonly _client: optimizely.Client;
 
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
-
-  private dataReadyPromiseFulfilled = false;
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -185,7 +186,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
 
-    this.userPromiseResovler = () => {};
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -194,12 +195,20 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
     this._client = optimizely.createInstance(configWithClientInfo);
 
-    this.userPromise = new Promise(resolve => {
-      this.userPromiseResovler = resolve;
-    }).then(() => ({ success: true }));
+    this.isClientReady = !!configWithClientInfo.datafile;
 
-    this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
-      this.dataReadyPromiseFulfilled = true;
+    this.userPromise = new Promise(resolve => {
+      this.userPromiseResolver = resolve;
+    }).then(() => {
+      this.isUserReady = true;
+      return { success: true }
+    });
+
+    this._client.onReady().then(() => {
+      this.isClientReady = true;
+    });
+
+    this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {      
       return {
         success: true,
         reason: 'datafile and user resolved',
@@ -235,12 +244,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
+      this.isUserReady = true;
     }
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResovler(this.user);
+      this.userPromiseResolver(this.user);
       this.isUserPromiseResolved = true;
     }
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
@@ -275,7 +285,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   isReady(): boolean {
-    return this.dataReadyPromiseFulfilled;
+    return this.isUserReady && this.isClientReady;
   }
 
   /**
