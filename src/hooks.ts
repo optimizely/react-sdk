@@ -221,7 +221,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (isClientReady && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -308,7 +308,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (isClientReady && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
