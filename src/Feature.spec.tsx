@@ -15,6 +15,7 @@
  */
 import * as React from 'react';
 import * as Enzyme from 'enzyme';
+import { act } from 'react-dom/test-utils';
 import Adapter from 'enzyme-adapter-react-16';
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -27,11 +28,13 @@ describe('<OptimizelyFeature>', () => {
   let resolver: any;
   let optimizelyMock: ReactSDKClient;
   const isEnabledMock = true;
+  let isReady: boolean;
   const featureVariables = {
     foo: 'bar',
   };
 
   beforeEach(() => {
+    isReady = false;
     const onReadyPromise = new Promise((resolve, reject) => {
       resolver = {
         reject,
@@ -52,7 +55,7 @@ describe('<OptimizelyFeature>', () => {
         id: 'testuser',
         attributes: {},
       },
-      isReady: jest.fn().mockReturnValue(false),
+      isReady: jest.fn().mockImplementation(() => isReady),
     } as unknown) as ReactSDKClient;
   });
   it('throws an error when not rendered in the context of an OptimizelyProvider', () => {
@@ -209,7 +212,8 @@ describe('<OptimizelyFeature>', () => {
         // Simulate client becoming ready
         resolver.resolve({ success: true });
 
-        await optimizelyMock.onReady();
+        isReady = true;
+        await act(async () => await optimizelyMock.onReady());
 
         component.update();
 
@@ -226,7 +230,7 @@ describe('<OptimizelyFeature>', () => {
         }));
 
         const updateFn = (optimizelyMock.notificationCenter.addNotificationListener as jest.Mock).mock.calls[0][1];
-        updateFn();
+        act(updateFn);
 
         component.update();
 
@@ -253,7 +257,8 @@ describe('<OptimizelyFeature>', () => {
         // Simulate client becoming ready
         resolver.resolve({ success: true });
 
-        await optimizelyMock.onReady();
+        isReady = true;
+        await act(async () => await optimizelyMock.onReady());
 
         component.update();
 
@@ -269,7 +274,7 @@ describe('<OptimizelyFeature>', () => {
           foo: 'baz',
         }));
 
-        updateFn();
+        act(updateFn);
 
         component.update();
 
