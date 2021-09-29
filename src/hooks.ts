@@ -210,7 +210,8 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    // Subscribe to the first ready promise only when sdkKey is being used.
+    if (optimizely.getIsUsingSdkKey()) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -218,10 +219,11 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         });
       });
     }
-  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+  }, []);
 
   useEffect(() => {
-    if (isClientReady && options.autoUpdate) {
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -230,7 +232,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
+  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
   useEffect(
     () =>
@@ -297,7 +299,8 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    // Subscribe to the first ready promise only when sdkKey is being used.
+    if (optimizely.getIsUsingSdkKey()) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -305,10 +308,11 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         });
       });
     }
-  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+  }, []);
 
   useEffect(() => {
-    if (isClientReady && options.autoUpdate) {
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -317,7 +321,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
+  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
@@ -373,7 +377,8 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    // Subscribe to the first ready promise only when sdkKey is being used.
+    if (optimizely.getIsUsingSdkKey()) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -381,10 +386,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
         });
       });
     }
-  }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
+  }, []);
 
   useEffect(() => {
-    if (isClientReady && options.autoUpdate) {
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -393,7 +399,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       });
     }
     return (): void => {};
-  }, [isClientReady, options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
+  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
   return [state.decision, state.clientReady, state.didTimeout];
 };

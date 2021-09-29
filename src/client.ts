@@ -46,6 +46,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   setUser(userInfo: UserInfo): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
+  getIsReadyPromiseFulfilled(): boolean;
+  getIsUsingSdkKey(): boolean;
 
   activate(
     experimentKey: string,
@@ -172,7 +174,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
   private isClientReady: boolean = false;
+  private isReadyPromiseFulfilled: boolean = false;
   private isUserReady: boolean = false;
+  private isUsingSdkKey: boolean = false;
 
   private readonly _client: optimizely.Client;
 
@@ -196,6 +200,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this._client = optimizely.createInstance(configWithClientInfo);
 
     this.isClientReady = !!configWithClientInfo.datafile;
+    this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
 
     this.userPromise = new Promise(resolve => {
       this.userPromiseResolver = resolve;
@@ -206,6 +211,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this._client.onReady().then(() => {
       this.isClientReady = true;
+      this.isReadyPromiseFulfilled = true;
     });
 
     this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {      
@@ -214,6 +220,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         reason: 'datafile and user resolved',
       };
     });
+  }
+
+  getIsReadyPromiseFulfilled(): boolean { 
+    return this.isReadyPromiseFulfilled;
+  }
+
+  getIsUsingSdkKey(): boolean {
+    return this.isUsingSdkKey;
   }
 
   onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
