@@ -56,6 +56,8 @@ describe('<OptimizelyFeature>', () => {
         attributes: {},
       },
       isReady: jest.fn().mockImplementation(() => isReady),
+      getIsReadyPromiseFulfilled: () => true,
+      getIsUsingSdkKey: () => true,
     } as unknown) as ReactSDKClient;
   });
   it('throws an error when not rendered in the context of an OptimizelyProvider', () => {

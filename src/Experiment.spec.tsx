@@ -55,6 +55,8 @@ describe('<OptimizelyExperiment>', () => {
         attributes: {},
       },
       isReady: jest.fn().mockImplementation(() => isReady),
+      getIsReadyPromiseFulfilled: () => true,
+      getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
     } as unknown) as ReactSDKClient;
   });

@@ -118,6 +118,8 @@ describe('hooks', () => {
         attributes: {},
       },
       isReady: () => readySuccess,
+      getIsReadyPromiseFulfilled: () => true,
+      getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockImplementation(handler => {
         forcedVariationUpdateCallbacks.push(handler);
         return () => {};
