@@ -218,12 +218,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this._client.onReady().then(() => {
       this.isClientReady = true;
-
-      // Client can become ready synchronously and/or asynchronously. This flag specifically indicates that it became ready asynchronously.
-      this.isReadyPromiseFulfilled = true;
     });
 
-    this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {      
+    this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
+
+      // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
+      this.isReadyPromiseFulfilled = true;
       return {
         success: true,
         reason: 'datafile and user resolved',
