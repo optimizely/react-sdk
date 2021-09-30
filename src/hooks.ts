@@ -210,8 +210,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    // Subscribe to the first ready promise only when sdkKey is being used.
-    if (optimizely.getIsUsingSdkKey()) {
+    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -299,8 +298,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    // Subscribe to the first ready promise only when sdkKey is being used.
-    if (optimizely.getIsUsingSdkKey()) {
+    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -377,8 +375,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    // Subscribe to the first ready promise only when sdkKey is being used.
-    if (optimizely.getIsUsingSdkKey()) {
+    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
