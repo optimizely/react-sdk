@@ -210,6 +210,11 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
+    // Subscribe to initialzation promise only
+    // 1. When client is using Sdk Key, which means the initialization will be asynchronous
+    //    and we need to wait for the promise and update decision.
+    // 2. When client is using datafile only but client is not ready yet which means user
+    //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
@@ -221,7 +226,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   }, []);
 
   useEffect(() => {
-    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
         setState(prevState => ({
@@ -298,6 +303,11 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
+    // Subscribe to initialzation promise only
+    // 1. When client is using Sdk Key, which means the initialization will be asynchronous
+    //    and we need to wait for the promise and update decision.
+    // 2. When client is using datafile only but client is not ready yet which means user
+    //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
@@ -309,7 +319,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }, []);
 
   useEffect(() => {
-    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState(prevState => ({
@@ -375,6 +385,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
+    // Subscribe to initialzation promise only
+    // 1. When client is using Sdk Key, which means the initialization will be asynchronous
+    //    and we need to wait for the promise and update decision.
+    // 2. When client is using datafile only but client is not ready yet which means user 
+    //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
@@ -386,7 +401,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, []);
 
   useEffect(() => {
-    // Subscribe to update after first datafile is fetched and readyPromise is resolved.
+    // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({

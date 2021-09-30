@@ -173,9 +173,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
+  // Is the javascript SDK instance ready.
   private isClientReady: boolean = false;
+
+  // We need to add autoupdate listener to the hooks after the instance became fully ready to avoid redundant updates to hooks
   private isReadyPromiseFulfilled: boolean = false;
+
+  // Its usually true from the beginning when user is provided as an object in the `OptimizelyProvider`
+  // This becomes more significant when a promise is provided instead.
   private isUserReady: boolean = false;
+
   private isUsingSdkKey: boolean = false;
 
   private readonly _client: optimizely.Client;
@@ -211,6 +218,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this._client.onReady().then(() => {
       this.isClientReady = true;
+
+      // Client can become ready synchronously and/or asynchronously. This flag specifically indicates that it became ready asynchronously.
       this.isReadyPromiseFulfilled = true;
     });
 
@@ -299,6 +308,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   isReady(): boolean {
+    // React SDK Instance only becomes ready when both JS SDK client and the user info is ready.
     return this.isUserReady && this.isClientReady;
   }
 
