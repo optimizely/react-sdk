@@ -16,6 +16,7 @@
 /// <reference types="jest" />
 import * as React from 'react';
 import * as Enzyme from 'enzyme';
+import { act } from 'react-dom/test-utils';
 import Adapter from 'enzyme-adapter-react-16';
 Enzyme.configure({ adapter: new Adapter() });
 
@@ -30,8 +31,10 @@ describe('<OptimizelyExperiment>', () => {
   const variationKey = 'variationResult';
   let resolver: any;
   let optimizelyMock: ReactSDKClient;
+  let isReady: boolean;
 
   beforeEach(() => {
+    isReady = false;
     const onReadyPromise = new Promise((resolve, reject) => {
       resolver = {
         reject,
@@ -51,7 +54,9 @@ describe('<OptimizelyExperiment>', () => {
         id: 'testuser',
         attributes: {},
       },
-      isReady: jest.fn().mockReturnValue(false),
+      isReady: jest.fn().mockImplementation(() => isReady),
+      getIsReadyPromiseFulfilled: () => true,
+      getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
     } as unknown) as ReactSDKClient;
   });
@@ -282,8 +287,8 @@ describe('<OptimizelyExperiment>', () => {
 
       // Simulate client becoming ready
       resolver.resolve({ success: true });
-
-      await optimizelyMock.onReady();
+      isReady = true;
+      await act(async () => await optimizelyMock.onReady());
 
       component.update();
 
@@ -321,8 +326,8 @@ describe('<OptimizelyExperiment>', () => {
 
       // Simulate client becoming ready
       resolver.resolve({ success: true });
-
-      await optimizelyMock.onReady();
+      isReady = true;
+      await act(async () => await optimizelyMock.onReady());
 
       component.update();
 

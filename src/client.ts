@@ -46,6 +46,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   setUser(userInfo: UserInfo): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
+  getIsReadyPromiseFulfilled(): boolean;
+  getIsUsingSdkKey(): boolean;
 
   activate(
     experimentKey: string,
@@ -165,18 +167,28 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     id: null,
     attributes: {},
   };
-  private userPromiseResovler: (user: UserInfo) => void;
+  private userPromiseResolver: (user: UserInfo) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
+  // Is the javascript SDK instance ready.
+  private isClientReady: boolean = false;
+
+  // We need to add autoupdate listener to the hooks after the instance became fully ready to avoid redundant updates to hooks
+  private isReadyPromiseFulfilled: boolean = false;
+
+  // Its usually true from the beginning when user is provided as an object in the `OptimizelyProvider`
+  // This becomes more significant when a promise is provided instead.
+  private isUserReady: boolean = false;
+
+  private isUsingSdkKey: boolean = false;
+
   private readonly _client: optimizely.Client;
 
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
-
-  private dataReadyPromiseFulfilled = false;
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -185,7 +197,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
 
-    this.userPromiseResovler = () => {};
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -194,17 +206,37 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
     this._client = optimizely.createInstance(configWithClientInfo);
 
+    this.isClientReady = !!configWithClientInfo.datafile;
+    this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
+
     this.userPromise = new Promise(resolve => {
-      this.userPromiseResovler = resolve;
-    }).then(() => ({ success: true }));
+      this.userPromiseResolver = resolve;
+    }).then(() => {
+      this.isUserReady = true;
+      return { success: true }
+    });
+
+    this._client.onReady().then(() => {
+      this.isClientReady = true;
+    });
 
     this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
-      this.dataReadyPromiseFulfilled = true;
+
+      // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
+      this.isReadyPromiseFulfilled = true;
       return {
         success: true,
         reason: 'datafile and user resolved',
       };
     });
+  }
+
+  getIsReadyPromiseFulfilled(): boolean { 
+    return this.isReadyPromiseFulfilled;
+  }
+
+  getIsUsingSdkKey(): boolean {
+    return this.isUsingSdkKey;
   }
 
   onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
@@ -235,12 +267,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
+      this.isUserReady = true;
     }
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResovler(this.user);
+      this.userPromiseResolver(this.user);
       this.isUserPromiseResolved = true;
     }
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
@@ -275,7 +308,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   isReady(): boolean {
-    return this.dataReadyPromiseFulfilled;
+    // React SDK Instance only becomes ready when both JS SDK client and the user info is ready.
+    return this.isUserReady && this.isClientReady;
   }
 
   /**
