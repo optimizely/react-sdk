@@ -1,6 +1,6 @@
 {
   "name": "@optimizely/react-sdk",
-  "version": "2.7.0",
+  "version": "2.7.1-alpha",
   "description": "React SDK for Optimizely Full Stack and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
