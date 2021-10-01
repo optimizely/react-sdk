@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.7.1-alpha] - October 1st, 2021
+
+### Bug fixes
+- Fixed the SDK to render the correct decision on first render when initialized synchronously using a datafile ([#125](https://github.com/optimizely/react-sdk/pull/125)).
+- Fixed the redundant re-rendering when SDK is initialized with both datafile and SDK key ([#125](https://github.com/optimizely/react-sdk/pull/125)).
+
 ## [2.7.0] - September 16th, 2021
 Upgrade `@optimizely/optimizely-sdk` to [4.7.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.7.0):
  - Added new public properties to `OptimizelyConfig` . See [@optimizely/optimizely-sdk Release 4.7.0](https://github.com/optimizely/javascript-sdk/releases/tag/v4.7.0) for details
