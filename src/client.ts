@@ -16,7 +16,7 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
-import { OptimizelyDecision, UserInfo, createFailedDecision } from './utils';
+import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -143,27 +143,27 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision
+  ): OptimizelyDecision;
 
   decideAll(
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision }
+  ): { [key: string]: OptimizelyDecision };
 
   decideForKeys(
     keys: string[],
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision }
+  ): { [key: string]: OptimizelyDecision };
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config;
-  public user: UserInfo = { 
+  public user: UserInfo = {
     id: null,
     attributes: {},
   };
@@ -174,18 +174,20 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
 
   // Is the javascript SDK instance ready.
-  private isClientReady: boolean = false;
+  private isClientReady = false;
 
   // We need to add autoupdate listener to the hooks after the instance became fully ready to avoid redundant updates to hooks
-  private isReadyPromiseFulfilled: boolean = false;
+  private isReadyPromiseFulfilled = false;
 
   // Its usually true from the beginning when user is provided as an object in the `OptimizelyProvider`
   // This becomes more significant when a promise is provided instead.
-  private isUserReady: boolean = false;
+  private isUserReady = false;
 
-  private isUsingSdkKey: boolean = false;
+  private isUsingSdkKey = false;
 
   private readonly _client: optimizely.Client;
+
+  private optlyUserContext: optimizely.OptimizelyUserContext | null;
 
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
@@ -205,6 +207,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       clientVersion: REACT_SDK_CLIENT_VERSION,
     };
     this._client = optimizely.createInstance(configWithClientInfo);
+    this.optlyUserContext = null;
 
     this.isClientReady = !!configWithClientInfo.datafile;
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
@@ -213,7 +216,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.userPromiseResolver = resolve;
     }).then(() => {
       this.isUserReady = true;
-      return { success: true }
+      return { success: true };
     });
 
     this._client.onReady().then(() => {
@@ -231,7 +234,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
   }
 
-  getIsReadyPromiseFulfilled(): boolean { 
+  getIsReadyPromiseFulfilled(): boolean {
     return this.isReadyPromiseFulfilled;
   }
 
@@ -338,21 +341,36 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision {    
+  ): OptimizelyDecision {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating feature "%s" because userId is not set', key);
       return createFailedDecision(key, `Not Evaluating flag ${key} because userId is not set`, user);
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
-    if (optlyUserContext) {
+    }
+    if (
+      !this.optlyUserContext ||
+      !areUsersEqual(
+        {
+          id: user.id,
+          attributes: user.attributes,
+        },
+        {
+          id: this.user.id,
+          attributes: this.user.attributes,
+        }
+      )
+    ) {
+      this.optlyUserContext = this._client.createUserContext(user.id, user.attributes);
+    }
+
+    if (this.optlyUserContext) {
       return {
-        ... optlyUserContext.decide(key, options),
+        ...this.optlyUserContext.decide(key, options),
         userContext: {
           id: user.id,
-          attributes: user.attributes
-        }
-      }
+          attributes: user.attributes,
+        },
+      };
     }
     return createFailedDecision(key, `Not Evaluating flag ${key} because user id or attributes are not valid`, user);
   }
@@ -367,25 +385,43 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
       return {};
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
-    if (optlyUserContext) {
-      return Object.entries(optlyUserContext.decideForKeys(keys, options))
-        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+    }
+
+    if (
+      !this.optlyUserContext ||
+      !areUsersEqual(
+        {
+          id: user.id,
+          attributes: user.attributes,
+        },
+        {
+          id: this.user.id,
+          attributes: this.user.attributes,
+        }
+      )
+    ) {
+      this.optlyUserContext = this._client.createUserContext(user.id, user.attributes);
+    }
+
+    if (this.optlyUserContext) {
+      return Object.entries(this.optlyUserContext.decideForKeys(keys, options)).reduce(
+        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
           decisions[key] = {
-            ... decision,
+            ...decision,
             userContext: {
               id: user.id || '',
               attributes: user.attributes,
-            }
-          }
+            },
+          };
           return decisions;
-        }, {});
+        },
+        {}
+      );
     }
     return {};
   }
 
-  public decideAll(    
+  public decideAll(
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
@@ -394,22 +430,75 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
       return {};
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
-    if (optlyUserContext) {
-      return Object.entries(optlyUserContext.decideAll(options))
-        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+    }
+
+    if (
+      !this.optlyUserContext ||
+      !areUsersEqual(
+        {
+          id: user.id,
+          attributes: user.attributes,
+        },
+        {
+          id: this.user.id,
+          attributes: this.user.attributes,
+        }
+      )
+    ) {
+      this.optlyUserContext = this._client.createUserContext(user.id, user.attributes);
+    }
+
+    if (this.optlyUserContext) {
+      return Object.entries(this.optlyUserContext.decideAll(options)).reduce(
+        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
           decisions[key] = {
-            ... decision,
+            ...decision,
             userContext: {
               id: user.id || '',
               attributes: user.attributes,
-            }
-          }
+            },
+          };
           return decisions;
-        }, {});
+        },
+        {}
+      );
     }
     return {};
+  }
+
+  public setForcedDecision(
+    key: optimizely.OptimizelyDecisionKey,
+    variationKey: string,
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): boolean {
+    const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+    if (user.id === null) {
+      logger.info('Forced Decision is not set because userId is not set');
+      return false;
+    }
+
+    if (
+      !this.optlyUserContext ||
+      !areUsersEqual(
+        {
+          id: user.id,
+          attributes: user.attributes,
+        },
+        {
+          id: this.user.id,
+          attributes: this.user.attributes,
+        }
+      )
+    ) {
+      this.optlyUserContext = this._client.createUserContext(user.id, user.attributes);
+    }
+
+    if (this.optlyUserContext) {
+      return this.optlyUserContext.setForcedDecision(key, variationKey);
+    }
+
+    return false;
   }
 
   /**
@@ -453,7 +542,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       overrideAttributes = undefined;
     }
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
-
     if (user.id === null) {
       logger.info('track for event "%s" not being sent because userId is not set', eventKey);
       return;
