@@ -350,15 +350,21 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
     () => ({
-      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
     }),
     [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
-    const decisionState = isClientReady? getCurrentDecision()
-      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
+    const decisionState = isClientReady
+      ? getCurrentDecision()
+      : {
+          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+            id: overrides.overrideUserId || null,
+            attributes: overrideAttrs,
+          }),
+        };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -388,7 +394,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     // Subscribe to initialzation promise only
     // 1. When client is using Sdk Key, which means the initialization will be asynchronous
     //    and we need to wait for the promise and update decision.
-    // 2. When client is using datafile only but client is not ready yet which means user 
+    // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {

@@ -205,6 +205,7 @@ describe('ReactSDKClient', () => {
         expect(result).toBe('var2');
         expect(mockInnerClient.activate).toBeCalledTimes(1);
         expect(mockInnerClient.activate).toBeCalledWith('exp1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -218,7 +219,7 @@ describe('ReactSDKClient', () => {
 
         instance.track('evt1', 'user2', { bar: 'baz' });
         expect(mockFn).toBeCalledTimes(1);
-        expect(mockFn).toBeCalledWith('evt1', 'user2', { bar: 'baz' }, undefined);
+        expect(mockFn).toBeCalledWith('evt1', 'user2', { foo: 'bar', bar: 'baz' }, undefined);
         mockFn.mockReset();
 
         // Use pre-set user with event tags
@@ -230,7 +231,7 @@ describe('ReactSDKClient', () => {
         // Use overrides with event tags
         instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
         expect(mockFn).toBeCalledTimes(1);
-        expect(mockFn).toBeCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
+        expect(mockFn).toBeCalledWith('evt1', 'user3', { foo: 'bar', bla: 'bla' }, { tagKey: 'tagVal' });
       });
 
       it('can use pre-set and override user for isFeatureEnabled', () => {
@@ -248,6 +249,7 @@ describe('ReactSDKClient', () => {
         expect(result).toBe(false);
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('feat1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -267,6 +269,7 @@ describe('ReactSDKClient', () => {
         expect(result).toEqual(['feat1', 'feat2']);
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -286,6 +289,7 @@ describe('ReactSDKClient', () => {
         expect(result).toEqual('var2');
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('exp1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -307,6 +311,7 @@ describe('ReactSDKClient', () => {
         expect(result).toBe(true);
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('feat1', 'bvar1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -328,6 +333,7 @@ describe('ReactSDKClient', () => {
         expect(result).toBe('varval2');
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('feat1', 'svar1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -349,6 +355,7 @@ describe('ReactSDKClient', () => {
         expect(result).toBe(-20);
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('feat1', 'ivar1', 'user2', {
+          foo: 'bar',
           bar: 'baz',
         });
       });
@@ -369,7 +376,10 @@ describe('ReactSDKClient', () => {
         });
         expect(result).toBe(-20.2);
         expect(mockInnerClient.getFeatureVariableDouble).toBeCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariableDouble).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+        expect(mockInnerClient.getFeatureVariableDouble).toBeCalledWith('feat1', 'dvar1', 'user2', {
+          foo: 'bar',
+          bar: 'baz',
+        });
       });
 
       it('can use pre-set and override user for getFeatureVariableJSON', () => {
@@ -400,7 +410,10 @@ describe('ReactSDKClient', () => {
           text: 'variable value',
         });
         expect(mockInnerClient.getFeatureVariableJSON).toBeCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariableJSON).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+        expect(mockInnerClient.getFeatureVariableJSON).toBeCalledWith('feat1', 'dvar1', 'user2', {
+          foo: 'bar',
+          bar: 'baz',
+        });
       });
 
       it('can use pre-set and override user for getFeatureVariable', () => {
@@ -431,7 +444,10 @@ describe('ReactSDKClient', () => {
           text: 'variable value',
         });
         expect(mockInnerClient.getFeatureVariable).toBeCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariable).toBeCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+        expect(mockInnerClient.getFeatureVariable).toBeCalledWith('feat1', 'dvar1', 'user2', {
+          foo: 'bar',
+          bar: 'baz',
+        });
       });
 
       it('can use pre-set and override user for setForcedVariation', () => {
@@ -512,21 +528,21 @@ describe('ReactSDKClient', () => {
           ruleKey: '',
           userContext: {
             id: 'user2',
-            attributes: { bar: 'baz' },
+            attributes: { foo: 'bar', bar: 'baz' },
           },
           variables: {},
           variationKey: 'varition2',
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
-        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
+        expect(mockCreateUserContext).toBeCalledWith('user2', { foo: 'bar', bar: 'baz' });
       });
 
       it('can use pre-set and override user for decideAll', () => {
         const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
         const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
         mockFn.mockReturnValue({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -534,11 +550,11 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         let result = instance.decideAll();
         expect(result).toEqual({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -549,14 +565,14 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith([]);
-        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });        
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
         mockFn.mockReset();
         mockFn.mockReturnValue({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -564,33 +580,33 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         result = instance.decideAll([optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
         expect(result).toEqual({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
             ruleKey: '',
             userContext: {
               id: 'user2',
-              attributes: { bar: 'baz' },
+              attributes: { foo: 'bar', bar: 'baz' },
             },
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith([optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
-        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
+        expect(mockCreateUserContext).toBeCalledWith('user2', { foo: 'bar', bar: 'baz' });
       });
 
       it('can use pre-set and override user for decideForKeys', () => {
         const mockFn = mockOptimizelyUserContext.decideForKeys as jest.Mock;
         const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
         mockFn.mockReturnValue({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -598,11 +614,11 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         let result = instance.decideForKeys(['theFlag1']);
         expect(result).toEqual({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -613,14 +629,14 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith(['theFlag1'], []);
         expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
         mockFn.mockReset();
         mockFn.mockReturnValue({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -628,26 +644,28 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
-        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', {
+          bar: 'baz',
+        });
         expect(result).toEqual({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
             ruleKey: '',
             userContext: {
               id: 'user2',
-              attributes: { bar: 'baz' },
+              attributes: { foo: 'bar', bar: 'baz' },
             },
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
-        expect(mockCreateUserContext).toBeCalledWith('user2', { bar: 'baz' });
+        expect(mockCreateUserContext).toBeCalledWith('user2', { foo: 'bar', bar: 'baz' });
       });
     });
 
@@ -824,7 +842,7 @@ describe('ReactSDKClient', () => {
           },
         });
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledTimes(1);
-        expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
+        expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { foo: 'bar', bar: 'baz' });
       });
     });
   });
