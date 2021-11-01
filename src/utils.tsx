@@ -24,8 +24,8 @@ export type UserInfo = {
 };
 
 export interface OptimizelyDecision extends Omit<optimizely.OptimizelyDecision, 'userContext'> {
-   userContext: UserInfo
-};
+  userContext: UserInfo;
+}
 
 export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
   if (user1.id !== user2.id) {
@@ -37,8 +37,8 @@ export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
   user1keys.sort();
   user2keys.sort();
 
-  const user1Attributes = user1.attributes || {}
-  const user2Attributes = user2.attributes || {}
+  const user1Attributes = user1.attributes || {};
+  const user2Attributes = user2.attributes || {};
 
   const areKeysLenEqual = user1keys.length === user2keys.length;
   if (!areKeysLenEqual) {
@@ -119,7 +119,7 @@ export function createFailedDecision(flagKey: string, message: string, user: Use
     reasons: [message],
     userContext: {
       id: user.id,
-      attributes: user.attributes
-    }
-  }
+      attributes: user.attributes,
+    },
+  };
 }
