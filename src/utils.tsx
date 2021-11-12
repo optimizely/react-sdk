@@ -24,8 +24,8 @@ export type UserInfo = {
 };
 
 export interface OptimizelyDecision extends Omit<optimizely.OptimizelyDecision, 'userContext'> {
-   userContext: UserInfo
-};
+  userContext: UserInfo;
+}
 
 export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
   if (user1.id !== user2.id) {
@@ -37,8 +37,8 @@ export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
   user1keys.sort();
   user2keys.sort();
 
-  const user1Attributes = user1.attributes || {}
-  const user2Attributes = user2.attributes || {}
+  const user1Attributes = user1.attributes || {};
+  const user2Attributes = user2.attributes || {};
 
   const areKeysLenEqual = user1keys.length === user2keys.length;
   if (!areKeysLenEqual) {
@@ -57,6 +57,27 @@ export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
     }
   }
 
+  return true;
+}
+
+export function areObjectsEqual(obj1: any, obj2: any) {
+  const obj1Keys = Object.keys(obj1);
+  const obj2Keys = Object.keys(obj2);
+
+  if (obj1Keys.length !== obj2Keys.length) {
+    return false;
+  }
+
+  for (let i = 0; i < obj1Keys.length; i += 1) {
+    const key = obj1Keys[i];
+    if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
+      if (!areObjectsEqual(obj1[key], obj2[key])) {
+        return false;
+      }
+    } else if (obj1[key] !== obj2[key]) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -119,7 +140,7 @@ export function createFailedDecision(flagKey: string, message: string, user: Use
     reasons: [message],
     userContext: {
       id: user.id,
-      attributes: user.attributes
-    }
-  }
+      attributes: user.attributes,
+    },
+  };
 }
