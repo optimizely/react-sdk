@@ -24,7 +24,7 @@ import { areUsersEqual, UserInfo } from './utils';
 const logger = getLogger('<OptimizelyProvider>');
 
 interface OptimizelyProviderProps {
-  optimizely: ReactSDKClient;
+  optimizely: ReactSDKClient | null;
   timeout?: number;
   isServerSide?: boolean;
   user?: Promise<UserInfo> | UserInfo;
@@ -41,6 +41,10 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
   constructor(props: OptimizelyProviderProps) {
     super(props);
     const { optimizely, userId, userAttributes, user } = props;
+
+    if (!optimizely) {
+      return;
+    }
 
     // check if user id/attributes are provided as props and set them ReactSDKClient
     let finalUser: UserInfo | null = null;
@@ -76,6 +80,11 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       return;
     }
     const { optimizely } = this.props;
+
+    if (!optimizely) {
+      return;
+    }
+
     if (this.props.user && 'id' in this.props.user) {
       if (!optimizely.user.id) {
         // no user is set in optimizely, update

@@ -169,19 +169,16 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => ExperimentDecisionValues = useCallback(
     () => ({
-      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+      variation: optimizely ? optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs) : null,
     }),
     [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
     return {
@@ -210,7 +207,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    if (optimizely && !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -221,7 +218,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (optimizely && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -232,16 +229,16 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     return (): void => {};
   }, [isClientReady, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  useEffect(
-    () =>
+  useEffect(() => {
+    if (optimizely) {
       optimizely.onForcedVariationsUpdate(() => {
         setState(prevState => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
-      }),
-    [getCurrentDecision, optimizely]
-  );
+      });
+    }
+  }, [getCurrentDecision, optimizely]);
 
   return [state.variation, state.clientReady, state.didTimeout];
 };
@@ -255,20 +252,17 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => FeatureDecisionValues = useCallback(
     () => ({
-      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs),
+      isEnabled: optimizely ? optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs) : false,
+      variables: optimizely ? optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs) : {},
     }),
     [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
     return {
@@ -297,7 +291,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    if (optimizely && !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -308,7 +302,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (optimizely && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -331,22 +325,35 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
     () => ({
-      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+      decision: optimizely
+        ? optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+        : {
+            enabled: false,
+            variationKey: null,
+            userContext: { id: null },
+            variables: {},
+            ruleKey: null,
+            flagKey,
+            reasons: [],
+          },
     }),
     [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
-    const decisionState = isClientReady? getCurrentDecision()
-      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
+    const decisionState = isClientReady
+      ? getCurrentDecision()
+      : {
+          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+            id: overrides.overrideUserId || null,
+            attributes: overrideAttrs,
+          }),
+        };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -373,7 +380,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
   useEffect(() => {
-    if (!isClientReady) {
+    if (optimizely && !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
@@ -384,7 +391,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, [isClientReady, finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
-    if (options.autoUpdate) {
+    if (optimizely && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
