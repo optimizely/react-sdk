@@ -20,7 +20,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
-import clientStore from './store';
+import clientNotifier from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
@@ -344,7 +344,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const [lastUserUpdate, setLastUserUpdate] = useState<Date | null>(null);
-  const store = clientStore.getInstance();
+  const notifier = clientNotifier.getInstance();
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
@@ -408,7 +408,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   useEffect(() => {
     // Subscribe to the observable store to listen to changes in the optimizely client.
-    store.subscribe(() => {
+    notifier.subscribe(flagKey, () => {
       setState(prevState => ({
         ...prevState,
         ...getCurrentDecision(),

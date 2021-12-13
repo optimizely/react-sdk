@@ -18,7 +18,7 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
 
 import { OptimizelyDecision, UserInfo, createFailedDecision, areObjectsEqual } from './utils';
-import clientStore from './store';
+import clientStore from './notifier';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -522,9 +522,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this.userContext.setForcedDecision(decisionContext, decision);
 
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
+    store.setState(
+      {
+        lastUserUpdate: new Date(),
+      },
+      decisionContext.flagKey
+    );
   }
 
   /**
@@ -558,9 +561,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const store = clientStore.getInstance();
     const decision = this.userContext.removeForcedDecision(decisionContext);
 
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
+    store.setState(
+      {
+        lastUserUpdate: new Date(),
+      },
+      decisionContext.flagKey
+    );
 
     return decision;
   }

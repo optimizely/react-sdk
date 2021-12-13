@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import clientStore, { Observable, iStoreState } from './store';
+import clientStore, { Observable, iStoreState } from './notifier';
 
 describe('store', () => {
   const store = clientStore.getInstance();
