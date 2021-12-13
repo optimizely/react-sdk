@@ -408,10 +408,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   useEffect(() => {
     // Subscribe to the observable store to listen to changes in the optimizely client.
-    store.subscribe(state => {
-      if (state.lastUserUpdate) {
-        setLastUserUpdate(state.lastUserUpdate);
-      }
+    store.subscribe(() => {
+      setState(prevState => ({
+        ...prevState,
+        ...getCurrentDecision(),
+      }));
     });
   }, []);
 
@@ -427,15 +428,6 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     }
     return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
-
-  useEffect(() => {
-    if (lastUserUpdate) {
-      setState(prevState => ({
-        ...prevState,
-        ...getCurrentDecision(),
-      }));
-    }
-  }, [lastUserUpdate]);
 
   return [state.decision, state.clientReady, state.didTimeout];
 };
