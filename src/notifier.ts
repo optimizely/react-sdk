@@ -15,13 +15,13 @@
  */
 
 export interface INotifier {
-  subscribe(key: string, callback: () => void): void;
+  subscribe(key: string, callback: () => void, unique: string): () => void;
   unsubscribe(key: string): void;
   notify(key: string): void;
-};
+}
 
 class Notifier implements INotifier {
-  private observers: Array<{  key: string; callback: () => void }> = [];
+  private observers: Array<{ key: string; callback: () => void; unique: string }> = [];
   private static instance: INotifier;
 
   private constructor() {}
@@ -33,18 +33,25 @@ class Notifier implements INotifier {
     return Notifier.instance;
   }
 
-  subscribe(key: string, callback: () => void) {
-    this.observers.push({ key, callback });
-  }
+  subscribe(key: string, callback: () => void, unique: string) {
+    this.observers.push({ key, callback, unique });
+    console.log('observers', this.observers);
 
+    return () => {
+      console.log('hit the func', this.observers);
+      console.log('hit the unique', unique);
+      console.log('hit the key', key);
+      this.observers = this.observers.filter(observer => !(observer.key == key && observer.unique == unique));
+
+      console.log('observers now ', this.observers);
+    };
+  }
   unsubscribe(key: string) {
+    console.log('i am insideeee=');
     this.observers = this.observers.filter(observer => observer.key !== key);
   }
-
   notify(key: string) {
-    this.observers
-      .filter(observer => observer.key === key)
-      .forEach(observer => observer.callback());
+    this.observers.filter(observer => observer.key === key).forEach(observer => observer.callback());
   }
 }
 
