@@ -81,7 +81,7 @@ interface UseFeature {
 }
 
 interface UseDecision {
-  (featureKey: string, unique: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
+  (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
     OptimizelyDecision,
     ClientReady,
     DidTimeout
@@ -342,8 +342,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  * Note: The react client can become ready AFTER the timeout period.
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
-export const useDecision: UseDecision = (flagKey, unique: string, options = {}, overrides = {}) => {
-  const [lastUserUpdate, setLastUserUpdate] = useState<Date | null>(null);
+export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
@@ -405,31 +404,22 @@ export const useDecision: UseDecision = (flagKey, unique: string, options = {}, 
     }
   }, []);
 
-  useEffect(
-    () => {
-      // Subscribe to the observable store to listen to changes in the optimizely client.
-      // if (!overrides.overrideUserId && !overrides.overrideAttributes) {
-      const unsubscribe = notifier.subscribe(
-        flagKey,
-        () => {
-          if (!overrides.overrideUserId && !overrides.overrideAttributes) {
-            setState(prevState => ({
-              ...prevState,
-              ...getCurrentDecision(),
-            }));
-          }
-        },
-        unique
-      );
-      // }
-      console.log('type of unsub', typeof unsubscribe);
-      return () => {
-        unsubscribe();
-      };
+  useEffect(() => {
+    if (overrides.overrideUserId || overrides.overrideAttributes) {
+      return;
     }
-    // [overrides]
-    // []
-  );
+
+    // Subscribe to Forced Decision changes.
+    return notifier.subscribe(
+      flagKey,
+      () => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      },
+    );
+  }), [];
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.

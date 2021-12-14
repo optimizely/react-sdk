@@ -176,7 +176,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
-  private forcedDecisionFlagKeys: string[] = [];
+  private forcedDecisionFlagKeys: Set<string> = new Set<string>();
 
   // Is the javascript SDK instance ready.
   private isClientReady: boolean = false;
@@ -521,8 +521,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const isSuccess = this.userContext.setForcedDecision(decisionContext, decision);
 
     if (isSuccess) {
-      this.forcedDecisionFlagKeys.indexOf(decisionContext.flagKey) === -1 &&
-        this.forcedDecisionFlagKeys.push(decisionContext.flagKey);
+      this.forcedDecisionFlagKeys.add(decisionContext.flagKey);
       notifier.notify(decisionContext.flagKey);
     }
   }
@@ -558,6 +557,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const isSuccess = this.userContext.removeForcedDecision(decisionContext);
 
     if (isSuccess) {
+      this.forcedDecisionFlagKeys.delete(decisionContext.flagKey);
       notifier.notify(decisionContext.flagKey);
     }
 
@@ -597,10 +597,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const isSuccess = this.userContext.removeAllForcedDecisions();
 
     if (isSuccess) {
-      this.forcedDecisionFlagKeys.forEach(flagKey => {
-        notifier.notify(flagKey);
-      });
-      this.forcedDecisionFlagKeys = [];
+      this.forcedDecisionFlagKeys.forEach(flagKey => notifier.notify(flagKey));
+      this.forcedDecisionFlagKeys.clear();
     }
 
     return isSuccess;
