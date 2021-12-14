@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020, Optimizely
+ * Copyright 2019-2021, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
 
 import { OptimizelyDecision, UserInfo, createFailedDecision, areObjectsEqual } from './utils';
-import clientStore from './notifier';
+import { notifier } from './notifier';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -298,18 +298,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.isUserReady = true;
       this.userContext = userContext;
     }
+    
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
+    
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver(this.user);
       this.isUserPromiseResolved = true;
     }
 
-    const store = clientStore.getInstance();
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
   }
 
@@ -518,16 +516,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return;
     }
 
-    const store = clientStore.getInstance();
+    const isSuccess = this.userContext.setForcedDecision(decisionContext, decision);
 
-    this.userContext.setForcedDecision(decisionContext, decision);
-
-    store.setState(
-      {
-        lastUserUpdate: new Date(),
-      },
-      decisionContext.flagKey
-    );
+    if (isSuccess) {
+      notifier.notify(decisionContext.flagKey);
+    }
   }
 
   /**
@@ -558,17 +551,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false;
     }
 
-    const store = clientStore.getInstance();
-    const decision = this.userContext.removeForcedDecision(decisionContext);
+    const isSuccess = this.userContext.removeForcedDecision(decisionContext);
 
-    store.setState(
-      {
-        lastUserUpdate: new Date(),
-      },
-      decisionContext.flagKey
-    );
+    if (isSuccess) {
+      notifier.notify(decisionContext.flagKey);
+    }
 
-    return decision;
+    return isSuccess;
   }
 
   /**

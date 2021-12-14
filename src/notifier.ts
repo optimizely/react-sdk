@@ -1,62 +1,51 @@
-export interface iStoreState {
-  lastUserUpdate?: Date | null;
-}
+/**
+ * Copyright 2021, Optimizely
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-export class Observable {
-  private observers: Array<{ callback: (state: iStoreState, prevState?: iStoreState) => void; flagKey: string }>;
-  private state: iStoreState;
+export interface INotifier {
+  subscribe(key: string, callback: () => void): void;
+  unsubscribe(key: string): void;
+  notify(key: string): void;
+};
 
-  constructor() {
-    this.observers = [];
-    this.state = {
-      lastUserUpdate: null,
-    };
-  }
+class Notifier implements INotifier {
+  private observers: Array<{  key: string; callback: () => void }> = [];
+  private static instance: INotifier;
 
-  subscribe(flagKey: string, callback: (state: iStoreState, prevState?: iStoreState) => void) {
-    this.observers.push({ flagKey, callback });
-  }
+  private constructor() {}
 
-  unsubscribe(callback: (state: iStoreState, prevState?: iStoreState) => void) {
-    this.observers = this.observers.filter(observer => observer.callback !== callback);
-  }
-
-  updateStore(newState: iStoreState) {
-    return { ...this.state, ...newState };
-  }
-
-  setState(newStore: iStoreState, flagKey?: string) {
-    const prevState = { ...this.state };
-    this.state = this.updateStore(newStore);
-    if (!flagKey) {
-      this.notify(prevState);
-    } else {
-      // this.observers
-      //   .filter(observer => observer.flagKey == flagKey)
-      //   .forEach(obj => obj.callback(this.state, prevState));
-
-      this.observers.forEach(observer => {
-        if (observer.flagKey == flagKey) observer.callback(this.state, prevState);
-      });
+  static getInstance(): INotifier {
+    if (!Notifier.instance) {
+      Notifier.instance = new Notifier();
     }
+    return Notifier.instance;
   }
 
-  notify(prevState: iStoreState) {
-    this.observers.forEach(observer => observer.callback(this.state, prevState));
+  subscribe(key: string, callback: () => void) {
+    this.observers.push({ key, callback });
+  }
+
+  unsubscribe(key: string) {
+    this.observers = this.observers.filter(observer => observer.key !== key);
+  }
+
+  notify(key: string) {
+    this.observers
+      .filter(observer => observer.key === key)
+      .forEach(observer => observer.callback());
   }
 }
 
-const notifier = (function() {
-  let instance: Observable;
-
-  return {
-    getInstance: function() {
-      if (!instance) {
-        instance = new Observable();
-      }
-      return instance;
-    },
-  };
-})();
-
-export default notifier;
+export const notifier: INotifier = Notifier.getInstance();

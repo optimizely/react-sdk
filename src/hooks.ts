@@ -20,7 +20,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
-import clientNotifier from './notifier';
+import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
@@ -344,7 +344,6 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const [lastUserUpdate, setLastUserUpdate] = useState<Date | null>(null);
-  const notifier = clientNotifier.getInstance();
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
