@@ -407,13 +407,15 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   useEffect(() => {
     // Subscribe to the observable store to listen to changes in the optimizely client.
-    notifier.subscribe(flagKey, () => {
-      setState(prevState => ({
-        ...prevState,
-        ...getCurrentDecision(),
-      }));
-    });
-  }, []);
+    if (!overrides.overrideUserId && !overrides.overrideAttributes) {
+      notifier.subscribe(flagKey, () => {
+        setState(prevState => ({
+          ...prevState,
+          ...getCurrentDecision(),
+        }));
+      });
+    }
+  }, [overrides]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
