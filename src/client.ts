@@ -17,7 +17,7 @@
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
 
-import { OptimizelyDecision, UserInfo, createFailedDecision, areObjectsEqual } from './utils';
+import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
 import { DecisionResponse, Variation } from '@optimizely/optimizely-sdk/lib/shared_types';
 
@@ -271,7 +271,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     let userContext: optimizely.OptimizelyUserContext | null = null;
 
     if (this.userContext) {
-      if (areObjectsEqual(userInfo, this.user)) {
+      if (areUsersEqual(userInfo, this.user)) {
         return this.userContext;
       }
 
@@ -300,11 +300,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.isUserReady = true;
       this.userContext = userContext;
     }
-    
+
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
-    
+
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver(this.user);
       this.isUserPromiseResolved = true;
