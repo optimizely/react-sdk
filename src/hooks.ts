@@ -405,21 +405,23 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, []);
 
   useEffect(() => {
-    if (overrides.overrideUserId || overrides.overrideAttributes) {
+    if (
+      overrides.overrideUserId ||
+      overrides.overrideAttributes ||
+      (options.autoUpdate != undefined && options.autoUpdate === false)
+    ) {
       return;
     }
 
     // Subscribe to Forced Decision changes.
-    return notifier.subscribe(
-      flagKey,
-      () => {
-        setState(prevState => ({
-          ...prevState,
-          ...getCurrentDecision(),
-        }));
-      },
-    );
-  }), [];
+    return notifier.subscribe(flagKey, () => {
+      setState(prevState => ({
+        ...prevState,
+        ...getCurrentDecision(),
+      }));
+    });
+  }),
+    [];
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.

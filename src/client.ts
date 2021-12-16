@@ -160,6 +160,19 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: OptimizelyDecision };
+
+  findValidatedForcedDecision(
+    decisionContext: optimizely.OptimizelyDecisionContext
+  ): DecisionResponse<Variation | null>;
+
+  setForcedDecision(
+    decisionContext: optimizely.OptimizelyDecisionContext,
+    decision: optimizely.OptimizelyForcedDecision
+  ): void;
+
+  removeAllForcedDecisions(): boolean;
+
+  removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;

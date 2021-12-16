@@ -24,16 +24,16 @@ describe('notifier', () => {
     expect(notifier.notify).toBeDefined();
   });
 
-  describe('Subscribing single flag', () => {
+  describe('Subscribing single key', () => {
     let callback: jest.MockedFunction<() => void>;
-    const key: string = 'flag_1';
+    const key: string = 'key_1';
 
     beforeEach(() => {
       callback = jest.fn();
       notifier.subscribe(key, callback);
     });
 
-    describe('when notify event envoked with the relevent flagKey', () => {
+    describe('when notify event envoked with the relevent key', () => {
       beforeEach(() => {
         notifier.notify(key);
       });
@@ -47,9 +47,9 @@ describe('notifier', () => {
       });
     });
 
-    describe('when notify event envoked with the irrelevant flagKey', () => {
+    describe('when notify event envoked with the irrelevant key', () => {
       beforeEach(() => {
-        notifier.notify('another_flag_key');
+        notifier.notify('another_key');
       });
 
       it('should not call the callback', () => {
@@ -58,11 +58,11 @@ describe('notifier', () => {
     });
   });
 
-  describe('Subscribing multiple flag', () => {
+  describe('Subscribing multiple key', () => {
     let callback1: jest.MockedFunction<() => void>;
-    const key1: string = 'flag_1';
+    const key1: string = 'key_1';
     let callback2: jest.MockedFunction<() => void>;
-    const key2: string = 'flag_2';
+    const key2: string = 'key_2';
 
     beforeEach(() => {
       callback1 = jest.fn();
@@ -71,26 +71,26 @@ describe('notifier', () => {
       notifier.subscribe(key2, callback2);
     });
 
-    describe('notifing particular flag', () => {
+    describe('notifing particular key', () => {
       beforeEach(() => {
         notifier.notify(key1);
       });
 
-      it('should call the callback of flag 1 only', () => {
+      it('should call the callback of key 1 only', () => {
         expect(callback1).toHaveBeenCalledTimes(1);
       });
 
-      it('should not call the callback of flag 2', () => {
+      it('should not call the callback of key 2', () => {
         expect(callback2).not.toHaveBeenCalled();
       });
     });
   });
 
-  describe('Subscribing similar flag with multiple instances', () => {
+  describe('Subscribing similar key with multiple instances', () => {
     let callback1: jest.MockedFunction<() => void>;
-    const sameKey1: string = 'flag_1';
+    const sameKey1: string = 'key_1';
     let callback2: jest.MockedFunction<() => void>;
-    const sameKey2: string = 'flag_1';
+    const sameKey2: string = 'key_1';
 
     beforeEach(() => {
       callback1 = jest.fn();
@@ -98,21 +98,21 @@ describe('notifier', () => {
       notifier.subscribe(sameKey1, callback1);
       notifier.subscribe(sameKey2, callback2);
     });
-    describe('when notifing the flag', () => {
+    describe('when notifing the key', () => {
       beforeEach(() => {
         notifier.notify(sameKey1);
       });
 
-      it('should call all the callbacks of particular flagKey', () => {
+      it('should call all the callbacks of particular key', () => {
         expect(callback1).toHaveBeenCalledTimes(1);
         expect(callback2).toHaveBeenCalledTimes(1);
       });
     });
   });
 
-  describe('unsubscribing the flag', () => {
+  describe('unsubscribing the key', () => {
     let callback: jest.MockedFunction<() => void>;
-    const key: string = 'flag_1';
+    const key: string = 'key_1';
 
     beforeEach(() => {
       callback = jest.fn();
