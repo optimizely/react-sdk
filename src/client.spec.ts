@@ -33,7 +33,6 @@ describe('ReactSDKClient', () => {
       decide: jest.fn(),
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
-      findValidatedForcedDecision: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -860,118 +859,6 @@ describe('ReactSDKClient', () => {
       cleanup();
       instance.setForcedVariation('my_exp', 'xxfueaojfe8&86', 'variation_a');
       expect(handler).not.toBeCalled();
-    });
-  });
-
-  describe('findValidatedForcedDecision', () => {
-    let instance: ReactSDKClient;
-    beforeEach(() => {
-      instance = createInstance(config);
-    });
-
-    it('return exception if no user context has been set ', () => {
-      const mockFn = mockOptimizelyUserContext.findValidatedForcedDecision as jest.Mock;
-
-      mockFn.mockReturnValue({
-        reasons: [["Can't validate a forced decision because the user context has not been set yet"]],
-        result: null,
-      });
-
-      const response = instance.findValidatedForcedDecision({
-        flagKey: 'product_sort',
-        ruleKey: 'experiment',
-      });
-      expect(response).toBeDefined();
-      expect(response.reasons).toBeDefined();
-      expect(response.result).toBeDefined();
-      expect(response.result).toEqual(null);
-      expect(response.reasons).toEqual([
-        ["Can't validate a forced decision because the user context has not been set yet"],
-      ]);
-    });
-
-    it('should return null result if no forcedDecision is set yet', () => {
-      instance.setUser({
-        id: 'user1',
-      });
-      const mockFn = mockOptimizelyUserContext.findValidatedForcedDecision as jest.Mock;
-
-      mockFn.mockReturnValue({
-        reasons: [],
-        result: null,
-      });
-
-      const response = instance.findValidatedForcedDecision({
-        flagKey: 'product_sort',
-        ruleKey: 'experiment',
-      });
-      expect(response).toBeDefined();
-      expect(response.reasons).toBeDefined();
-      expect(response.result).toBeDefined();
-      expect(response.result).toEqual(null);
-      expect(response.reasons).toEqual([]);
-    });
-
-    it('should return valid result if forcedDecision is set yet', () => {
-      instance.setUser({
-        id: 'user1',
-      });
-      const mockFn1 = mockOptimizelyUserContext.setForcedDecision as jest.Mock;
-      mockFn1.mockReturnValue(true);
-      instance.setForcedDecision(
-        {
-          flagKey: 'product_sort',
-          ruleKey: 'experiment',
-        },
-        { variationKey: 'male-variation' }
-      );
-
-      const mockFn = mockOptimizelyUserContext.findValidatedForcedDecision as jest.Mock;
-
-      mockFn.mockReturnValue({
-        result: {
-          variables: [{ id: '4800', value: 'alphabetical' }],
-          id: '22410',
-          key: 'male-variation',
-          featureEnabled: true,
-        },
-        reasons: [
-          [
-            'Variation (%s) is mapped to flag (%s), rule (%s) and user (%s) in the forced decision map.',
-            'male-variation',
-            'product_sort',
-            'experiment',
-            'default',
-          ],
-        ],
-      });
-
-      const response = instance.findValidatedForcedDecision({
-        flagKey: 'product_sort',
-        ruleKey: 'experiment',
-      });
-
-      expect(mockFn).toBeCalledTimes(1);
-
-      expect(response).toBeDefined();
-      expect(response.reasons).toBeDefined();
-      expect(response.result).toBeDefined();
-      expect(response.result).toBeInstanceOf(Object);
-      expect(response.result).toEqual({
-        variables: [{ id: '4800', value: 'alphabetical' }],
-        id: '22410',
-        key: 'male-variation',
-        featureEnabled: true,
-      });
-      expect(response.reasons).toEqual([
-        [
-          'Variation (%s) is mapped to flag (%s), rule (%s) and user (%s) in the forced decision map.',
-          'male-variation',
-          'product_sort',
-          'experiment',
-          'default',
-        ],
-      ]);
     });
   });
 

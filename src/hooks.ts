@@ -405,11 +405,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, []);
 
   useEffect(() => {
-    if (
-      overrides.overrideUserId ||
-      overrides.overrideAttributes ||
-      (options.autoUpdate != undefined && options.autoUpdate === false)
-    ) {
+    if (overrides.overrideUserId || overrides.overrideAttributes || !options.autoUpdate) {
       return;
     }
 
@@ -421,7 +417,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       }));
     });
   }),
-    [];
+    [overrides.overrideUserId, overrides.overrideAttributes, options.autoUpdate];
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.

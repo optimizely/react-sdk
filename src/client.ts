@@ -19,7 +19,6 @@ import * as logging from '@optimizely/js-sdk-logging';
 
 import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
-import { DecisionResponse, Variation } from '@optimizely/optimizely-sdk/lib/shared_types';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -160,10 +159,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: OptimizelyDecision };
-
-  findValidatedForcedDecision(
-    decisionContext: optimizely.OptimizelyDecisionContext
-  ): DecisionResponse<Variation | null>;
 
   setForcedDecision(
     decisionContext: optimizely.OptimizelyDecisionContext,
@@ -575,25 +570,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     return isSuccess;
-  }
-
-  /**
-   * Removes the forced decision for specified optimizely decision context.
-   * @param {optimizely.OptimizelyDecisionContext} decisionContext
-   * @return { DecisionResponse<Variation | null>}
-   * @memberof OptimizelyReactSDKClient
-   */
-  public findValidatedForcedDecision(
-    decisionContext: optimizely.OptimizelyDecisionContext
-  ): DecisionResponse<Variation | null> {
-    if (!this.userContext) {
-      logger.info("Can't validate a forced decision because the user context has not been set yet");
-      return {
-        result: null,
-        reasons: [[`Can't validate a forced decision because the user context has not been set yet`]],
-      };
-    }
-    return this.userContext.findValidatedForcedDecision(decisionContext.flagKey, decisionContext.ruleKey);
   }
 
   /**
