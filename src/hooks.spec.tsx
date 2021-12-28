@@ -1,5 +1,5 @@
 /**
- * Copyright 2020, Optimizely
+ * Copyright 2021, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -743,7 +743,6 @@ describe('hooks', () => {
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
-      console.log('hola');
       readySuccess = false;
       decideMock.mockReturnValue({ ...defaultDecision });
       getOnReadyPromise = () =>
