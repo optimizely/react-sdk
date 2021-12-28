@@ -558,7 +558,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean {
     if (!this.userContext) {
-      logger.info("Can't remove a forced decision because the user context has not been set yet");
+      logger.info("Can't remove forced decisions because the user context has not been set yet");
       return false;
     }
 
