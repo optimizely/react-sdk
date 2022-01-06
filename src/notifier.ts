@@ -1,5 +1,5 @@
 /**
- * Copyright 2021, Optimizely
+ * Copyright 2022, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ export interface INotifier {
 }
 
 class Notifier implements INotifier {
-  private observers: Array<{subscriptionId: string; key: string; callback: () => void; }> = [];
+  private observers: Array<{ subscriptionId: string; key: string; callback: () => void }> = [];
   private static instance: INotifier;
 
   private constructor() {}
@@ -37,13 +37,13 @@ class Notifier implements INotifier {
     this.observers.push({ subscriptionId, key, callback });
 
     return () => {
-      const observerIndex = this.observers.findIndex(observer => observer.subscriptionId === subscriptionId)
+      const observerIndex = this.observers.findIndex(observer => observer.subscriptionId === subscriptionId);
       if (observerIndex >= 0) {
         this.observers.splice(observerIndex, 1);
       }
     };
   }
-  
+
   notify(key: string) {
     this.observers.filter(observer => observer.key === key).forEach(observer => observer.callback());
   }
