@@ -20,7 +20,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
-import clientStore from './store';
+import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
@@ -343,8 +343,6 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
-  const [lastUserUpdate, setLastUserUpdate] = useState<Date | null>(null);
-  const store = clientStore.getInstance();
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   if (!optimizely) {
     throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
@@ -407,13 +405,18 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, []);
 
   useEffect(() => {
-    // Subscribe to the observable store to listen to changes in the optimizely client.
-    store.subscribe(state => {
-      if (state.lastUserUpdate) {
-        setLastUserUpdate(state.lastUserUpdate);
-      }
+    if (overrides.overrideUserId || overrides.overrideAttributes || !options.autoUpdate) {
+      return;
+    }
+
+    // Subscribe to Forced Decision changes.
+    return notifier.subscribe(flagKey, () => {
+      setState(prevState => ({
+        ...prevState,
+        ...getCurrentDecision(),
+      }));
     });
-  }, []);
+  }, [overrides.overrideUserId, overrides.overrideAttributes, options.autoUpdate]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
@@ -427,15 +430,6 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     }
     return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
-
-  useEffect(() => {
-    if (lastUserUpdate) {
-      setState(prevState => ({
-        ...prevState,
-        ...getCurrentDecision(),
-      }));
-    }
-  }, [lastUserUpdate]);
 
   return [state.decision, state.clientReady, state.didTimeout];
 };

@@ -1,5 +1,5 @@
 /**
- * Copyright 2020, Optimizely
+ * Copyright 2021, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,9 @@ const MyExperimentComponent = ({ options = {}, overrides = {} }: any) => {
 
 const MyDecideComponent = ({ options = {}, overrides = {} }: any) => {
   const [decision, clientReady, didTimeout] = useDecision('feature1', { ...options }, { ...overrides });
-  return <>{`${(decision.enabled) ? 'true' : 'false'}|${JSON.stringify(decision.variables)}|${clientReady}|${didTimeout}`}</>;
+  return (
+    <>{`${decision.enabled ? 'true' : 'false'}|${JSON.stringify(decision.variables)}|${clientReady}|${didTimeout}`}</>
+  );
 };
 
 const mockFeatureVariables: VariableValuesObject = {
@@ -70,6 +72,7 @@ describe('hooks', () => {
   let mockLog: jest.Mock;
   let forcedVariationUpdateCallbacks: Array<() => void>;
   let decideMock: jest.Mock<OptimizelyDecision>;
+  let setForcedDecisionMock: jest.Mock<void>;
 
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
@@ -97,6 +100,7 @@ describe('hooks', () => {
     notificationListenerCallbacks = [];
     forcedVariationUpdateCallbacks = [];
     decideMock = jest.fn();
+    setForcedDecisionMock = jest.fn();
 
     optimizelyMock = ({
       activate: activateMock,
@@ -126,6 +130,7 @@ describe('hooks', () => {
       }),
       getForcedVariations: jest.fn().mockReturnValue({}),
       decide: decideMock,
+      setForcedDecision: setForcedDecisionMock,
     } as unknown) as ReactSDKClient;
 
     mockLog = jest.fn();
@@ -673,9 +678,9 @@ describe('hooks', () => {
   describe('useDecision', () => {
     it('should render true when the flag is enabled', async () => {
       decideMock.mockReturnValue({
-        ... defaultDecision,
+        ...defaultDecision,
         enabled: true,
-        variables: { 'foo': 'bar' },        
+        variables: { foo: 'bar' },
       });
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
@@ -687,11 +692,11 @@ describe('hooks', () => {
       expect(component.text()).toBe('true|{"foo":"bar"}|true|false');
     });
 
-    it('should render false when the flag is disabled', async () => {    
+    it('should render false when the flag is disabled', async () => {
       decideMock.mockReturnValue({
-        ... defaultDecision,
+        ...defaultDecision,
         enabled: false,
-        variables: { 'foo': 'bar' },        
+        variables: { foo: 'bar' },
       });
       const component = Enzyme.mount(
         <OptimizelyProvider optimizely={optimizelyMock}>
@@ -704,7 +709,7 @@ describe('hooks', () => {
     });
 
     it('should respect the timeout option passed', async () => {
-      decideMock.mockReturnValue({ ... defaultDecision });
+      decideMock.mockReturnValue({ ...defaultDecision });
       readySuccess = false;
 
       const component = Enzyme.mount(
@@ -721,26 +726,25 @@ describe('hooks', () => {
       // Simulate datafile fetch completing after timeout has already passed
       // flag is now true and decision contains variables
       decideMock.mockReturnValue({
-        ... defaultDecision,
+        ...defaultDecision,
         enabled: true,
-        variables: { 'foo': 'bar' },
+        variables: { foo: 'bar' },
       });
 
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
 
-      // Simulate datafile fetch completing after timeout has already passed      
+      // Simulate datafile fetch completing after timeout has already passed
       // Wait for completion of dataReadyPromise
       await optimizelyMock.onReady().then(res => res.dataReadyPromise);
       component.update();
-      
+
       expect(component.text()).toBe('true|{"foo":"bar"}|true|true'); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
-      console.log('hola')
       readySuccess = false;
-      decideMock.mockReturnValue({ ... defaultDecision });
+      decideMock.mockReturnValue({ ...defaultDecision });
       getOnReadyPromise = () =>
         new Promise((res, rej) => {
           setTimeout(() => rej('some error with user'), mockDelay);
@@ -773,7 +777,7 @@ describe('hooks', () => {
       decideMock.mockReturnValue({
         ...defaultDecision,
         enabled: true,
-        variables: { 'foo': 'bar' }
+        variables: { foo: 'bar' },
       });
       // Simulate the user object changing
       act(() => {
@@ -800,8 +804,8 @@ describe('hooks', () => {
       decideMock.mockReturnValue({
         ...defaultDecision,
         enabled: true,
-        variables: { 'foo': 'bar' }
-      });      
+        variables: { foo: 'bar' },
+      });
       // Simulate the user object changing
       act(() => {
         userUpdateCallbacks.forEach(fn => fn());
@@ -899,7 +903,7 @@ describe('hooks', () => {
       component.update();
       expect(component.text()).toBe('true|{}|true|false');
 
-      decideMock.mockReturnValue({ ...defaultDecision, enabled: false, variables: { myvar: 3 } });      
+      decideMock.mockReturnValue({ ...defaultDecision, enabled: false, variables: { myvar: 3 } });
       component.setProps({
         children: (
           <MyDecideComponent
@@ -934,6 +938,132 @@ describe('hooks', () => {
       });
       component.update();
       expect(decideMock).not.toHaveBeenCalled();
+    });
+
+    it('should not recompute the decision when autoupdate is not passed and setting setForcedDecision', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision, flagKey: 'exp1' });
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent options={{}} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+      optimizelyMock.setForcedDecision(
+        {
+          flagKey: 'exp1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'var2' }
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+    });
+
+    it('should not recompute the decision when autoupdate is false and setting setForcedDecision', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision, flagKey: 'exp1' });
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent options={{ autoUpdate: false }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+      optimizelyMock.setForcedDecision(
+        {
+          flagKey: 'exp1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'var2' }
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+    });
+
+    it('should recompute the decision when autoupdate is true and setting setForcedDecision', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision, flagKey: 'exp1' });
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent options={{ autoUpdate: true }} />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+      optimizelyMock.setForcedDecision(
+        {
+          flagKey: 'exp1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'var2' }
+      );
+
+      decideMock.mockReturnValue({ ...defaultDecision, variables: { foo: 'bar' } });
+      await optimizelyMock.onReady();
+      component.update();
+      expect(component.text()).toBe('false|{"foo":"bar"}|true|false');
+    });
+
+    it('should not recompute the decision if autoupdate is true but overrideUserId is passed and setting setForcedDecision', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision, flagKey: 'exp1' });
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent
+            options={{ autoUpdate: true }}
+            overrides={{
+              overrideUserId: 'new_1',
+            }}
+          />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+      optimizelyMock.setForcedDecision(
+        {
+          flagKey: 'exp1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'var2' }
+      );
+
+      await optimizelyMock.onReady();
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+    });
+
+    it('should not recompute the decision if autoupdate is true but overrideAttributes are passed and setting setForcedDecision', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision, flagKey: 'exp1' });
+      const component = Enzyme.mount(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent
+            options={{ autoUpdate: true }}
+            overrides={{
+              overrideAttributes: {
+                foo_1: 'bar_1',
+              },
+            }}
+          />
+        </OptimizelyProvider>
+      );
+
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
+      optimizelyMock.setForcedDecision(
+        {
+          flagKey: 'exp1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'var2' }
+      );
+
+      await optimizelyMock.onReady();
+      component.update();
+      expect(component.text()).toBe('false|{}|true|false');
     });
   });
 });

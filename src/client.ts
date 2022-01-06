@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020, Optimizely
+ * Copyright 2019-2021, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 import * as optimizely from '@optimizely/optimizely-sdk';
 import * as logging from '@optimizely/js-sdk-logging';
 
-import { OptimizelyDecision, UserInfo, createFailedDecision, areObjectsEqual } from './utils';
-import clientStore from './store';
+import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
+import { notifier } from './notifier';
 
 const logger = logging.getLogger('ReactSDK');
 
@@ -159,6 +159,15 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: OptimizelyDecision };
+
+  setForcedDecision(
+    decisionContext: optimizely.OptimizelyDecisionContext,
+    decision: optimizely.OptimizelyForcedDecision
+  ): void;
+
+  removeAllForcedDecisions(): boolean;
+
+  removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -175,6 +184,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
+  private forcedDecisionFlagKeys: Set<string> = new Set<string>();
 
   // Is the javascript SDK instance ready.
   private isClientReady: boolean = false;
@@ -269,7 +279,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     let userContext: optimizely.OptimizelyUserContext | null = null;
 
     if (this.userContext) {
-      if (areObjectsEqual(userInfo, this.user)) {
+      if (areUsersEqual(userInfo, this.user)) {
         return this.userContext;
       }
 
@@ -298,18 +308,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.isUserReady = true;
       this.userContext = userContext;
     }
+
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
+
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver(this.user);
       this.isUserPromiseResolved = true;
     }
 
-    const store = clientStore.getInstance();
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
   }
 
@@ -518,13 +526,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return;
     }
 
-    const store = clientStore.getInstance();
+    const isSuccess = this.userContext.setForcedDecision(decisionContext, decision);
 
-    this.userContext.setForcedDecision(decisionContext, decision);
-
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
+    if (isSuccess) {
+      this.forcedDecisionFlagKeys.add(decisionContext.flagKey);
+      notifier.notify(decisionContext.flagKey);
+    }
   }
 
   /**
@@ -551,18 +558,39 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean {
     if (!this.userContext) {
+      logger.info("Can't remove forced decisions because the user context has not been set yet");
+      return false;
+    }
+
+    const isSuccess = this.userContext.removeForcedDecision(decisionContext);
+
+    if (isSuccess) {
+      this.forcedDecisionFlagKeys.delete(decisionContext.flagKey);
+      notifier.notify(decisionContext.flagKey);
+    }
+
+    return isSuccess;
+  }
+
+  /**
+   * Removes all the forced decision.
+   * @return {boolean}
+   * @memberof OptimizelyReactSDKClient
+   */
+  public removeAllForcedDecisions(): boolean {
+    if (!this.userContext) {
       logger.info("Can't remove a forced decision because the user context has not been set yet");
       return false;
     }
 
-    const store = clientStore.getInstance();
-    const decision = this.userContext.removeForcedDecision(decisionContext);
+    const isSuccess = this.userContext.removeAllForcedDecisions();
 
-    store.setState({
-      lastUserUpdate: new Date(),
-    });
+    if (isSuccess) {
+      this.forcedDecisionFlagKeys.forEach(flagKey => notifier.notify(flagKey));
+      this.forcedDecisionFlagKeys.clear();
+    }
 
-    return decision;
+    return isSuccess;
   }
 
   /**
