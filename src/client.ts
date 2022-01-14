@@ -143,27 +143,27 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision
+  ): OptimizelyDecision;
 
   decideAll(
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision }
+  ): { [key: string]: OptimizelyDecision };
 
   decideForKeys(
     keys: string[],
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision }
+  ): { [key: string]: OptimizelyDecision };
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config;
-  public user: UserInfo = { 
+  public user: UserInfo = {
     id: null,
     attributes: {},
   };
@@ -213,7 +213,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.userPromiseResolver = resolve;
     }).then(() => {
       this.isUserReady = true;
-      return { success: true }
+      return { success: true };
     });
 
     this._client.onReady().then(() => {
@@ -221,7 +221,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
 
     this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
-
       // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
       this.isReadyPromiseFulfilled = true;
       return {
@@ -231,7 +230,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
   }
 
-  getIsReadyPromiseFulfilled(): boolean { 
+  getIsReadyPromiseFulfilled(): boolean {
     return this.isReadyPromiseFulfilled;
   }
 
@@ -265,10 +264,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   setUser(userInfo: UserInfo): void {
     // TODO add check for valid user
-    if (userInfo.id) {
-      this.user.id = userInfo.id;
-      this.isUserReady = true;
-    }
+    console.log('userInfo === ', userInfo);
+    // if (userInfo.id) {
+    this.user.id = userInfo.id ? userInfo.id : null;
+    this.isUserReady = true;
+    // }
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
@@ -338,21 +338,24 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): OptimizelyDecision {    
+  ): OptimizelyDecision {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.info('Not Evaluating feature "%s" because userId is not set', key);
       return createFailedDecision(key, `Not Evaluating flag ${key} because userId is not set`, user);
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    }
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(
+      user.id,
+      user.attributes
+    );
     if (optlyUserContext) {
       return {
-        ... optlyUserContext.decide(key, options),
+        ...optlyUserContext.decide(key, options),
         userContext: {
           id: user.id,
-          attributes: user.attributes
-        }
-      }
+          attributes: user.attributes,
+        },
+      };
     }
     return createFailedDecision(key, `Not Evaluating flag ${key} because user id or attributes are not valid`, user);
   }
@@ -367,25 +370,30 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
       return {};
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    }
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(
+      user.id,
+      user.attributes
+    );
     if (optlyUserContext) {
-      return Object.entries(optlyUserContext.decideForKeys(keys, options))
-        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+      return Object.entries(optlyUserContext.decideForKeys(keys, options)).reduce(
+        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
           decisions[key] = {
-            ... decision,
+            ...decision,
             userContext: {
               id: user.id || '',
               attributes: user.attributes,
-            }
-          }
+            },
+          };
           return decisions;
-        }, {});
+        },
+        {}
+      );
     }
     return {};
   }
 
-  public decideAll(    
+  public decideAll(
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
@@ -394,20 +402,25 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       logger.info('Not Evaluating features because userId is not set');
       return {};
-    }    
-    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(user.id, user.attributes);
+    }
+    const optlyUserContext: optimizely.OptimizelyUserContext | null = this._client.createUserContext(
+      user.id,
+      user.attributes
+    );
     if (optlyUserContext) {
-      return Object.entries(optlyUserContext.decideAll(options))
-        .reduce((decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+      return Object.entries(optlyUserContext.decideAll(options)).reduce(
+        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
           decisions[key] = {
-            ... decision,
+            ...decision,
             userContext: {
               id: user.id || '',
               attributes: user.attributes,
-            }
-          }
+            },
+          };
           return decisions;
-        }, {});
+        },
+        {}
+      );
     }
     return {};
   }

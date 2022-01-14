@@ -96,6 +96,9 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       ) {
         optimizely.setUser(this.props.user);
       }
+    } else {
+      console.log('in else 1');
+      optimizely.setUser({ id: null });
     }
   }
 
