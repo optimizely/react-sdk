@@ -81,7 +81,7 @@ interface UseFeature {
 
 interface UseDecision {
   (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
-    OptimizelyDecision,
+    OptimizelyDecision | null,
     ClientReady,
     DidTimeout
   ];
@@ -169,19 +169,19 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
+  // if (!optimizely) {
+  //   throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  // }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => ExperimentDecisionValues = useCallback(
     () => ({
-      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+      variation: optimizely ? optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs) : null,
     }),
     [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
     return {
@@ -215,39 +215,48 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
-        setState({
-          ...getCurrentDecision(),
-          ...initState,
+    if ((optimizely && optimizely.getIsUsingSdkKey()) || !isClientReady) {
+      optimizely &&
+        subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+          setState({
+            ...getCurrentDecision(),
+            ...initState,
+          });
         });
-      });
     }
   }, []);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
-      return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
+    if (optimizely) {
+      if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+        return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
+          setState(prevState => ({
+            ...prevState,
+            ...getCurrentDecision(),
+          }));
+        });
+      }
+    }
+    return (): void => {};
+  }, [
+    // optimizely.getIsReadyPromiseFulfilled(),
+    options.autoUpdate,
+    optimizely,
+    experimentKey,
+    getCurrentDecision,
+  ]);
+
+  useEffect(() => {
+    if (optimizely) {
+      optimizely.onForcedVariationsUpdate(() => {
         setState(prevState => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
       });
     }
-    return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
-
-  useEffect(
-    () =>
-      optimizely.onForcedVariationsUpdate(() => {
-        setState(prevState => ({
-          ...prevState,
-          ...getCurrentDecision(),
-        }));
-      }),
-    [getCurrentDecision, optimizely]
-  );
+  }, [getCurrentDecision, optimizely]);
 
   return [state.variation, state.clientReady, state.didTimeout];
 };
@@ -261,20 +270,20 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
+  // if (!optimizely) {
+  //   throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  // }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision: () => FeatureDecisionValues = useCallback(
     () => ({
-      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs),
+      isEnabled: optimizely ? optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs) : false,
+      variables: optimizely ? optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs) : {},
     }),
     [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
     return {
@@ -308,19 +317,21 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
-        setState({
-          ...getCurrentDecision(),
-          ...initState,
+    if ((optimizely && optimizely.getIsUsingSdkKey()) || !isClientReady) {
+      if (optimizely) {
+        subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+          setState({
+            ...getCurrentDecision(),
+            ...initState,
+          });
         });
-      });
+      }
     }
   }, []);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+    if (optimizely && optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -329,7 +340,13 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
       });
     }
     return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
+  }, [
+    // optimizely.getIsReadyPromiseFulfilled(),
+    options.autoUpdate,
+    optimizely,
+    featureKey,
+    getCurrentDecision,
+  ]);
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
@@ -343,22 +360,30 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
-  }
+  // if (!optimizely) {
+  //   throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+  // }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
+  const getCurrentDecision: () => { decision: OptimizelyDecision | null } = useCallback(
     () => ({
-      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+      decision: optimizely
+        ? optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
+        : null,
     }),
     [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
-  const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
-    const decisionState = isClientReady? getCurrentDecision()
-      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
+  const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
+  const [state, setState] = useState<{ decision: OptimizelyDecision | null } & InitializationState>(() => {
+    const decisionState = isClientReady
+      ? getCurrentDecision()
+      : {
+          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+            id: overrides.overrideUserId || null,
+            attributes: overrideAttrs,
+          }),
+        };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -388,21 +413,23 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     // Subscribe to initialzation promise only
     // 1. When client is using Sdk Key, which means the initialization will be asynchronous
     //    and we need to wait for the promise and update decision.
-    // 2. When client is using datafile only but client is not ready yet which means user 
+    // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
-        setState({
-          ...getCurrentDecision(),
-          ...initState,
+    if ((optimizely && optimizely.getIsUsingSdkKey()) || !isClientReady) {
+      if (optimizely) {
+        subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+          setState({
+            ...getCurrentDecision(),
+            ...initState,
+          });
         });
-      });
+      }
     }
   }, []);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+    if (optimizely && optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState(prevState => ({
           ...prevState,
@@ -411,7 +438,13 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       });
     }
     return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
+  }, [
+    // optimizely.getIsReadyPromiseFulfilled(),
+    options.autoUpdate,
+    optimizely,
+    flagKey,
+    getCurrentDecision,
+  ]);
 
   return [state.decision, state.clientReady, state.didTimeout];
 };
