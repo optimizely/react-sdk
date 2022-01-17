@@ -81,7 +81,7 @@ interface UseFeature {
 
 interface UseDecision {
   (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
-    OptimizelyDecision | null,
+    OptimizelyDecision,
     ClientReady,
     DidTimeout
   ];
