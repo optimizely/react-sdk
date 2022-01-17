@@ -365,17 +365,25 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   // }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision: () => { decision: OptimizelyDecision | null } = useCallback(
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
     () => ({
       decision: optimizely
         ? optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
-        : null,
+        : {
+            enabled: false,
+            variationKey: null,
+            userContext: { id: null },
+            variables: {},
+            ruleKey: null,
+            flagKey,
+            reasons: [],
+          },
     }),
     [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
   );
 
   const isClientReady = isServerSide || (optimizely ? optimizely.isReady() : false);
-  const [state, setState] = useState<{ decision: OptimizelyDecision | null } & InitializationState>(() => {
+  const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
     const decisionState = isClientReady
       ? getCurrentDecision()
       : {

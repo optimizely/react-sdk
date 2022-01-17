@@ -48,8 +48,7 @@ const MyExperimentComponent = ({ options = {}, overrides = {} }: any) => {
 const MyDecideComponent = ({ options = {}, overrides = {} }: any) => {
   const [decision, clientReady, didTimeout] = useDecision('feature1', { ...options }, { ...overrides });
   return (
-    <>{`${decision && decision.enabled ? 'true' : 'false'}|${decision &&
-      JSON.stringify(decision.variables)}|${clientReady}|${didTimeout}`}</>
+    <>{`${decision.enabled ? 'true' : 'false'}|${JSON.stringify(decision.variables)}|${clientReady}|${didTimeout}`}</>
   );
 };
 
@@ -146,8 +145,8 @@ describe('hooks', () => {
 
     UseDecisionLoggingComponent = ({ options = {}, overrides = {} }: any) => {
       const [decision] = useDecision('feature1', { ...options }, { ...overrides });
-      mockLog(decision && decision.enabled);
-      return <div>{decision && decision.enabled}</div>;
+      mockLog(decision.enabled);
+      return <div>{decision.enabled}</div>;
     };
   });
 
