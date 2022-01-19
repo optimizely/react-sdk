@@ -1,5 +1,5 @@
 /**
- * Copyright 2020, Optimizely
+ * Copyright 2022, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
+import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
@@ -348,17 +349,20 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
-    () => ({
-      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs)
-    }),
-    [optimizely, flagKey, overrides.overrideUserId, overrideAttrs, options.decideOptions]
-  );
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = () => ({
+    decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
+  });
 
   const isClientReady = isServerSide || optimizely.isReady();
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
-    const decisionState = isClientReady? getCurrentDecision()
-      : { decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', { id: overrides.overrideUserId || null, attributes: overrideAttrs}) };
+    const decisionState = isClientReady
+      ? getCurrentDecision()
+      : {
+          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+            id: overrides.overrideUserId || null,
+            attributes: overrideAttrs,
+          }),
+        };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -388,7 +392,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     // Subscribe to initialzation promise only
     // 1. When client is using Sdk Key, which means the initialization will be asynchronous
     //    and we need to wait for the promise and update decision.
-    // 2. When client is using datafile only but client is not ready yet which means user 
+    // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
@@ -399,6 +403,20 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (overrides.overrideUserId || overrides.overrideAttributes || !options.autoUpdate) {
+      return;
+    }
+
+    // Subscribe to Forced Decision changes.
+    return notifier.subscribe(flagKey, () => {
+      setState(prevState => ({
+        ...prevState,
+        ...getCurrentDecision(),
+      }));
+    });
+  }, [overrides.overrideUserId, overrides.overrideAttributes, options.autoUpdate]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
