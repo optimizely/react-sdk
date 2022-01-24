@@ -485,7 +485,7 @@
     "@optimizely/js-sdk-logging" "^0.3.1"
     "@optimizely/js-sdk-utils" "^0.4.0"
 
-"@optimizely/js-sdk-logging@^0.3.0", "@optimizely/js-sdk-logging@^0.3.1":
+"@optimizely/js-sdk-logging@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-logging/-/js-sdk-logging-0.3.1.tgz#358b48f4ce2ce22b1969d9e3e929caac1e6e6351"
   integrity sha512-K71Jf283FP0E4oXehcXTTM3gvgHZHr7FUrIsw//0mdJlotHJT4Nss4hE0CWPbBxO7LJAtwNnO+VIA/YOcO4vHg==
