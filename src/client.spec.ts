@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2020, Optimizely
+ * Copyright 2019-2022, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ describe('ReactSDKClient', () => {
       decide: jest.fn(),
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
+      setForcedDecision: jest.fn(),
+      removeForcedDecision: jest.fn(),
+      removeAllForcedDecisions: jest.fn(),
     } as any;
 
     mockInnerClient = {
@@ -526,7 +529,7 @@ describe('ReactSDKClient', () => {
         const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
         const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
         mockFn.mockReturnValue({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -534,11 +537,11 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         let result = instance.decideAll();
         expect(result).toEqual({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -549,14 +552,14 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith([]);
-        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });        
+        expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
         mockFn.mockReset();
         mockFn.mockReturnValue({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -564,11 +567,11 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         result = instance.decideAll([optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
         expect(result).toEqual({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -579,7 +582,7 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith([optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
@@ -590,7 +593,7 @@ describe('ReactSDKClient', () => {
         const mockFn = mockOptimizelyUserContext.decideForKeys as jest.Mock;
         const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
         mockFn.mockReturnValue({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -598,11 +601,11 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         let result = instance.decideForKeys(['theFlag1']);
         expect(result).toEqual({
-          'theFlag1': {
+          theFlag1: {
             enabled: true,
             flagKey: 'theFlag1',
             reasons: [],
@@ -613,14 +616,14 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition1',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith(['theFlag1'], []);
         expect(mockCreateUserContext).toBeCalledWith('user1', { foo: 'bar' });
         mockFn.mockReset();
         mockFn.mockReturnValue({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -628,11 +631,13 @@ describe('ReactSDKClient', () => {
             userContext: mockOptimizelyUserContext,
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
-        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
+        result = instance.decideForKeys(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', {
+          bar: 'baz',
+        });
         expect(result).toEqual({
-          'theFlag2': {
+          theFlag2: {
             enabled: true,
             flagKey: 'theFlag2',
             reasons: [],
@@ -643,7 +648,7 @@ describe('ReactSDKClient', () => {
             },
             variables: {},
             variationKey: 'varition2',
-          }
+          },
         });
         expect(mockFn).toBeCalledTimes(1);
         expect(mockFn).toBeCalledWith(['theFlag1'], [optimizely.OptimizelyDecideOption.INCLUDE_REASONS]);
@@ -854,6 +859,222 @@ describe('ReactSDKClient', () => {
       cleanup();
       instance.setForcedVariation('my_exp', 'xxfueaojfe8&86', 'variation_a');
       expect(handler).not.toBeCalled();
+    });
+  });
+
+  describe('removeAllForcedDecisions', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+    });
+
+    it('should return false if no user context has been set ', () => {
+      const mockFn = mockOptimizelyUserContext.removeAllForcedDecisions as jest.Mock;
+
+      mockFn.mockReturnValue(false);
+
+      const result = instance.removeAllForcedDecisions();
+      expect(result).toBeDefined();
+      expect(result).toEqual(false);
+    });
+
+    it('should return true if  user context has been set ', () => {
+      instance.setUser({
+        id: 'user1',
+      });
+      const mockFn = mockOptimizelyUserContext.removeAllForcedDecisions as jest.Mock;
+
+      mockFn.mockReturnValue(true);
+
+      const result = instance.removeAllForcedDecisions();
+      expect(mockFn).toBeCalledTimes(1);
+      expect(result).toBeDefined();
+      expect(result).toEqual(true);
+    });
+  });
+
+  describe('setForcedDecision', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+      instance.setUser({
+        id: 'user1',
+        attributes: {
+          foo: 'bar',
+        },
+      });
+    });
+
+    it('should overwrite decide when forcedDecision is envoked', () => {
+      const mockFn = mockOptimizelyUserContext.decide as jest.Mock;
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition1',
+      });
+      const result = instance.decide('theFlag1');
+      expect(result).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: {
+          id: 'user1',
+          attributes: { foo: 'bar' },
+        },
+        variables: {},
+        variationKey: 'varition1',
+      });
+      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toBeCalledWith('theFlag1', []);
+
+      const mockFnForcedDecision = mockOptimizelyUserContext.setForcedDecision as jest.Mock;
+      mockFnForcedDecision.mockReturnValue(true);
+      instance.setForcedDecision(
+        {
+          flagKey: 'theFlag1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'varition2' }
+      );
+
+      expect(mockFnForcedDecision).toBeCalledTimes(1);
+
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition2',
+      });
+      const result2 = instance.decide('theFlag1', []);
+
+      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toBeCalledWith('theFlag1', []);
+      expect(result2).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        variables: {},
+        variationKey: 'varition2',
+      });
+    });
+  });
+
+  describe('removeForcedDecision', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+      instance.setUser({
+        id: 'user1',
+        attributes: {
+          foo: 'bar',
+        },
+      });
+    });
+
+    it('should revert back to the decide default value when removeForcedDecision is envoked after settingup the forced decision', () => {
+      const mockFn = mockOptimizelyUserContext.decide as jest.Mock;
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition1',
+      });
+      const result = instance.decide('theFlag1');
+      expect(result).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: {
+          id: 'user1',
+          attributes: { foo: 'bar' },
+        },
+        variables: {},
+        variationKey: 'varition1',
+      });
+      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toBeCalledWith('theFlag1', []);
+
+      const mockFnForcedDecision = mockOptimizelyUserContext.setForcedDecision as jest.Mock;
+      mockFnForcedDecision.mockReturnValue(true);
+      instance.setForcedDecision(
+        {
+          flagKey: 'theFlag1',
+          ruleKey: 'experiment',
+        },
+        { variationKey: 'varition2' }
+      );
+
+      expect(mockFnForcedDecision).toBeCalledTimes(1);
+
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition2',
+      });
+      const result2 = instance.decide('theFlag1', []);
+
+      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toBeCalledWith('theFlag1', []);
+      expect(result2).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        variables: {},
+        variationKey: 'varition2',
+      });
+
+      const mockFnRemoveForcedDecision = mockOptimizelyUserContext.removeForcedDecision as jest.Mock;
+      mockFnRemoveForcedDecision.mockReturnValue(true);
+      instance.removeForcedDecision({
+        flagKey: 'theFlag1',
+        ruleKey: 'experiment',
+      });
+
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition1',
+      });
+      const result3 = instance.decide('theFlag1', []);
+
+      expect(mockFn).toBeCalledTimes(1);
+      expect(mockFn).toBeCalledWith('theFlag1', []);
+      expect(result3).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        variables: {},
+        variationKey: 'varition1',
+      });
     });
   });
 });
