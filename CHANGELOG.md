@@ -15,12 +15,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 	- getForcedDecision
 	- removeForcedDecision
 	- removeAllForcedDecisions
-- Updated `useDecision` hook to auto-update and reflect changes when forced decisions are set and removed.
-- For details, refer to our documentation pages: [ReactSDKClient](https://docs.developers.optimizely.com/full-stack/v4.0/docs/reactsdkclient) and [useDecision hook](https://docs.developers.optimizely.com/full-stack/v4.0/docs/usedecision-react).
+- Updated `useDecision` hook to auto-update and reflect changes when forced decisions are set and removed ([#133](https://github.com/optimizely/react-sdk/pull/133)).
+- For details, refer to our documentation pages: [ReactSDKClient](https://docs.developers.optimizely.com/full-stack/v4.0/docs/reactsdkclient), [Forced Decision methods](https://docs.developers.optimizely.com/full-stack/v4.0/docs/forced-decision-methods-react) and [useDecision hook](https://docs.developers.optimizely.com/full-stack/v4.0/docs/usedecision-react).
 
 ### Bug fixes
 - Fixed the SDK to render the correct decision on first render when initialized synchronously using a datafile ([#125](https://github.com/optimizely/react-sdk/pull/125)).
 - Fixed the redundant re-rendering when SDK is initialized with both datafile and SDK key ([#125](https://github.com/optimizely/react-sdk/pull/125)).
+- Updated `@optimizely/js-sdk-logging` to 0.3.1 ([#140](https://github.com/optimizely/react-sdk/pull/140)). 
 
 ## [2.7.1-alpha] - October 1st, 2021
 
