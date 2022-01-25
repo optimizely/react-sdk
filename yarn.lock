@@ -485,26 +485,12 @@
     "@optimizely/js-sdk-logging" "^0.3.1"
     "@optimizely/js-sdk-utils" "^0.4.0"
 
-"@optimizely/js-sdk-logging@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-logging/-/js-sdk-logging-0.1.0.tgz#e5950c3d9a708fbd5931a043130469c5df7f64e8"
-  integrity sha512-Bs2zHvsdNIk2QSg05P6mKIlROHoBIRNStbrVwlePm603CucojKRPlFJG4rt7sFZQOo8xS8I7z1BmE4QI3/ZE9A==
-  dependencies:
-    "@optimizely/js-sdk-utils" "^0.1.0"
-
 "@optimizely/js-sdk-logging@^0.3.1":
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-logging/-/js-sdk-logging-0.3.1.tgz#358b48f4ce2ce22b1969d9e3e929caac1e6e6351"
   integrity sha512-K71Jf283FP0E4oXehcXTTM3gvgHZHr7FUrIsw//0mdJlotHJT4Nss4hE0CWPbBxO7LJAtwNnO+VIA/YOcO4vHg==
   dependencies:
     "@optimizely/js-sdk-utils" "^0.4.0"
-
-"@optimizely/js-sdk-utils@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-utils/-/js-sdk-utils-0.1.0.tgz#e3ac1fef81f11c15774f4743c3fa7c65d9c3352a"
-  integrity sha512-p7499GgVaX94YmkrwOiEtLgxgjXTPbUQsvETaAil5J7zg1TOA4Wl8ClalLSvCh+AKWkxGdkL4/uM/zfbxPSNNw==
-  dependencies:
-    uuid "^3.3.2"
 
 "@optimizely/js-sdk-utils@^0.4.0":
   version "0.4.0"
