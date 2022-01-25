@@ -7,14 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-## [2.8.0] - January 18, 2022
+## [2.8.0] - January 26, 2022
 
 ### New Features
 - Add a set of new APIs for overriding and managing user-level flag, experiment and delivery rule decisions. These methods can be used for QA and automated testing purposes. They are an extension of the ReactSDKClient interface ([#133](https://github.com/optimizely/react-sdk/pull/133)):
-	- setForcedDecision
-	- getForcedDecision
-	- removeForcedDecision
-	- removeAllForcedDecisions
+  - setForcedDecision
+  - getForcedDecision
+  - removeForcedDecision
+  - removeAllForcedDecisions
 - Updated `useDecision` hook to auto-update and reflect changes when forced decisions are set and removed ([#133](https://github.com/optimizely/react-sdk/pull/133)).
 - For details, refer to our documentation pages: [ReactSDKClient](https://docs.developers.optimizely.com/full-stack/v4.0/docs/reactsdkclient), [Forced Decision methods](https://docs.developers.optimizely.com/full-stack/v4.0/docs/forced-decision-methods-react) and [useDecision hook](https://docs.developers.optimizely.com/full-stack/v4.0/docs/usedecision-react).
 
