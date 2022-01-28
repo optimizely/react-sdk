@@ -32,6 +32,6 @@ export {
   OptimizelyDecideOption,
 } from '@optimizely/optimizely-sdk';
 
-export { createInstance, ReactSDKClient } from './client';
+export { createInstance, ReactSDKClient, OptimizelyReactSDKClientType } from './client';
 
 export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher';
