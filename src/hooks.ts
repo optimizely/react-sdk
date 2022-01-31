@@ -431,5 +431,6 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
+  // CHECK: Return clientReady as false & didTimeout as true if ._client is null.
   return [state.decision, state.clientReady, state.didTimeout];
 };

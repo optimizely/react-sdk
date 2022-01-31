@@ -41,6 +41,7 @@ export type OnReadyResult = {
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.8.0';
 
+// TODO: Test all functions in ReactSDKClient
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
@@ -198,7 +199,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   private isUsingSdkKey: boolean = false;
 
-  private readonly _client: optimizely.Client;
+  private readonly _client: optimizely.Client | null;
 
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
@@ -210,7 +211,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
 
-    this.userPromiseResolver = () => {};
+    this.userPromiseResolver = () => { };
 
     const configWithClientInfo = {
       ...config,
@@ -218,6 +219,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       clientVersion: REACT_SDK_CLIENT_VERSION,
     };
     this._client = optimizely.createInstance(configWithClientInfo);
+
+    let rng = Math.random() + 1
+    if (rng > 0) {
+      this._client = null
+    }
 
     this.isClientReady = !!configWithClientInfo.datafile;
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
@@ -229,18 +235,25 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return { success: true };
     });
 
-    this._client.onReady().then(() => {
-      this.isClientReady = true;
-    });
+    if (this._client) {
+      this._client.onReady().then(() => {
+        this.isClientReady = true;
+      });
+    }
 
-    this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
-      // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
-      this.isReadyPromiseFulfilled = true;
-      return {
-        success: true,
-        reason: 'datafile and user resolved',
-      };
-    });
+    if (this._client) {
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(() => {
+        // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
+        this.isReadyPromiseFulfilled = true;
+        return {
+          success: true,
+          reason: 'datafile and user resolved',
+        };
+      });
+    } else {
+      this.dataReadyPromise = Promise.reject(new Error('Optimizely client is null'))
+      this.isReadyPromiseFulfilled = false;
+    }
   }
 
   getIsReadyPromiseFulfilled(): boolean {
@@ -278,35 +291,27 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     let userContext: optimizely.OptimizelyUserContext | null = null;
 
-    if (this.userContext) {
-      if (areUsersEqual(userInfo, this.user)) {
-        return this.userContext;
-      }
-
-      if (userInfo.id) {
-        userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-        return userContext;
-      }
-
-      return null;
-    }
-
-    if (userInfo.id) {
-      this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
+    if (this.userContext && areUsersEqual(userInfo, this.user)) {
       return this.userContext;
     }
 
-    return null;
+    if (!userInfo.id || !this._client) return null;
+
+    userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
+    return userContext;
   }
 
   setUser(userInfo: UserInfo): void {
     // TODO add check for valid user
     if (userInfo.id) {
-      const userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
 
       this.user.id = userInfo.id;
       this.isUserReady = true;
-      this.userContext = userContext;
+
+      if (this._client) {
+        const userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
+        this.userContext = userContext;
+      }
     }
 
     if (userInfo.attributes) {
@@ -372,6 +377,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.info('Not activating experiment "%s" because userId is not set', experimentKey);
       return null;
     }
+
+    if (!this._client) return null;
+
     return this._client.activate(experimentKey, user.id, user.attributes);
   }
 
@@ -479,6 +487,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.info('getVariation returned null for experiment "%s" because userId is not set', experimentKey);
       return null;
     }
+
+    if (!this._client) return null;
+    
     return this._client.getVariation(experimentKey, user.id, user.attributes);
   }
 
@@ -508,7 +519,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return;
     }
 
-    return this._client.track(eventKey, user.id, user.attributes, eventTags);
+    if (!this._client) return;
+
+    this._client.track(eventKey, user.id, user.attributes, eventTags);
   }
 
   /**
@@ -611,6 +624,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.info('isFeatureEnabled returning false for feature "%s" because userId is not set', feature);
       return false;
     }
+
+    if (!this._client) return false;
+
     return this._client.isFeatureEnabled(feature, user.id, user.attributes);
   }
 
@@ -641,6 +657,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
     const userAttributes = user.attributes;
     const variableObj: VariableValuesObject = {};
+
+    if (!this._client) {
+      return {};
+    }
     const optlyConfig = this._client.getOptimizelyConfig();
     if (!optlyConfig) {
       return {};
@@ -650,8 +670,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return {};
     }
     Object.keys(feature.variablesMap).forEach(key => {
-      const variable = feature.variablesMap[key];
-      variableObj[variable.key] = this._client.getFeatureVariable(featureKey, variable.key, userId, userAttributes);
+      if (this._client) {
+        const variable = feature.variablesMap[key];
+        variableObj[variable.key] = this._client.getFeatureVariable(featureKey, variable.key, userId, userAttributes);
+      }
     });
 
     return variableObj;
@@ -677,6 +699,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+
     return this._client.getFeatureVariableString(feature, variable, user.id, user.attributes);
   }
 
@@ -700,6 +724,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+
     return this._client.getFeatureVariableBoolean(feature, variable, user.id, user.attributes);
   }
 
@@ -723,6 +749,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+    
     return this._client.getFeatureVariableInteger(feature, variable, user.id, user.attributes);
   }
 
@@ -746,6 +774,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+
     return this._client.getFeatureVariableDouble(feature, variable, user.id, user.attributes);
   }
 
@@ -769,6 +799,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+
     return this._client.getFeatureVariableJSON(feature, variable, user.id, user.attributes);
   }
 
@@ -792,6 +824,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    if (!this._client) return null;
+
     return this._client.getFeatureVariable(featureKey, variableKey, user.id, user.attributes);
   }
 
@@ -812,6 +846,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return {};
     }
+    if (!this._client) return {};
+
     return this._client.getAllFeatureVariables(featureKey, user.id, user.attributes);
   }
 
@@ -827,6 +863,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return [];
     }
+    if (!this._client) return [];
+
     return this._client.getEnabledFeatures(user.id, user.attributes);
   }
 
@@ -842,6 +880,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (user.id === null) {
       return null;
     }
+    
+    if (!this._client) return null;
+
     return this._client.getForcedVariation(experiment, user.id);
   }
 
@@ -875,6 +916,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (finalUserId === null) {
       return false;
     }
+    if (!this._client)
+      return false;
     const result = this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
     this.onForcedVariationsUpdateHandlers.forEach(handler => handler());
     return result;
@@ -885,6 +928,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    *  @returns {optimizely.OptimizelyConfig | null} optimizely config
    */
   public getOptimizelyConfig(): optimizely.OptimizelyConfig | null {
+    if (!this._client) return null
     return this._client.getOptimizelyConfig();
   }
 
@@ -892,17 +936,35 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * Cleanup method for killing an running timers and flushing eventQueue
    */
   public close() {
+    if (!this._client) {
+      return new Promise<{ success: boolean; reason: string }>((resolve, reject) => resolve({
+        success: false,
+        reason: ''
+      }));
+    }
     return this._client.close();
   }
 
   /**
    * Provide access to inner optimizely.Client object
    */
-  public get client(): optimizely.Client {
+  public get client(): optimizely.Client | null {
+    if (!this._client) return null
     return this._client;
   }
 
   public get notificationCenter(): optimizely.NotificationCenter {
+    if (!this._client) {
+      return {
+        addNotificationListener: (_a) => {
+          logger.warn('Client does not exist.');
+          return 0;
+        },
+        removeNotificationListener: (_b) => false,
+        clearAllNotificationListeners: () => null,
+        clearNotificationListeners: () => null,
+      }
+    }
     return this._client.notificationCenter;
   }
 
