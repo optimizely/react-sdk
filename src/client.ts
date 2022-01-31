@@ -921,8 +921,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 }
 
-export function createInstance(config: optimizely.Config): OptimizelyReactSDKClient {
+export function createInstance(config: optimizely.Config): ReactSDKClient {
   return new OptimizelyReactSDKClient(config);
 }
-
-export type OptimizelyReactSDKClientType = OptimizelyReactSDKClient; 
