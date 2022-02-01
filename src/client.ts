@@ -169,8 +169,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 
-  initialConfig: optimizely.Config;
-  client : optimizely.Client;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
