@@ -169,8 +169,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 
-  notificationCenter: optimizely.NotificationCenter;
-
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 }
 
