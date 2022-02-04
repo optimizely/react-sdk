@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Enhancements
+- fixed issue [#49](https://github.com/optimizely/react-sdk/issues/49): Return type of `createInstance` was `OptimizelyReactSDKClient` which is the implementation class. Changed it to the `ReactSDKClient` interface instead ([#148](https://github.com/optimizely/react-sdk/pull/148)).
+
 ## [2.8.0] - January 26, 2022
 
 ### New Features

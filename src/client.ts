@@ -168,6 +168,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   removeAllForcedDecisions(): boolean;
 
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
+
+  getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -921,6 +923,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 }
 
-export function createInstance(config: optimizely.Config): OptimizelyReactSDKClient {
+export function createInstance(config: optimizely.Config): ReactSDKClient {
   return new OptimizelyReactSDKClient(config);
 }
