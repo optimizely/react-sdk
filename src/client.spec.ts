@@ -18,6 +18,10 @@ jest.mock('@optimizely/optimizely-sdk');
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+interface MockedReactSDKClient extends ReactSDKClient {
+  client: optimizely.Client;
+  initialConfig: optimizely.Config;
+}
 
 describe('ReactSDKClient', () => {
   const config: optimizely.Config = {
@@ -79,7 +83,7 @@ describe('ReactSDKClient', () => {
 
   it('provides the initial config object via the initialConfig property', () => {
     const instance = createInstance(config);
-    expect(instance.initialConfig).toEqual(config);
+    expect((instance as MockedReactSDKClient).initialConfig).toEqual(config);
   });
 
   it('provides a default user object', () => {
@@ -94,7 +98,7 @@ describe('ReactSDKClient', () => {
     const instance = createInstance(config);
     expect(createInstanceSpy).toBeCalledTimes(1);
     expect(createInstanceSpy.mock.results[0].type).toBe('return');
-    expect(createInstanceSpy.mock.results[0].value).toBe(instance.client);
+    expect(createInstanceSpy.mock.results[0].value).toBe((instance as MockedReactSDKClient).client);
   });
 
   it('adds react-sdk clientEngine and clientVersion to the config, and passed the config to createInstance', () => {
@@ -109,7 +113,7 @@ describe('ReactSDKClient', () => {
 
   it('provides access to the underlying client notificationCenter', () => {
     const instance = createInstance(config);
-    expect(instance.notificationCenter).toBe(instance.client.notificationCenter);
+    expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
   });
 
   describe('onReady', () => {
