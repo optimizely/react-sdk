@@ -248,11 +248,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isReadyPromiseFulfilled = true;
         return {
           success: true,
-          reason: 'datafile and user resolved',
+          reason: 'Successfully resolved datafile and user information.',
         };
       })
     } else {
-      logger.warn('Unable to resolve Data File and User information because Optimizely client failed to initialize.');
+      logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
       this.dataReadyPromise = new Promise((resolve, reject) => {
         resolve({
@@ -480,6 +480,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): { [key: string]: OptimizelyDecision } {
+    if (!this._client) {
+      logger.warn('Unable to evaluate all feature decisions because Optimizely client is not initialized.');
+      return {};
+    }
+
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
     if (user.id === null) {
       logger.warn('Unable to evaluate all feature decisions because User ID is not set');
