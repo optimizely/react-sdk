@@ -22,7 +22,8 @@ export { OptimizelyExperiment } from './Experiment';
 export { OptimizelyVariation } from './Variation';
 export { OptimizelyDecision } from './utils';
 
-export {
+export
+ {
   logging,
   errorHandler,
   setLogger,
@@ -30,7 +31,10 @@ export {
   enums,
   eventDispatcher,
   OptimizelyDecideOption,
-} from '@optimizely/optimizely-sdk';
+  ActivateListenerPayload,
+  TrackListenerPayload
+} 
+from '@optimizely/optimizely-sdk';
 
 export { createInstance, ReactSDKClient } from './client';
 
