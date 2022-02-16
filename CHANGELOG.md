@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Enhancements
 - fixed issue [#49](https://github.com/optimizely/react-sdk/issues/49): Return type of `createInstance` was `OptimizelyReactSDKClient` which is the implementation class. Changed it to the `ReactSDKClient` interface instead ([#148](https://github.com/optimizely/react-sdk/pull/148)).
 
+- fixed issue [#121](https://github.com/optimizely/react-sdk/issues/121):`ActivateListenerPayload` and `TrackListenerPayload` types were exported from optimizely-sdk but was missing in react-sdk export list. ([#150](https://github.com/optimizely/react-sdk/pull/150)).
+
 ## [2.8.0] - January 26, 2022
 
 ### New Features

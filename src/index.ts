@@ -32,7 +32,8 @@ export
   eventDispatcher,
   OptimizelyDecideOption,
   ActivateListenerPayload,
-  TrackListenerPayload
+  TrackListenerPayload,
+  ListenerPayload
 } 
 from '@optimizely/optimizely-sdk';
 
