@@ -15,7 +15,7 @@ jobs:
       env:
         SDK=react
         SDK_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
-        REPO_SLUG=optimizely/react-sdk-integeration-tests
+        REPO_SLUG=optimizely/fullstack-sdk-compatibility-suite
       before_install: skip
       install: skip
       before_script:
