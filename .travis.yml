@@ -4,10 +4,22 @@ os: linux
 stages:
   - 'Lint markdown files'
   - 'Test'
+  - 'Integration tests'
   - 'Publish'
 
 jobs:
   include:
+    - stage: 'Integration tests'
+      cache: false
+      language: minimal
+      before_install: skip
+      install: skip
+      before_script:
+        - mkdir $HOME/travisci-tools && pushd $HOME/travisci-tools && git init && git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git && popd
+      script:
+        - REPO_SLUG=optimizely/react-sdk-integration-tests $HOME/travisci-tools/trigger-script-with-status-update.sh zeeshan/setup-travis
+      after_success: travis_terminate 0
+
     - stage: 'Lint markdown files'
       os: linux
       language: generic
