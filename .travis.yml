@@ -2,9 +2,9 @@ language: generic
 os: linux
 
 stages:
-  - 'Lint markdown files'
-  - 'Test'
   - 'Integration tests'
+  - 'Lint markdown files'
+  - 'Test'  
   - 'Publish'
 
 jobs:
