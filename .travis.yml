@@ -2,21 +2,12 @@ language: generic
 os: linux
 
 stages:
-  - 'Lint markdown files'
   - 'Test'
   - 'Integration tests'
   - 'Publish'
 
 jobs:
   include:
-    - stage: 'Lint markdown files'
-      os: linux
-      language: generic
-      install: gem install awesome_bot
-      before_script: skip
-      script:
-        - find . -type f -name '*.md' -exec awesome_bot {} \;
-
     - stage: 'Test'
       os: linux
       language: node_js
