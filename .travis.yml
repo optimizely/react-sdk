@@ -2,28 +2,13 @@ language: generic
 os: linux
 
 stages:
-  - 'Integration tests'
   - 'Lint markdown files'
-  - 'Test'  
+  - 'Test'
+  - 'Integration tests'
   - 'Publish'
 
 jobs:
   include:
-    - stage: 'Integration tests'
-      cache: false
-      language: minimal
-      env:
-        SDK=react
-        SDK_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
-        REPO_SLUG=optimizely/react-sdk-e2e-tests
-      before_install: skip
-      install: skip
-      before_script:
-        - mkdir $HOME/travisci-tools && pushd $HOME/travisci-tools && git init && git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git && popd
-      script:
-        - $HOME/travisci-tools/trigger-script-with-status-update.sh zeeshan/setup-travis
-      after_success: travis_terminate 0
-
     - stage: 'Lint markdown files'
       os: linux
       language: generic
@@ -40,6 +25,21 @@ jobs:
       script: yarn test
       addons:
         srcclr: true
+
+    - stage: 'Integration tests'
+      cache: false
+      language: minimal
+      env:
+        SDK=react
+        SDK_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
+        REPO_SLUG=optimizely/react-sdk-e2e-tests
+      before_install: skip
+      install: skip
+      before_script:
+        - mkdir $HOME/travisci-tools && pushd $HOME/travisci-tools && git init && git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git && popd
+      script:
+        - $HOME/travisci-tools/trigger-script-with-status-update.sh zeeshan/setup-travis
+      after_success: travis_terminate 0
 
     - stage: 'Publish'
       if: type = push AND tag IS present AND tag =~ /^[0-9]+\.[0-9]+\.[0-9]+/
