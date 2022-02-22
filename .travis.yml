@@ -29,7 +29,7 @@ jobs:
       before_script:
         - mkdir $HOME/travisci-tools && pushd $HOME/travisci-tools && git init && git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git && popd
       script:
-        - $HOME/travisci-tools/trigger-script-with-status-update.sh
+        - $HOME/travisci-tools/trigger-script-with-status-update.sh main
       after_success: travis_terminate 0
 
     - stage: 'Publish'
