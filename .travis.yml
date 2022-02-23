@@ -20,10 +20,10 @@ jobs:
     - stage: 'Integration tests'
       language: minimal
       env:
-        SDK=react
-        SDK_BRANCH=$TRAVIS_PULL_REQUEST_BRANCH
+        SDK: react
+        SDK_BRANCH: ${TRAVIS_PULL_REQUEST_BRANCH}
         # Need to provide REPO_SLUG here otherwise it defaults to Fullstack suite repos.
-        REPO_SLUG=optimizely/react-sdk-e2e-tests
+        REPO_SLUG: optimizely/react-sdk-e2e-tests
       before_install: skip
       install: skip
       before_script:
