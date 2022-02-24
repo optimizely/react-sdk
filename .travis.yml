@@ -2,20 +2,12 @@ language: generic
 os: linux
 
 stages:
-  - 'Lint markdown files'
   - 'Test'
+  - 'Integration tests'
   - 'Publish'
 
 jobs:
   include:
-    - stage: 'Lint markdown files'
-      os: linux
-      language: generic
-      install: gem install awesome_bot
-      before_script: skip
-      script:
-        - find . -type f -name '*.md' -exec awesome_bot {} \;
-
     - stage: 'Test'
       os: linux
       language: node_js
@@ -24,6 +16,21 @@ jobs:
       script: yarn test
       addons:
         srcclr: true
+
+    - stage: 'Integration tests'
+      language: minimal
+      env:
+        SDK: react
+        SDK_BRANCH: ${TRAVIS_PULL_REQUEST_BRANCH}
+        # Need to provide REPO_SLUG here otherwise it defaults to Fullstack suite repos.
+        REPO_SLUG: optimizely/react-sdk-e2e-tests
+      before_install: skip
+      install: skip
+      before_script:
+        - mkdir $HOME/travisci-tools && pushd $HOME/travisci-tools && git init && git pull https://$CI_USER_TOKEN@github.com/optimizely/travisci-tools.git && popd
+      script:
+        - $HOME/travisci-tools/trigger-script-with-status-update.sh main
+      after_success: travis_terminate 0
 
     - stage: 'Publish'
       if: type = push AND tag IS present AND tag =~ /^[0-9]+\.[0-9]+\.[0-9]+/
