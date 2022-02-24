@@ -32,9 +32,12 @@ type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 type OnForcedVariationsUpdateHandler = () => void;
 
+type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT';
+
 export type OnReadyResult = {
   success: boolean;
-  reason?: string;
+  reason?: NotReadyReason;
+  reasonDetail?: string;
   dataReadyPromise?: Promise<any>;
 };
 
@@ -189,16 +192,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private forcedDecisionFlagKeys: Set<string> = new Set<string>();
 
   // Is the javascript SDK instance ready.
-  private isClientReady: boolean = false;
+  private isClientReady = false;
 
   // We need to add autoupdate listener to the hooks after the instance became fully ready to avoid redundant updates to hooks
-  private isReadyPromiseFulfilled: boolean = false;
+  private isReadyPromiseFulfilled = false;
 
   // Its usually true from the beginning when user is provided as an object in the `OptimizelyProvider`
   // This becomes more significant when a promise is provided instead.
-  private isUserReady: boolean = false;
+  private isUserReady = false;
 
-  private isUsingSdkKey: boolean = false;
+  private isUsingSdkKey = false;
 
   private readonly _client: optimizely.Client | null;
 
@@ -221,13 +224,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
 
     this._client = optimizely.createInstance(configWithClientInfo);
-
-    // TODO: Remove forcing _client to be null after testing finished.
-    // const rng = Math.random() + 1;
-    // if (rng > 0) {
-    //   this._client = null;
-    // }
-
     this.isClientReady = !!configWithClientInfo.datafile;
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
 
@@ -248,18 +244,19 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isReadyPromiseFulfilled = true;
         return {
           success: true,
-          reason: 'Successfully resolved datafile and user information.',
+          reasonDetail: 'Successfully resolved datafile and user information.',
         };
-      })
+      });
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
       this.dataReadyPromise = new Promise((resolve, reject) => {
         resolve({
           success: false,
-          reason: 'Optimizely client failed to initialize.'
-        })
-      })
+          reason: 'NO_CLIENT',
+          reasonDetail: 'Optimizely client failed to initialize.',
+        });
+      });
     }
   }
 
@@ -282,7 +279,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       timeoutId = setTimeout(() => {
         resolve({
           success: false,
-          reason:
+          reason: 'TIMEOUT',
+          reasonDetail:
             'failed to initialize onReady before timeout, either the datafile or user info was not set before the timeout',
           dataReadyPromise: this.dataReadyPromise,
         });
@@ -297,7 +295,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
-      logger.warn('Unable to get user context for user id "%s" because Optimizely client failed to initialize.', userInfo.id);
+      logger.warn(
+        'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
+        userInfo.id
+      );
       return null;
     }
 
@@ -333,7 +334,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       if (this._client) {
         this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
       } else {
-        logger.warn('Unable to create user context for user id "%s" because Optimizely client failed to initialize.', this.user.id);
+        logger.warn(
+          'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
+          this.user.id
+        );
       }
     }
 
@@ -417,7 +421,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): OptimizelyDecision {
     if (!this._client) {
       logger.warn('Unable to evaluate feature "%s" because Optimizely client failed to initialize.', key);
-      return createFailedDecision(key, `Unable to evaluate flag ${key} because Optimizely client failed to initialize.`, this.user);
+      return createFailedDecision(
+        key,
+        `Unable to evaluate flag ${key} because Optimizely client failed to initialize.`,
+        this.user
+      );
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
@@ -524,7 +532,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): string | null {
     if (!this._client) {
-      logger.warn('Unable to get variation for experiment "%s" because Optimizely client failed to initialize.', experimentKey);
+      logger.warn(
+        'Unable to get variation for experiment "%s" because Optimizely client failed to initialize.',
+        experimentKey
+      );
       return null;
     }
 
@@ -583,7 +594,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     decision: optimizely.OptimizelyForcedDecision
   ): void {
     if (!this.userContext) {
-      logger.warn("Unable to set a forced decision because the user context has not been set yet.");
+      logger.warn('Unable to set a forced decision because the user context has not been set yet.');
       return;
     }
 
@@ -605,7 +616,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     decisionContext: optimizely.OptimizelyDecisionContext
   ): optimizely.OptimizelyForcedDecision | null {
     if (!this.userContext) {
-      logger.warn("Unable to get a forced decision because the user context has not been set yet.");
+      logger.warn('Unable to get a forced decision because the user context has not been set yet.');
       return null;
     }
     return this.userContext.getForcedDecision(decisionContext);
@@ -619,7 +630,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean {
     if (!this.userContext) {
-      logger.warn("Unable to remove forced decisions because the user context has not been set yet.");
+      logger.warn('Unable to remove forced decisions because the user context has not been set yet.');
       return false;
     }
 
@@ -640,7 +651,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public removeAllForcedDecisions(): boolean {
     if (!this.userContext) {
-      logger.warn("Unable to remove a forced decision because the user context has not been set yet.");
+      logger.warn('Unable to remove a forced decision because the user context has not been set yet.');
       return false;
     }
 
@@ -668,7 +679,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): boolean {
     if (!this._client) {
-      logger.warn('Unable to determine if feature "%s" is enabled because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to determine if feature "%s" is enabled because Optimizely client failed to initialize.',
+        feature
+      );
       return false;
     }
 
@@ -701,7 +715,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): VariableValuesObject {
     if (!this._client) {
-      logger.warn('Unable to get feature variables for feature "%s" because Optimizely client failed to initialize.', featureKey);
+      logger.warn(
+        'Unable to get feature variables for feature "%s" because Optimizely client failed to initialize.',
+        featureKey
+      );
       return {};
     }
 
@@ -718,13 +735,19 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     const optlyConfig = this._client.getOptimizelyConfig();
     if (!optlyConfig) {
-      logger.warn('Unable to retrieve feature variables for feature "%s" because Optimizely client failed to initialize.', featureKey);
+      logger.warn(
+        'Unable to retrieve feature variables for feature "%s" because Optimizely client failed to initialize.',
+        featureKey
+      );
       return {};
     }
 
     const feature = optlyConfig.featuresMap[featureKey];
     if (!feature) {
-      logger.warn('Unable to retrieve feature variables for feature "%s" because config features map is not set', featureKey);
+      logger.warn(
+        'Unable to retrieve feature variables for feature "%s" because config features map is not set',
+        featureKey
+      );
       return {};
     }
 
@@ -753,7 +776,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): string | null {
     if (!this._client) {
-      logger.warn('Unable to get feature variable string from feature "%s" because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to get feature variable string from feature "%s" because Optimizely client failed to initialize.',
+        feature
+      );
       return null;
     }
 
@@ -783,7 +809,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): boolean | null {
     if (!this._client) {
-      logger.warn('Unable to get feature variable boolean from feature "%s" because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to get feature variable boolean from feature "%s" because Optimizely client failed to initialize.',
+        feature
+      );
       return null;
     }
 
@@ -814,7 +843,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): number | null {
     if (!this._client) {
-      logger.warn('Unable to get feature variable integer from feature "%s" because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to get feature variable integer from feature "%s" because Optimizely client failed to initialize.',
+        feature
+      );
       return null;
     }
 
@@ -845,7 +877,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): number | null {
     if (!this._client) {
-      logger.warn('Unable to get feature variable double from feature "%s" because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to get feature variable double from feature "%s" because Optimizely client failed to initialize.',
+        feature
+      );
       return null;
     }
 
@@ -876,7 +911,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): unknown {
     if (!this._client) {
-      logger.warn('Unable to get feature variable JSON from feature "%s" because Optimizely client failed to initialize.', feature);
+      logger.warn(
+        'Unable to get feature variable JSON from feature "%s" because Optimizely client failed to initialize.',
+        feature
+      );
       return null;
     }
 
@@ -907,14 +945,22 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): unknown {
     if (!this._client) {
-      logger.warn('Unable to get feature variable from feature "%s" because Optimizely client failed to initialize.', featureKey, variableKey);
+      logger.warn(
+        'Unable to get feature variable from feature "%s" because Optimizely client failed to initialize.',
+        featureKey,
+        variableKey
+      );
       return null;
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get feature variable from feature "%s" because User ID is not set', featureKey, variableKey);
+      logger.warn(
+        'Unable to get feature variable from feature "%s" because User ID is not set',
+        featureKey,
+        variableKey
+      );
       return null;
     }
 
@@ -935,7 +981,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): { [variableKey: string]: unknown } | null {
     if (!this._client) {
-      logger.warn('Unable to get all feature variables from feature "%s" because Optimizely client failed to initialize.', featureKey);
+      logger.warn(
+        'Unable to get all feature variables from feature "%s" because Optimizely client failed to initialize.',
+        featureKey
+      );
       return {};
     }
 
@@ -980,7 +1029,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public getForcedVariation(experiment: string, overrideUserId?: string): string | null {
     if (!this._client) {
-      logger.warn('Unable to get forced variation for experiment "%s" because Optimizely client failed to initialize.', experiment);
+      logger.warn(
+        'Unable to get forced variation for experiment "%s" because Optimizely client failed to initialize.',
+        experiment
+      );
       return null;
     }
 
@@ -1008,7 +1060,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     variationKey?: string | null
   ): boolean {
     if (!this._client) {
-      logger.warn('Unable to set forced variation for experiment "%s" because Optimizely client failed to initialize.', experiment);
+      logger.warn(
+        'Unable to set forced variation for experiment "%s" because Optimizely client failed to initialize.',
+        experiment
+      );
       return false;
     }
 
@@ -1064,7 +1119,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
         resolve({
           success: true,
-          reason: '',
+          reason: 'Optimizely client is not initialized.',
         })
       );
     }
@@ -1094,11 +1149,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           return false;
         },
         clearAllNotificationListeners: () => {
-          logger.warn('Unable to clear all notification listeners because Optimizely client failed to initialize.')
+          logger.warn('Unable to clear all notification listeners because Optimizely client failed to initialize.');
         },
         clearNotificationListeners: () => {
-          logger.warn('Unable to clear notification listeners because Optimizely client failed to initialize.')
-        }
+          logger.warn('Unable to clear notification listeners because Optimizely client failed to initialize.');
+        },
       };
     }
     return this._client.notificationCenter;

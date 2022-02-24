@@ -135,18 +135,39 @@ function subscribeToInitialization(
         });
         return;
       }
-      hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.reason || ''}"`);
-      onInitStateChange({
-        clientReady: false,
-        didTimeout: true,
-      });
-      res.dataReadyPromise!.then(() => {
-        hooksLogger.info('Client became ready after timeout already elapsed');
-        onInitStateChange({
-          clientReady: true,
-          didTimeout: true,
-        });
-      });
+
+      switch (res.reason) {
+        // Optimizely client failed to initialize.
+        case 'NO_CLIENT':
+          hooksLogger.info(`Client not ready, reason="${res.reasonDetail}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: false,
+          });
+          res.dataReadyPromise!.then(() => {
+            hooksLogger.info('Client became ready.');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: false,
+            });
+          });
+          break;
+        // Assume timeout for all other cases.
+        // TODO: Other reasons may fall into this case - need to update later to specify 'TIMEOUT' case and general fallback case.
+        default:
+          hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.reasonDetail}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: true,
+          });
+          res.dataReadyPromise!.then(() => {
+            hooksLogger.info('Client became ready after timeout already elapsed');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: true,
+            });
+          });
+      }
     })
     .catch(() => {
       hooksLogger.error(`Error initializing client. The core client or user promise(s) rejected.`);
