@@ -139,7 +139,7 @@ function subscribeToInitialization(
       switch (res.reason) {
         // Optimizely client failed to initialize.
         case 'NO_CLIENT':
-          hooksLogger.info(`Client not ready, reason="${res.reasonDetail}"`);
+          hooksLogger.warn(`Client not ready, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: false,
@@ -155,7 +155,7 @@ function subscribeToInitialization(
         // Assume timeout for all other cases.
         // TODO: Other reasons may fall into this case - need to update later to specify 'TIMEOUT' case and general fallback case.
         default:
-          hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.reasonDetail}"`);
+          hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: true,
@@ -257,7 +257,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         }));
       });
     }
-    return (): void => {};
+    return (): void => { };
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
   useEffect(
@@ -350,7 +350,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         }));
       });
     }
-    return (): void => {};
+    return (): void => { };
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
@@ -379,11 +379,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     const decisionState = isClientReady
       ? getCurrentDecision()
       : {
-          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
-            id: overrides.overrideUserId || null,
-            attributes: overrideAttrs,
-          }),
-        };
+        decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+          id: overrides.overrideUserId || null,
+          attributes: overrideAttrs,
+        }),
+      };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -449,9 +449,8 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
         }));
       });
     }
-    return (): void => {};
+    return (): void => { };
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
-  // CHECK: Return clientReady as false & didTimeout as true if ._client is null.
   return [state.decision, state.clientReady, state.didTimeout];
 };

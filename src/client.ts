@@ -37,7 +37,7 @@ type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT';
 export type OnReadyResult = {
   success: boolean;
   reason?: NotReadyReason;
-  reasonDetail?: string;
+  message?: string;
   dataReadyPromise?: Promise<any>;
 };
 
@@ -244,7 +244,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isReadyPromiseFulfilled = true;
         return {
           success: true,
-          reasonDetail: 'Successfully resolved datafile and user information.',
+          message: 'Successfully resolved datafile and user information.',
         };
       });
     } else {
@@ -254,7 +254,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         resolve({
           success: false,
           reason: 'NO_CLIENT',
-          reasonDetail: 'Optimizely client failed to initialize.',
+          message: 'Optimizely client failed to initialize.',
         });
       });
     }
@@ -280,7 +280,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         resolve({
           success: false,
           reason: 'TIMEOUT',
-          reasonDetail:
+          message:
             'failed to initialize onReady before timeout, either the datafile or user info was not set before the timeout',
           dataReadyPromise: this.dataReadyPromise,
         });
@@ -405,8 +405,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to activate experiment "%s" because User ID is not set', experimentKey);
+      logger.info('Unable to activate experiment "%s" because User ID is not set', experimentKey);
       return null;
     }
 
@@ -429,8 +430,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to evaluate feature "%s" because User ID is not set.', key);
+      logger.info('Unable to evaluate feature "%s" because User ID is not set.', key);
       return createFailedDecision(key, `Unable to evaluate flag ${key} because User ID is not set.`, user);
     }
 
@@ -459,8 +461,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to evaluate features for keys because User ID is not set');
+      logger.info('Unable to evaluate features for keys because User ID is not set');
       return {};
     }
 
@@ -494,8 +497,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to evaluate all feature decisions because User ID is not set');
+      logger.info('Unable to evaluate all feature decisions because User ID is not set');
       return {};
     }
 
@@ -540,8 +544,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to get variation for experiment "%s" because User ID is not set', experimentKey);
+      logger.info('Unable to get variation for experiment "%s" because User ID is not set', experimentKey);
       return null;
     }
 
@@ -576,7 +581,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to send tracking event "%s" because User ID is not set', eventKey);
+      logger.info('Unable to send tracking event "%s" because User ID is not set', eventKey);
       return;
     }
 
@@ -651,7 +656,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   public removeAllForcedDecisions(): boolean {
     if (!this.userContext) {
-      logger.warn('Unable to remove a forced decision because the user context has not been set yet.');
+      logger.warn('Unable to remove all forced decisions because the user context has not been set yet.');
       return false;
     }
 
@@ -687,8 +692,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to determine if feature "%s" is enabled because User ID is not set', feature);
+      logger.info('Unable to determine if feature "%s" is enabled because User ID is not set', feature);
       return false;
     }
 
@@ -744,7 +750,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     const feature = optlyConfig.featuresMap[featureKey];
     if (!feature) {
-      logger.warn(
+      logger.info(
         'Unable to retrieve feature variables for feature "%s" because config features map is not set',
         featureKey
       );
@@ -784,8 +790,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
+
     if (user.id === null) {
-      logger.warn('Unable to get feature variable string from feature "%s" because User ID is not set', feature);
+      logger.info('Unable to get feature variable string from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -819,7 +826,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get feature variable boolean from feature "%s" because User ID is not set', feature);
+      logger.info('Unable to get feature variable boolean from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -853,7 +860,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get feature variable integer from feature "%s" because User ID is not set', feature);
+      logger.info('Unable to get feature variable integer from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -887,7 +894,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get feature variable double from feature "%s" because User ID is not set', feature);
+      logger.info('Unable to get feature variable double from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -921,7 +928,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get feature variable JSON from feature "%s" because User ID is not set', feature);
+      logger.info('Unable to get feature variable JSON from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -956,7 +963,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn(
+      logger.info(
         'Unable to get feature variable from feature "%s" because User ID is not set',
         featureKey,
         variableKey
@@ -991,7 +998,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get all feature variables from feature "%s" because User ID is not set', featureKey);
+      logger.info('Unable to get all feature variables from feature "%s" because User ID is not set', featureKey);
       return {};
     }
 
@@ -1014,9 +1021,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.warn('Unable to get list of enabled features because User ID is not set');
+      logger.info('Unable to get list of enabled features because User ID is not set');
       return [];
     }
+
     return this._client.getEnabledFeatures(user.id, user.attributes);
   }
 
@@ -1039,7 +1047,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId);
 
     if (user.id === null) {
-      logger.warn('Unable to get forced variation for experiment "%s" because User ID is not set', experiment);
+      logger.info('Unable to get forced variation for experiment "%s" because User ID is not set', experiment);
       return null;
     }
 

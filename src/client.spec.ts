@@ -143,7 +143,7 @@ describe('ReactSDKClient', () => {
           resolve({
             success: false,
             reason: 'NO_CLIENT',
-            reasonDetail: 'Optimizely client failed to initialize.',
+            message: 'Optimizely client failed to initialize.',
           });
         });
       });
