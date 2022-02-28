@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - fixed issue [#121](https://github.com/optimizely/react-sdk/issues/121):`ActivateListenerPayload` and `TrackListenerPayload` types were exported from `@optimizely/optimizely-sdk` but were missing from `@optimizely/react-sdk` exports. ([#150](https://github.com/optimizely/react-sdk/pull/150)).
 
+### Bug fixes
+- Fixed issue [#134](https://github.com/optimizely/react-sdk/issues/134) of the React SDK crashing when the internal Optimizely client returns as a null value. [PR #149](https://github.com/optimizely/react-sdk/pull/149)
+
 ## [2.8.0] - January 26, 2022
 
 ### New Features

@@ -77,7 +77,7 @@ describe('hooks', () => {
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
       new Promise(resolve => {
-        setTimeout(function() {
+        setTimeout(function () {
           resolve(
             Object.assign(
               {
@@ -109,13 +109,13 @@ describe('hooks', () => {
       isFeatureEnabled: isFeatureEnabledMock,
       onUserUpdate: jest.fn().mockImplementation(handler => {
         userUpdateCallbacks.push(handler);
-        return () => {};
+        return () => { };
       }),
       notificationCenter: {
         addNotificationListener: jest.fn().mockImplementation((type, handler) => {
           notificationListenerCallbacks.push(handler);
         }),
-        removeNotificationListener: jest.fn().mockImplementation(id => {}),
+        removeNotificationListener: jest.fn().mockImplementation(id => { }),
       },
       user: {
         id: 'testuser',
@@ -126,7 +126,7 @@ describe('hooks', () => {
       getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockImplementation(handler => {
         forcedVariationUpdateCallbacks.push(handler);
-        return () => {};
+        return () => { };
       }),
       getForcedVariations: jest.fn().mockReturnValue({}),
       decide: decideMock,
