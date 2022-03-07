@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.8.1] - March 7, 2022
 
 ### Enhancements
 - fixed issue [#49](https://github.com/optimizely/react-sdk/issues/49): Return type of `createInstance` was `OptimizelyReactSDKClient` which is the implementation class. Changed it to the `ReactSDKClient` interface instead ([#148](https://github.com/optimizely/react-sdk/pull/148)).
