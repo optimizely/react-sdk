@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, Optimizely
+ * Copyright 2022, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,15 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     }
 
     if (finalUser) {
-      optimizely.setUser(finalUser);
+      if (!optimizely) {
+        logger.warn(`Unable to set user ${finalUser} because optimizely object does not exist.`)
+      } else {
+        try {
+          optimizely.setUser(finalUser);
+        } catch (err) {
+          logger.warn(`Unable to set user ${finalUser} because passed in optimizely object does not contain the setUser function.`)
+        }
+      }
     }
   }
 
