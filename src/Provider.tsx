@@ -67,12 +67,12 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
 
     if (finalUser) {
       if (!optimizely) {
-        logger.warn(`Unable to set user ${finalUser} because optimizely object does not exist.`)
+        logger.error(`Unable to set user ${finalUser} because optimizely object does not exist.`)
       } else {
         try {
           optimizely.setUser(finalUser);
         } catch (err) {
-          logger.warn(`Unable to set user ${finalUser} because passed in optimizely object does not contain the setUser function.`)
+          logger.error(`Unable to set user ${finalUser} because passed in optimizely object does not contain the setUser function.`)
         }
       }
     }
