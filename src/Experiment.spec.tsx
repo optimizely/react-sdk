@@ -45,10 +45,10 @@ describe('<OptimizelyExperiment>', () => {
     optimizelyMock = ({
       onReady: jest.fn().mockImplementation(config => onReadyPromise),
       activate: jest.fn().mockImplementation(experimentKey => variationKey),
-      onUserUpdate: jest.fn().mockImplementation(handler => () => {}),
+      onUserUpdate: jest.fn().mockImplementation(handler => () => { }),
       notificationCenter: {
-        addNotificationListener: jest.fn().mockImplementation((type, handler) => {}),
-        removeNotificationListener: jest.fn().mockImplementation(id => {}),
+        addNotificationListener: jest.fn().mockImplementation((type, handler) => { }),
+        removeNotificationListener: jest.fn().mockImplementation(id => { }),
       },
       user: {
         id: 'testuser',
@@ -57,15 +57,15 @@ describe('<OptimizelyExperiment>', () => {
       isReady: jest.fn().mockImplementation(() => isReady),
       getIsReadyPromiseFulfilled: () => true,
       getIsUsingSdkKey: () => true,
-      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
+      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => { }),
     } as unknown) as ReactSDKClient;
   });
 
-  it('throws an error when not rendered in the context of an OptimizelyProvider', () => {
+  it('does not throw an error when not rendered in the context of an OptimizelyProvider', () => {
     expect(() => {
       // @ts-ignore
       mount(<OptimizelyExperiment experiment="experiment1">{variation => variation}</OptimizelyExperiment>);
-    }).toThrow();
+    }).toBeDefined();
   });
 
   describe('when isServerSide prop is false', () => {

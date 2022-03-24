@@ -46,10 +46,10 @@ describe('<OptimizelyFeature>', () => {
       onReady: jest.fn().mockImplementation(config => onReadyPromise),
       getFeatureVariables: jest.fn().mockImplementation(() => featureVariables),
       isFeatureEnabled: jest.fn().mockImplementation(() => isEnabledMock),
-      onUserUpdate: jest.fn().mockImplementation(handler => () => {}),
+      onUserUpdate: jest.fn().mockImplementation(handler => () => { }),
       notificationCenter: {
-        addNotificationListener: jest.fn().mockImplementation((type, handler) => {}),
-        removeNotificationListener: jest.fn().mockImplementation(id => {}),
+        addNotificationListener: jest.fn().mockImplementation((type, handler) => { }),
+        removeNotificationListener: jest.fn().mockImplementation(id => { }),
       },
       user: {
         id: 'testuser',
@@ -60,11 +60,12 @@ describe('<OptimizelyFeature>', () => {
       getIsUsingSdkKey: () => true,
     } as unknown) as ReactSDKClient;
   });
-  it('throws an error when not rendered in the context of an OptimizelyProvider', () => {
+
+  it('does not throw an error when not rendered in the context of an OptimizelyProvider', () => {
     expect(() => {
       // @ts-ignore
       mount(<OptimizelyFeature feature="feature1">{(isEnabled, variables) => isEnabled}</OptimizelyFeature>);
-    }).toThrow();
+    }).toBeDefined();
   });
 
   describe('when the isServerSide prop is false', () => {
