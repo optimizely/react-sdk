@@ -382,7 +382,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
   if (!optimizely) {
-    hooksLogger.warn(`Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    hooksLogger.error(`Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
     return [
       createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
         id: null,
