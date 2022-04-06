@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, Optimizely
+ * Copyright 2018-2019, 2022, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     ExperimentDecisionValues['variation'],
     ClientReady,
-    DidTimeout
+    DidTimeout,
   ];
 }
 
@@ -76,7 +76,7 @@ interface UseFeature {
     FeatureDecisionValues['isEnabled'],
     FeatureDecisionValues['variables'],
     ClientReady,
-    DidTimeout
+    DidTimeout,
   ];
 }
 
@@ -84,7 +84,7 @@ interface UseDecision {
   (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
     OptimizelyDecision,
     ClientReady,
-    DidTimeout
+    DidTimeout,
   ];
 }
 
@@ -191,8 +191,10 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
   if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+    hooksLogger.error(`Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    return [null, false, false];
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
@@ -212,6 +214,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       didTimeout: false,
     };
   });
+
   // Decision state is derived from entityKey and overrides arguments.
   // Track the previous value of those arguments, and update state when they change.
   // This is an instance of the derived state pattern recommended here:
@@ -283,8 +286,15 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
   if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+    hooksLogger.error(`Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    return [
+      false,
+      {},
+      false,
+      false,
+    ];
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
@@ -353,7 +363,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     return (): void => { };
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
-  return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
+  return [
+    state.isEnabled,
+    state.variables,
+    state.clientReady,
+    state.didTimeout,
+  ];
 };
 
 /**
@@ -365,11 +380,21 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
   if (!optimizely) {
-    throw new Error('optimizely prop must be supplied via a parent <OptimizelyProvider>');
+    hooksLogger.error(`Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    return [
+      createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+        id: null,
+        attributes: {},
+      }),
+      false,
+      false,
+    ]
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+
   const getCurrentDecision: () => { decision: OptimizelyDecision } = () => ({
     decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
   });
@@ -452,5 +477,9 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     return (): void => { };
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
-  return [state.decision, state.clientReady, state.didTimeout];
+  return [
+    state.decision,
+    state.clientReady,
+    state.didTimeout,
+  ];
 };
