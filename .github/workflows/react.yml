@@ -33,7 +33,7 @@ jobs:
         run: |
           URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
           curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
-          echo "PATH=/tmp/bin:${{ PATH }}" >> $GITHUB_ENV
+          echo "PATH=/tmp/bin:${{ GITHUB_PATH }}" >> $GITHUB_ENV
           hub version
       - name: script
         env:
