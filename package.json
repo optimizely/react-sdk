@@ -22,7 +22,8 @@
     "build": "rm -rf dist/ && node ./scripts/build.js",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
-    "prepublishOnly": "npm run test && npm run build"
+    "prepublishOnly": "npm run test && npm run build",
+    "prepare": "yarn build"
   },
   "publishConfig": {
     "access": "public"
