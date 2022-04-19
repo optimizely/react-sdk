@@ -1,0 +1,45 @@
+name: react SDK CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Node 10
+      uses: actions/setup-node@v3
+      with:
+        node-version: 10
+    - run: yarn install
+    - run: yarn test
+    
+  integration_tests:
+    uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
+    secrets:
+      CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
+      TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
+          
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: install
+        run: |
+          URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
+          curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
+          echo "PATH=/tmp/bin:${{ PATH }}" >> $GITHUB_ENV
+          hub version
+      - name: script
+        env:
+          travis_tag: ${GITHUB_REF#refs/*/}
+        run: |
+          NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+          LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+          DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
+          hub release create -m "Release ${travis_tag}" -m "${DESCRIPTION}" "${travis_tag}"
