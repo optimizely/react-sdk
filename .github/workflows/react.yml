@@ -42,5 +42,6 @@ jobs:
         run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
       - name: script
         run: |
+          echo ${{ toJson(github) }}
           echo ${{ env.travis_tag }}
           
