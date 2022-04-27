@@ -1,7 +1,6 @@
 name: react SDK CI
 
 on:
-  
   push:
     branches: [ master ]
     tags:
@@ -28,7 +27,7 @@ jobs:
       TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
           
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') 
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
