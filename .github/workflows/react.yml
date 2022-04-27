@@ -46,5 +46,5 @@ jobs:
       - name: script
         run: |
           echo ${{ toJson(github) }}
-          echo ${{ travis_tag }}
+          echo ${{ env.travis_tag }}
           
