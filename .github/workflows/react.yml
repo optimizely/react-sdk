@@ -35,9 +35,12 @@ jobs:
           curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
           hub version
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+      - name: set the env
+        run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
       - name: script
-        env:
-          travis_tag: ${GITHUB_REF#refs/*/}
         run: |
-          echo ${travis_tag}
+          echo ${{ env.travis_tag }}
           
