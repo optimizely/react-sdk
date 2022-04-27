@@ -1,8 +1,11 @@
 name: react SDK CI
 
 on:
+  
   push:
     branches: [ master ]
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   pull_request:
     branches: [ master ]
 
