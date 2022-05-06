@@ -48,5 +48,4 @@ jobs:
         EVENT_MESSAGE: ${{ github.event.message }}
         HOME: 'home/runner'
       run: |
-        echo "$GITHUB_CONTEXT"
         home/runner/travisci-tools/trigger-script-with-status-update.sh
