@@ -17,7 +17,7 @@ jobs:
         token: ${{ secrets.CI_USER_TOKEN }}
         repository: 'optimizely/travisci-tools'
         path: 'home/runner/travisci-tools'
-        ref: 'sohail/debugbuild'
+        ref: 'master'
     - name: set SDK Branch if PR
       if: ${{ github.event_name == 'pull_request' }}
       run: |
@@ -30,7 +30,7 @@ jobs:
     - name: Trigger build
       env:
         SDK: react
-        REPO_SLUG: optimizely/react-sdk-e2e-tests
+        REPO_SLUG: "optimizely/react-sdk-e2e-tests"
         FULLSTACK_TEST_REPO: ${{ inputs.FULLSTACK_TEST_REPO }}
         BUILD_NUMBER: ${{ github.run_id }}
         TESTAPP_BRANCH: master
