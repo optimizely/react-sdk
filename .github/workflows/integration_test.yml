@@ -22,6 +22,7 @@ jobs:
       if: ${{ github.event_name == 'pull_request' }}
       run: |
         echo "SDK_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+        echo "TRAVIS_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
     - name: set SDK Branch if not pull request
       if: ${{ github.event_name != 'pull_request' }}
       run: |
