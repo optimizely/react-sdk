@@ -41,7 +41,7 @@ describe('<OptimizelyExperiment>', () => {
 
     optimizelyMock = ({
       onReady: jest.fn().mockImplementation(config => onReadyPromise),
-      activate: jest.fn().mockImplementation((experimentKey, s) => variationKey),
+      activate: jest.fn().mockImplementation(experimentKey => variationKey),
       onUserUpdate: jest.fn().mockImplementation(handler => () => {}),
       notificationCenter: {
         addNotificationListener: jest.fn().mockImplementation((type, handler) => {}),
@@ -115,7 +115,7 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(container.innerHTML).toBe('');
 
-      //   // Simulate client becoming ready
+      //   Simulate client becoming ready; onReady resolving, firing config update notification
       resolver.resolve({ success: true });
       await optimizelyMock.onReady();
 
@@ -136,7 +136,7 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(container.innerHTML).toBe('');
 
-      //   // Simulate client becoming ready
+      //   Simulate client becoming ready
       resolver.resolve({ success: true });
       await optimizelyMock.onReady();
 
