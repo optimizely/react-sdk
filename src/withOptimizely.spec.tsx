@@ -16,11 +16,9 @@
 /// <reference types="jest" />
 
 import * as React from 'react';
-import * as Enzyme from 'enzyme';
-import Adapter from 'enzyme-adapter-react-16';
-Enzyme.configure({ adapter: new Adapter() });
+import { render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom/extend-expect';
 
-import { mount } from 'enzyme';
 import { OptimizelyProvider } from './Provider';
 import { withOptimizely } from './withOptimizely';
 import { ReactSDKClient } from './client';
@@ -37,7 +35,12 @@ class InnerComponent extends React.Component<TestProps, any> {
   }
 
   render() {
-    return <div>test</div>;
+    return (
+      <div>
+        <span data-testid="props-of-component">{JSON.stringify({ ...this.props })}</span>
+        test
+      </div>
+    );
   }
 }
 
@@ -57,7 +60,7 @@ describe('withOptimizely', () => {
         foo: 'bar',
       };
       const userId = 'jordan';
-      const component = mount(
+      render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} userId={userId} userAttributes={attributes}>
           <WrapperComponent />
         </OptimizelyProvider>
@@ -71,7 +74,7 @@ describe('withOptimizely', () => {
   describe('when only userId prop is provided', () => {
     it('should call setUser with the correct user id / attributes', () => {
       const userId = 'jordan';
-      const component = mount(
+      render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} userId={userId}>
           <WrapperComponent />
         </OptimizelyProvider>
@@ -88,7 +91,7 @@ describe('withOptimizely', () => {
   describe(`when the user prop is passed only with "id"`, () => {
     it('should call setUser with the correct user id / attributes', () => {
       const userId = 'jordan';
-      const component = mount(
+      render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} user={{ id: userId }}>
           <WrapperComponent />
         </OptimizelyProvider>
@@ -106,7 +109,7 @@ describe('withOptimizely', () => {
     it('should call setUser with the correct user id / attributes', () => {
       const userId = 'jordan';
       const attributes = { foo: 'bar' };
-      const component = mount(
+      render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} user={{ id: userId, attributes }}>
           <WrapperComponent />
         </OptimizelyProvider>
@@ -124,7 +127,7 @@ describe('withOptimizely', () => {
     it('should respect the user object prop', () => {
       const userId = 'jordan';
       const attributes = { foo: 'bar' };
-      const component = mount(
+      render(
         <OptimizelyProvider
           optimizely={optimizelyClient}
           timeout={200}
@@ -145,43 +148,40 @@ describe('withOptimizely', () => {
   });
 
   it('should inject optimizely and optimizelyReadyTimeout from <OptimizelyProvider>', async () => {
-    const component = mount(
+    render(
       <OptimizelyProvider optimizely={optimizelyClient} timeout={200}>
         <WrapperComponent />
       </OptimizelyProvider>
     );
 
-    const innerComponent = component.find(InnerComponent);
-    expect(innerComponent.props()).toEqual({
-      optimizely: optimizelyClient,
-      isServerSide: false,
-      optimizelyReadyTimeout: 200,
-    });
+    await waitFor(() =>
+      expect(screen.getByTestId('props-of-component')).toHaveTextContent(
+        '{"optimizelyReadyTimeout":200,"optimizely":{},"isServerSide":false}'
+      )
+    );
 
     expect(optimizelyClient.setUser).not.toHaveBeenCalled();
   });
 
   it('should inject the isServerSide prop', async () => {
-    const component = mount(
+    render(
       <OptimizelyProvider optimizely={optimizelyClient} timeout={200} isServerSide={true}>
         <WrapperComponent />
       </OptimizelyProvider>
     );
-
-    const innerComponent = component.find(InnerComponent);
-    expect(innerComponent.props()).toEqual({
-      optimizely: optimizelyClient,
-      isServerSide: true,
-      optimizelyReadyTimeout: 200,
-    });
+    await waitFor(() =>
+      expect(screen.getByTestId('props-of-component')).toHaveTextContent(
+        '{"optimizelyReadyTimeout":200,"optimizely":{},"isServerSide":true}'
+      )
+    );
   });
 
   it('should forward refs', () => {
     interface FancyInputProps extends TestProps {
       defaultValue: string;
     }
-    const FancyInput: React.RefForwardingComponent<HTMLInputElement, FancyInputProps> = (props, ref) => (
-      <input ref={ref} className="fancyInput" defaultValue={props.defaultValue} />
+    const FancyInput: React.ForwardRefRenderFunction<HTMLInputElement, FancyInputProps> = (props, ref) => (
+      <input data-testid="input-element" ref={ref} className="fancyInput" defaultValue={props.defaultValue} />
     );
     const ForwardingFancyInput = React.forwardRef(FancyInput);
     const OptimizelyInput = withOptimizely(ForwardingFancyInput);
@@ -191,7 +191,7 @@ describe('withOptimizely', () => {
       setUser: jest.fn(),
     } as unknown) as ReactSDKClient;
 
-    const component = mount(
+    render(
       <OptimizelyProvider
         optimizely={optimizelyMock}
         timeout={200}
@@ -204,7 +204,7 @@ describe('withOptimizely', () => {
     );
     expect(inputRef.current).toBeInstanceOf(HTMLInputElement);
     expect(typeof inputRef.current!.focus).toBe('function');
-    const inputNode: HTMLInputElement = component.find('input').getDOMNode();
+    const inputNode: HTMLInputElement = screen.getByTestId('input-element');
     expect(inputRef.current!).toBe(inputNode);
   });
 
