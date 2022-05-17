@@ -5,14 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Bug fixes
+- addresses issues [#152](https://github.com/optimizely/react-sdk/issues/152) and [#134](https://github.com/optimizely/react-sdk/issues/134): Gracefully returns pessimistic default values when hooks fail instead of throwing an error.
+- fixed issue [#156](https://github.com/optimizely/react-sdk/issues/156) - Added children prop to make the SDK compatible with React 18([#158](https://github.com/optimizely/react-sdk/pull/158)).
+
 ## [2.8.1] - March 7, 2022
 
 ### Enhancements
 - fixed issue [#49](https://github.com/optimizely/react-sdk/issues/49): Return type of `createInstance` was `OptimizelyReactSDKClient` which is the implementation class. Changed it to the `ReactSDKClient` interface instead ([#148](https://github.com/optimizely/react-sdk/pull/148)).
 
 - fixed issue [#121](https://github.com/optimizely/react-sdk/issues/121):`ActivateListenerPayload` and `TrackListenerPayload` types were exported from `@optimizely/optimizely-sdk` but were missing from `@optimizely/react-sdk` exports. ([#150](https://github.com/optimizely/react-sdk/pull/150)).
-
-- addresses issues [#152](https://github.com/optimizely/react-sdk/issues/152) and [#134](https://github.com/optimizely/react-sdk/issues/134): Gracefully returns pessimistic default values when hooks fail instead of throwing an error.
 
 ### Bug fixes
 - Fixed issue [#134](https://github.com/optimizely/react-sdk/issues/134) of the React SDK crashing when the internal Optimizely client returns as a null value. [PR #149](https://github.com/optimizely/react-sdk/pull/149)
