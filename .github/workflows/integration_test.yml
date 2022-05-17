@@ -1,0 +1,52 @@
+name: Reusable action of running integration of production suite
+
+on:
+  workflow_call:
+    secrets:
+      CI_USER_TOKEN:
+        required: true
+      TRAVIS_COM_TOKEN:
+        required: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # You should create a personal access token and store it in your repository
+        token: ${{ secrets.CI_USER_TOKEN }}
+        repository: 'optimizely/travisci-tools'
+        path: 'home/runner/travisci-tools'
+        ref: 'master'
+    - name: set SDK Branch if PR
+      if: ${{ github.event_name == 'pull_request' }}
+      run: |
+        echo "SDK_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+    - name: set SDK Branch if not pull request
+      if: ${{ github.event_name != 'pull_request' }}
+      run: |
+        echo "SDK_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+        echo "TRAVIS_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+    - name: Trigger build
+      env:
+        SDK: react
+        REPO_SLUG: optimizely/react-sdk-e2e-tests
+        FULLSTACK_TEST_REPO: ${{ inputs.FULLSTACK_TEST_REPO }}
+        BUILD_NUMBER: ${{ github.run_id }}
+        TESTAPP_BRANCH: master
+        GITHUB_TOKEN: ${{ secrets.CI_USER_TOKEN }}
+        TRAVIS_EVENT_TYPE: ${{ github.event_name }}
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+        TRAVIS_REPO_SLUG: ${{ github.repository }}
+        TRAVIS_PULL_REQUEST_SLUG: ${{ github.repository }}
+        UPSTREAM_REPO: ${{ github.repository }}
+        TRAVIS_COMMIT: ${{ github.sha }}
+        TRAVIS_PULL_REQUEST_SHA: ${{ github.event.pull_request.head.sha }}
+        TRAVIS_PULL_REQUEST: ${{ github.event.pull_request.number }}
+        UPSTREAM_SHA: ${{ github.sha }}
+        TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
+        EVENT_MESSAGE: ${{ github.event.message }}
+        HOME: 'home/runner'
+      run: |
+        echo "$GITHUB_CONTEXT"
+        home/runner/travisci-tools/trigger-script-with-status-update.sh
