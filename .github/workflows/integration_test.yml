@@ -31,12 +31,10 @@ jobs:
       env:
         SDK: react
         REPO_SLUG: optimizely/react-sdk-e2e-tests
-        FULLSTACK_TEST_REPO: ${{ inputs.FULLSTACK_TEST_REPO }}
         BUILD_NUMBER: ${{ github.run_id }}
         TESTAPP_BRANCH: master
         GITHUB_TOKEN: ${{ secrets.CI_USER_TOKEN }}
         TRAVIS_EVENT_TYPE: ${{ github.event_name }}
-        GITHUB_CONTEXT: ${{ toJson(github) }}
         TRAVIS_REPO_SLUG: ${{ github.repository }}
         TRAVIS_PULL_REQUEST_SLUG: ${{ github.repository }}
         UPSTREAM_REPO: ${{ github.repository }}
@@ -48,5 +46,4 @@ jobs:
         EVENT_MESSAGE: ${{ github.event.message }}
         HOME: 'home/runner'
       run: |
-        echo "$GITHUB_CONTEXT"
-        home/runner/travisci-tools/trigger-script-with-status-update.sh
+        home/runner/travisci-tools/trigger-script-with-status-update.sh main
