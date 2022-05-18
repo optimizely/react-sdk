@@ -45,5 +45,5 @@ jobs:
         TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
         EVENT_MESSAGE: ${{ github.event.message }}
         HOME: 'home/runner'
-      run:
+      run: |
         home/runner/travisci-tools/trigger-script-with-status-update.sh main

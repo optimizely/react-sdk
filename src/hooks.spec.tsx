@@ -198,7 +198,7 @@ describe('hooks', () => {
           <MyExperimentComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>
       );
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false'));
+      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false')); // initial render
 
       await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|true')); // when didTimeout
