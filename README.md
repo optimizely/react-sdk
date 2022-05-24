@@ -288,6 +288,43 @@ const WrappedMyComponent = withOptimizely(MyComp);
 
 **_Note:_** The `optimizely` client object provided via `withOptimizely` is automatically associated with the `user` prop passed to the ancestor `OptimizelyProvider` - the `id` and `attributes` from that `user` object will be automatically forwarded to all appropriate SDK method calls. So, there is no need to pass the `userId` or `attributes` arguments when calling methods of the `optimizely` client object, unless you wish to use _different_ `userId` or `attributes` than those given to `OptimizelyProvider`.
 
+## `useContext(OptimizelyContext)`
+
+Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the `OptimizelyContext` with `useContext`.
+
+_arguments_
+
+_returns_
+- wrapping object:
+  - `optimizely : ReactSDKClient` The client object which was passed to the `OptimizelyProvider`
+  - `timeout : number | undefined` The timeout which was passed to the `OptimizelyProvider`
+  - `isServerSide : boolean` Value that was passed to the `OptimizelyProvider`
+
+### Example
+
+```jsx
+import React, { useContext } from 'react';
+import { OptimizelyContext } from '@optimizely/react-sdk';
+
+function MyComponent() {
+  const { optimizely } = useContext(OptimizelyContext);
+  const decision = optimizely.decide('feat1');
+  const onClick = () => {
+    optimizely.track('signup-clicked');
+    // rest of click handler
+  };
+  return (
+    <React.Fragment>
+      { decision.enabled && <p>The feature is enabled</p> }
+      { !decision.enabled && <p>The feature is not enabled</p> }
+      { decision.variationKey === 'variation1' && <p>Variation 1</p> }
+      { decision.variationKey === 'variation2' && <p>Variation 2</p> }
+      <button onClick={onClick}>Click me!</button>
+    </React.Fragment>
+  );
+}
+```
+
 ### Tracking
 
 Use the `withOptimizely` HoC for tracking.
