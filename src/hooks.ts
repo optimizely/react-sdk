@@ -15,7 +15,7 @@
  */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
-import { UserAttributes, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
+import { UserAttributes, OptimizelyDecideOption, OptimizelyConfig } from '@optimizely/optimizely-sdk';
 import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
@@ -191,23 +191,25 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-
   if (!optimizely) {
     hooksLogger.error(`Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
     return [null, false, false];
   }
-
+  const revision = (optimizely.getOptimizelyConfig() as OptimizelyConfig).revision;
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision: () => ExperimentDecisionValues = useCallback(
-    () => ({
-      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
-    }),
-    [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
+  const getCurrentDecision = useCallback(
+    () => (
+       {
+        variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+      }
+    ),
+    [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs, revision]
   );
 
   const isClientReady = isServerSide || optimizely.isReady();
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
-    const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
+    const decisionState = isClientReady ? { variation: getCurrentDecision().variation } : { variation: null };
+
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -242,10 +244,10 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
-        setState({
-          ...getCurrentDecision(),
+        setState(prevState => ({
+          variation: prevState.variation ? prevState.variation : getCurrentDecision().variation,
           ...initState,
-        });
+        }));
       });
     }
   }, []);
@@ -260,19 +262,17 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         }));
       });
     }
-    return (): void => { };
+    return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
-  useEffect(
-    () =>
-      optimizely.onForcedVariationsUpdate(() => {
-        setState(prevState => ({
-          ...prevState,
-          ...getCurrentDecision(),
-        }));
-      }),
-    [getCurrentDecision, optimizely]
-  );
+  useEffect(() => {
+    optimizely.onForcedVariationsUpdate(() => {
+      setState(prevState => ({
+        ...prevState,
+        ...getCurrentDecision(),
+      }));
+    });
+  }, [getCurrentDecision, optimizely]);
 
   return [state.variation, state.clientReady, state.didTimeout];
 };
