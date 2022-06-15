@@ -191,18 +191,23 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
  */
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
   if (!optimizely) {
-    hooksLogger.error(`Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    hooksLogger.error(
+      `Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
     return [null, false, false];
   }
-  const revision = (optimizely.getOptimizelyConfig() as OptimizelyConfig).revision;
+  const revision =
+    optimizely && optimizely.getOptimizelyConfig
+      ? (optimizely.getOptimizelyConfig() as OptimizelyConfig).revision
+      : null;
+
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
   const getCurrentDecision = useCallback(
-    () => (
-       {
-        variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
-      }
-    ),
+    () => ({
+      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+    }),
     [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs, revision]
   );
 
