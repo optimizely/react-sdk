@@ -420,7 +420,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
   ): OptimizelyDecision {
-    console.log('NEW!')
     if (!this._client) {
       logger.warn('Unable to evaluate feature "%s" because Optimizely client failed to initialize.', key);
       return createFailedDecision(
