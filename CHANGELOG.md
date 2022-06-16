@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- None yet!
+
+## [2.9.0] - June 15, 2022
+
 ### Bug fixes
 - addresses issues [#152](https://github.com/optimizely/react-sdk/issues/152) and [#134](https://github.com/optimizely/react-sdk/issues/134): Gracefully returns pessimistic default values when hooks fail instead of throwing an error.
 - fixed issue [#156](https://github.com/optimizely/react-sdk/issues/156) - Added children prop to make the SDK compatible with React 18([#158](https://github.com/optimizely/react-sdk/pull/158)).
