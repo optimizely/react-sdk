@@ -204,7 +204,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       : null;
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-  const getCurrentDecision = useCallback(
+  const getCurrentDecision : () => ExperimentDecisionValues = useCallback(
     () => ({
       variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
     }),
