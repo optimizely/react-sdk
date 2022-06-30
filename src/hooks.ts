@@ -240,7 +240,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+    if ((optimizely.getIsUsingSdkKey() && !optimizely.getIsReadyPromiseFulfilled()) || !isClientReady) {
       subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
         setState({
           ...getCurrentDecision(),
