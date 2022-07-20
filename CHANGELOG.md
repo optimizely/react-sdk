@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- None yet!
+
+## [2.9.1] - July 20, 2022
+
 ### Bug fixes
-- Fixed Redundant activate calls in useExperiment hook in a scenario.
+- Fixed Redundant activate calls in useExperiment hook for one scenario.
 
 ## [2.9.0] - June 15, 2022
 
