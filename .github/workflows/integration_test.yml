@@ -37,7 +37,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.CI_USER_TOKEN }}
         EVENT_TYPE: ${{ github.event_name }}
         GITHUB_CONTEXT: ${{ toJson(github) }}
-        #REPO_SLUG: ${{ github.repository }}
         PULL_REQUEST_SLUG: ${{ github.repository }}
         UPSTREAM_REPO: ${{ github.repository }}
         PULL_REQUEST_SHA: ${{ github.event.pull_request.head.sha }}
