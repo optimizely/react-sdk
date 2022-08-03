@@ -1504,6 +1504,4 @@ describe('ReactSDKClient', () => {
       });
     });
   });
-
-  
 });
