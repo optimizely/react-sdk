@@ -17,6 +17,9 @@
     "CHANGELOG",
     "README.md"
   ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "scripts": {
     "tsc": "rm -rf lib/ && tsc",
     "build": "rm -rf dist/ && node ./scripts/build.js",
