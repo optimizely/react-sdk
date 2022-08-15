@@ -21,12 +21,15 @@ import { createInstance, OnReadyResult, ReactSDKClient } from './client';
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
+
 }
 
 describe('ReactSDKClient', () => {
   const config: optimizely.Config = {
     datafile: {},
   };
+
+  const logger = optimizely.logging.createLogger();
 
   let mockInnerClient: optimizely.Client;
   let mockOptimizelyUserContext: optimizely.OptimizelyUserContext;
@@ -69,6 +72,7 @@ describe('ReactSDKClient', () => {
         clearNotificationListeners: jest.fn(),
         clearAllNotificationListeners: jest.fn(),
       },
+       
     };
 
     const anyOptly = optimizely as any;

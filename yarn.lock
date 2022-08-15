@@ -535,10 +535,12 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@optimizely/js-sdk-datafile-manager@^0.9.1":
-  "integrity" "sha512-O4ujr1nBBAQBtx8YoKNpzzaEZgsE+aU4dxubT17ePqv/YVUWE+JOY21tSRrqZy/BlbbyzL+ElT8hrGB5ZzVoIQ=="
-  "resolved" "https://registry.npmjs.org/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.9.5.tgz"
-  "version" "0.9.5"
+    chalk "^4.0.0"
+
+"@optimizely/js-sdk-datafile-manager@^0.9.5":
+  version "0.9.5"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-datafile-manager/-/js-sdk-datafile-manager-0.9.5.tgz#c1fa25a4bbdabe97929c72895ca2a48e28047a34"
+  integrity sha512-O4ujr1nBBAQBtx8YoKNpzzaEZgsE+aU4dxubT17ePqv/YVUWE+JOY21tSRrqZy/BlbbyzL+ElT8hrGB5ZzVoIQ==
   dependencies:
     "@optimizely/js-sdk-logging" "^0.3.1"
     "@optimizely/js-sdk-utils" "^0.4.0"
@@ -566,17 +568,19 @@
   dependencies:
     "uuid" "^3.3.2"
 
-"@optimizely/optimizely-sdk@^4.9.1":
-  "integrity" "sha512-BHwoXONZKOBI2DyXBc8gsYgPgGltCO42/11iFFc4oOnZFkR2UwO7PI2S7oeE2SN168ObTNhmEaJWgenIJuE00A=="
-  "resolved" "https://registry.npmjs.org/@optimizely/optimizely-sdk/-/optimizely-sdk-4.9.1.tgz"
-  "version" "4.9.1"
+    uuid "^3.3.2"
+
+"@optimizely/optimizely-sdk@^4.9.2":
+  version "4.9.2"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.9.2.tgz#d63edda82e957927a3b9d909aa9f67a34013eb77"
+  integrity sha512-aPUU2KGDgo0VmbYNXeUCttXQgbBr59leUhyNPidy1J3YixEhzo0Q9UXCzhf4SgCTCtHCwahE7g0Lf36U0IVPgQ==
   dependencies:
-    "@optimizely/js-sdk-datafile-manager" "^0.9.1"
+    "@optimizely/js-sdk-datafile-manager" "^0.9.5"
     "@optimizely/js-sdk-event-processor" "^0.9.2"
     "@optimizely/js-sdk-logging" "^0.3.1"
-    "@optimizely/js-sdk-utils" "^0.4.0"
-    "json-schema" "^0.4.0"
-    "murmurhash" "0.0.2"
+    json-schema "^0.4.0"
+    murmurhash "0.0.2"
+    uuid "^3.3.2"
 
 "@rollup/plugin-commonjs@^16.0.0":
   "integrity" "sha512-LuNyypCP3msCGVQJ7ki8PqYdpjfEkE/xtFa5DqlF+7IBD0JsfMZ87C58heSwIMint58sAUZbt3ITqOmdQv/dXw=="
