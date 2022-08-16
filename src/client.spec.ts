@@ -29,8 +29,6 @@ describe('ReactSDKClient', () => {
     datafile: {},
   };
 
-  const logger = optimizely.logging.createLogger();
-
   let mockInnerClient: optimizely.Client;
   let mockOptimizelyUserContext: optimizely.OptimizelyUserContext;
   let createInstanceSpy: jest.Mock<optimizely.Client, [optimizely.Config]>;
@@ -77,6 +75,9 @@ describe('ReactSDKClient', () => {
 
     const anyOptly = optimizely as any;
     anyOptly.createInstance.mockReturnValue(mockInnerClient);
+    anyOptly.logging.createLogger.mockReturnValue({
+      log: jest.fn(() => ()=>{}),
+     });
     createInstanceSpy = optimizely.createInstance as jest.Mock<optimizely.Client, [optimizely.Config]>;
   });
 
