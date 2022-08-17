@@ -76,7 +76,6 @@ describe('ReactSDKClient', () => {
         clearNotificationListeners: jest.fn(),
         clearAllNotificationListeners: jest.fn(),
       },
-       
     };
 
     const anyOptly = optimizely as any;

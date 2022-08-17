@@ -218,8 +218,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       clientEngine: REACT_SDK_CLIENT_ENGINE,
       clientVersion: REACT_SDK_CLIENT_VERSION,
     };
-    
-
 
     this._client = optimizely.createInstance(configWithClientInfo);
     this.isClientReady = !!configWithClientInfo.datafile;
@@ -257,8 +255,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       });
     }
   }
-
-
 
   getIsReadyPromiseFulfilled(): boolean {
     return this.isReadyPromiseFulfilled;
@@ -398,8 +394,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): string | null {
     if (!this._client) {
-      console.log('logger', logger)
-        logger.warn(`Unable to activate experiment ${experimentKey} because Optimizely client failed to initialize.`);
+      logger.warn(`Unable to activate experiment ${experimentKey} because Optimizely client failed to initialize.`);
       return null;
     }
 
