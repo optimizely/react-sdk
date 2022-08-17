@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 jest.mock('@optimizely/optimizely-sdk');
-
+jest.mock('./logger', () => {
+  return { logger: {
+    warn : jest.fn(() => ()=>{}),
+    info : jest.fn(() => ()=>{})
+  } };
+})
+ 
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
@@ -75,9 +81,7 @@ describe('ReactSDKClient', () => {
 
     const anyOptly = optimizely as any;
     anyOptly.createInstance.mockReturnValue(mockInnerClient);
-    anyOptly.logging.createLogger.mockReturnValue({
-      log: jest.fn(() => ()=>{}),
-     });
+    
     createInstanceSpy = optimizely.createInstance as jest.Mock<optimizely.Client, [optimizely.Config]>;
   });
 
