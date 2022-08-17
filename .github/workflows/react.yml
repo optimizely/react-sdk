@@ -9,19 +9,22 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
+  unit_tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['14', '16', '18' ]
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Node 16
+    - name: Set up Node ${{ matrix.node }}
       uses: actions/setup-node@v3
       with:
-        node-version: 16
+        node-version: ${{ matrix.node }}
     - run: yarn install
     - run: yarn test
-    
+
   integration_tests:
-    uses: optimizely/react-sdk/.github/workflows/integration_test.yml@sherry/test-branch
+    uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
     secrets:
       CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
       TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
