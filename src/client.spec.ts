@@ -17,7 +17,9 @@ jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
   return { logger: {
     warn : jest.fn(() => ()=>{}),
-    info : jest.fn(() => ()=>{})
+    info : jest.fn(() => ()=>{}),
+    error : jest.fn(() => ()=>{}),
+    debug : jest.fn(() => ()=>{})
   } };
 })
  

@@ -292,7 +292,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get user context for user id ${userInfo.id} because Optimizely client failed to initialize.`
+        'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
+        userInfo.id
       );
       return null;
     }
@@ -330,7 +331,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
       } else {
         logger.warn(
-          `Unable to create user context for user id ${this.user.id} because Optimizely client failed to initialize.`
+          'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
+          this.user.id
         );
       }
     }
@@ -394,14 +396,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): string | null {
     if (!this._client) {
-      logger.warn(`Unable to activate experiment ${experimentKey} because Optimizely client failed to initialize.`);
+      logger.warn('Unable to activate experiment "%s" because Optimizely client failed to initialize.', experimentKey);
       return null;
     }
 
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to activate experiment ${experimentKey} because User ID is not set`);
+      logger.info('Unable to activate experiment "%s" because User ID is not set', experimentKey);
       return null;
     }
 
@@ -415,10 +417,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     overrideAttributes?: optimizely.UserAttributes
   ): OptimizelyDecision {
     if (!this._client) {
-      logger.warn(`Unable to evaluate feature ${key} because Optimizely client failed to initialize.`);
+      logger.warn('Unable to evaluate feature "%s" because Optimizely client failed to initialize.', key);
       return createFailedDecision(
         key,
-        `Unable to evaluate flag ${key} because Optimizely client failed to initialize.`,
+        `Unable to evaluate flag "%s" because Optimizely client failed to initialize.`,
         this.user
       );
     }
@@ -426,8 +428,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to evaluate feature ${key} because User ID is not set.`);
-      return createFailedDecision(key, `Unable to evaluate flag ${key} because User ID is not set.`, user);
+      logger.info('Unable to evaluate feature "%s" because User ID is not set.', key);
+      return createFailedDecision(key, `Unable to evaluate flag "%s" because User ID is not set.`, user);
     }
 
     const optlyUserContext = this.getUserContextInstance(user);
@@ -440,7 +442,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         },
       };
     }
-    return createFailedDecision(key, `Not Evaluating flag ${key} because user id or attributes are not valid`, user);
+    return createFailedDecision(key, `Not Evaluating flag "%s" because user id or attributes are not valid`, user);
   }
 
   public decideForKeys(
@@ -531,7 +533,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): string | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get variation for experiment ${experimentKey} because Optimizely client failed to initialize.`
+        'Unable to get variation for experiment "%s" because Optimizely client failed to initialize.',
+        experimentKey
       );
       return null;
     }
@@ -539,7 +542,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get variation for experiment ${experimentKey} because User ID is not set`);
+      logger.info('Unable to get variation for experiment "%s" because User ID is not set', experimentKey);
       return null;
     }
 
@@ -561,7 +564,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     eventTags?: optimizely.EventTags
   ): void {
     if (!this._client) {
-      logger.warn(`Unable to send tracking event ${eventKey} because Optimizely client failed to initialize.`);
+      logger.warn('Unable to send tracking event "%s" because Optimizely client failed to initialize.', eventKey);
       return;
     }
 
@@ -574,7 +577,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to send tracking event ${eventKey} because User ID is not set`);
+      logger.info('Unable to send tracking event "%s" because User ID is not set', eventKey);
       return;
     }
 
@@ -678,8 +681,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): boolean {
     if (!this._client) {
       logger.warn(
-        `Unable to determine if feature ${feature} is enabled because Optimizely client failed to initialize.`
-        
+        'Unable to determine if feature "%s" is enabled because Optimizely client failed to initialize.',
+        feature
       );
       return false;
     }
@@ -687,7 +690,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to determine if feature ${feature} is enabled because User ID is not set`);
+      logger.info('Unable to determine if feature "%s" is enabled because User ID is not set', feature);
       return false;
     }
 
@@ -715,8 +718,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): VariableValuesObject {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variables for feature ${featureKey} because Optimizely client failed to initialize.`
-        
+        'Unable to get feature variables for feature "%s" because Optimizely client failed to initialize.',
+        featureKey
       );
       return {};
     }
@@ -725,7 +728,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     const userId = user.id;
     if (userId === null) {
-      logger.warn(`Unable to get feature variables for feature ${featureKey} because User ID is not set`);
+      logger.warn('Unable to get feature variables for feature "%s" because User ID is not set', featureKey);
       return {};
     }
 
@@ -735,7 +738,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const optlyConfig = this._client.getOptimizelyConfig();
     if (!optlyConfig) {
       logger.warn(
-        `Unable to retrieve feature variables for feature ${featureKey} because Optimizely client failed to initialize.`
+        'Unable to retrieve feature variables for feature "%s" because Optimizely client failed to initialize.',
+        featureKey
       );
       return {};
     }
@@ -743,7 +747,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const feature = optlyConfig.featuresMap[featureKey];
     if (!feature) {
       logger.info(
-        `Unable to retrieve feature variables for feature ${featureKey} because config features map is not set`
+        'Unable to retrieve feature variables for feature "%s" because config features map is not set',
+        featureKey
       );
       return {};
     }
@@ -774,7 +779,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): string | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable string from feature ${feature} because Optimizely client failed to initialize.`
+        'Unable to get feature variable string from feature "%s" because Optimizely client failed to initialize.',
+        feature
       );
       return null;
     }
@@ -782,7 +788,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get feature variable string from feature ${feature} because User ID is not set`);
+      logger.info('Unable to get feature variable string from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -807,7 +813,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): boolean | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable boolean from feature ${feature} because Optimizely client failed to initialize.`
+        'Unable to get feature variable boolean from feature "%s" because Optimizely client failed to initialize.',
+        feature
       );
       return null;
     }
@@ -815,7 +822,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get feature variable boolean from feature ${feature} because User ID is not set`);
+      logger.info('Unable to get feature variable boolean from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -840,7 +847,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): number | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable integer from feature ${feature} because Optimizely client failed to initialize.`
+        'Unable to get feature variable integer from feature "%s" because Optimizely client failed to initialize.',
+        feature
       );
       return null;
     }
@@ -848,7 +856,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get feature variable integer from feature ${feature} because User ID is not set`);
+      logger.info('Unable to get feature variable integer from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -873,7 +881,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): number | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable double from feature ${feature} because Optimizely client failed to initialize.`
+        'Unable to get feature variable double from feature "%s" because Optimizely client failed to initialize.',
+        feature
       );
       return null;
     }
@@ -881,7 +890,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get feature variable double from feature ${feature} because User ID is not set`);
+      logger.info('Unable to get feature variable double from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -906,7 +915,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): unknown {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable JSON from feature ${feature} because Optimizely client failed to initialize.`
+        'Unable to get feature variable JSON from feature "%s" because Optimizely client failed to initialize.',
+        feature
       );
       return null;
     }
@@ -914,7 +924,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get feature variable JSON from feature ${feature} because User ID is not set`);
+      logger.info('Unable to get feature variable JSON from feature "%s" because User ID is not set', feature);
       return null;
     }
 
@@ -939,9 +949,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): unknown {
     if (!this._client) {
       logger.warn(
-        `Unable to get feature variable from feature ${featureKey} because Optimizely client failed to initialize. ${variableKey}`
-        
-        
+        'Unable to get feature variable from feature "%s" because Optimizely client failed to initialize.',
+        featureKey,
+        variableKey
       );
       return null;
     }
@@ -950,8 +960,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     if (user.id === null) {
       logger.info(
-        `Unable to get feature variable from feature ${featureKey}  because User ID is not set ${variableKey}`
- 
+        'Unable to get feature variable from feature "%s" because User ID is not set',
+        featureKey,
+        variableKey
       );
       return null;
     }
@@ -974,7 +985,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): { [variableKey: string]: unknown } | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get all feature variables from feature ${featureKey} because Optimizely client failed to initialize.`
+        'Unable to get all feature variables from feature "%s" because Optimizely client failed to initialize.',
+        featureKey
       );
       return {};
     }
@@ -982,7 +994,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId, overrideAttributes);
 
     if (user.id === null) {
-      logger.info(`Unable to get all feature variables from feature ${featureKey} because User ID is not set`);
+      logger.info('Unable to get all feature variables from feature "%s" because User ID is not set', featureKey);
       return {};
     }
 
@@ -1022,7 +1034,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   public getForcedVariation(experiment: string, overrideUserId?: string): string | null {
     if (!this._client) {
       logger.warn(
-        `Unable to get forced variation for experiment ${experiment} because Optimizely client failed to initialize.`
+        'Unable to get forced variation for experiment "%s" because Optimizely client failed to initialize.',
+        experiment
       );
       return null;
     }
@@ -1030,7 +1043,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const user = this.getUserContextWithOverrides(overrideUserId);
 
     if (user.id === null) {
-      logger.info(`Unable to get forced variation for experiment ${experiment} because User ID is not set`);
+      logger.info('Unable to get forced variation for experiment "%s" because User ID is not set', experiment);
       return null;
     }
 
@@ -1052,7 +1065,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   ): boolean {
     if (!this._client) {
       logger.warn(
-        `Unable to set forced variation for experiment ${experiment} because Optimizely client failed to initialize.`
+        'Unable to set forced variation for experiment "%s" because Optimizely client failed to initialize.',
+        experiment
       );
       return false;
     }
@@ -1072,7 +1086,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     if (finalUserId === null) {
-      logger.warn(`Unable to set forced variation for experiment ${experiment} because User ID is not set`);
+      logger.warn('Unable to set forced variation for experiment "%s" because User ID is not set', experiment);
       return false;
     }
 

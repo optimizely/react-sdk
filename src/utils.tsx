@@ -144,3 +144,18 @@ export function createFailedDecision(flagKey: string, message: string, user: Use
     },
   };
 }
+
+export function sprintf(format: string, ...args: any[]): string {
+  let i = 0;
+  return format.replace(/%s/g, () => {
+    const arg = args[i++];
+    const type = typeof arg;
+    if (type === 'function') {
+      return arg();
+    } else if (type === 'string') {
+      return arg;
+    } else {
+      return String(arg);
+    }
+  });
+}
