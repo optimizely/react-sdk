@@ -429,7 +429,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     if (user.id === null) {
       logger.info('Unable to evaluate feature "%s" because User ID is not set.', key);
-      return createFailedDecision(key, `Unable to evaluate flag "%s" because User ID is not set.`, user);
+      return createFailedDecision(key, `Unable to evaluate flag ${key} because User ID is not set.`, user);
     }
 
     const optlyUserContext = this.getUserContextInstance(user);
@@ -442,7 +442,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         },
       };
     }
-    return createFailedDecision(key, `Not Evaluating flag "%s" because user id or attributes are not valid`, user);
+    return createFailedDecision(key, `Not Evaluating flag ${key} because user id or attributes are not valid`, user);
   }
 
   public decideForKeys(
