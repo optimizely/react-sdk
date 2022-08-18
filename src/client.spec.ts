@@ -82,7 +82,6 @@ describe('ReactSDKClient', () => {
 
     const anyOptly = optimizely as any;
     anyOptly.createInstance.mockReturnValue(mockInnerClient);
-    
     createInstanceSpy = optimizely.createInstance as jest.Mock<optimizely.Client, [optimizely.Config]>;
   });
 
