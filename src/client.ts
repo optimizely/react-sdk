@@ -420,7 +420,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.warn('Unable to evaluate feature "%s" because Optimizely client failed to initialize.', key);
       return createFailedDecision(
         key,
-        `Unable to evaluate flag "%s" because Optimizely client failed to initialize.`,
+        `Unable to evaluate flag ${key} because Optimizely client failed to initialize.`,
         this.user
       );
     }
