@@ -19,15 +19,19 @@ const logHandler = optimizely.logging.createLogger({ prefix: '[React-SDK]' });
 
 export const logger = {
   warn: (msg: string, ...splat: any[]) => {
+    // @ts-ignore
     return logHandler.log(optimizely.enums.LOG_LEVEL.WARNING, msg, ...splat);
   },
   info: (msg: string, ...splat: any[]) => {
+    // @ts-ignore
     return logHandler.log(optimizely.enums.LOG_LEVEL.INFO, msg, ...splat);
   },
   debug: (msg: string, ...splat: any[]) => {
+    // @ts-ignore
     return logHandler.log(optimizely.enums.LOG_LEVEL.DEBUG, msg, ...splat);
   },
   error: (msg: string, ...splat: any[]) => {
+    // @ts-ignore
     return logHandler.log(optimizely.enums.LOG_LEVEL.ERROR, msg, ...splat);
   },
 };
