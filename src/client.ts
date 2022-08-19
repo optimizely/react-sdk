@@ -15,17 +15,14 @@
  */
 
 import * as optimizely from '@optimizely/optimizely-sdk';
-import * as logging from '@optimizely/js-sdk-logging';
-
 import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
-
-const logger = logging.getLogger('ReactSDK');
+import { logger } from './logger';
 
 export type VariableValuesObject = {
   [key: string]: any;
 };
-
+ 
 type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserInfo) => void;
@@ -214,7 +211,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-
     this.userPromiseResolver = () => { };
 
     const configWithClientInfo = {
@@ -1127,7 +1123,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
         resolve({
           success: true,
-          reason: 'Optimizely client is not initialized.',
+          reason: 'Optimizely client is not initialized.'
         })
       );
     }

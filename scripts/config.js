@@ -24,18 +24,23 @@ const packageDeps = require('../package.json').dependencies || {}
 const packagePeers = require('../package.json').peerDependencies || {}
 
 function getExternals(externals) {
+  let externalLibs;
   if(externals === 'forBrowsers') {
-    return ['react']
+    externalLibs = ['react']
+  } else {
+    externalLibs = (externals === 'peers')
+      ? Object.keys(packagePeers)
+      : Object.keys(packageDeps).concat(Object.keys(packagePeers))
   }
-  return externals === 'peers'
-    ? Object.keys(packagePeers)
-    : Object.keys(packageDeps).concat(Object.keys(packagePeers))
+  externalLibs.push('crypto');
+  return externalLibs;
 }
 
 function getPlugins(env, externals) {
   const plugins = [
     nodeResolve({
       browser: externals === 'forBrowsers',
+      preferBuiltins: externals !== 'forBrowsers'
     }),
     commonjs({
       include: /node_modules/,
@@ -64,6 +69,7 @@ const config = {
   output: {
     globals: {
       react: 'React',
+      crypto: 'crypto'
     },
   },
   external: getExternals(process.env.EXTERNALS),
