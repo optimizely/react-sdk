@@ -15,21 +15,20 @@
  */
 
 import * as optimizely from '@optimizely/optimizely-sdk';
-import { sprintf } from './utils';
 const logHandler = optimizely.logging.createLogger({ prefix: '[React-SDK]' });
 
 export const logger = {
   warn: (msg: string, ...splat: any[]) => {
     console.log('splat', ...splat);
-    return logHandler.log(optimizely.enums.LOG_LEVEL.WARNING, sprintf(msg, ...splat));
+    return logHandler.log(optimizely.enums.LOG_LEVEL.WARNING, msg, ...splat);
   },
   info: (msg: string, ...splat: any[]) => {
-    return logHandler.log(optimizely.enums.LOG_LEVEL.INFO, sprintf(msg, ...splat));
+    return logHandler.log(optimizely.enums.LOG_LEVEL.INFO, msg, ...splat);
   },
   debug: (msg: string, ...splat: any[]) => {
-    return logHandler.log(optimizely.enums.LOG_LEVEL.DEBUG, sprintf(msg, ...splat));
+    return logHandler.log(optimizely.enums.LOG_LEVEL.DEBUG, msg, ...splat);
   },
   error: (msg: string, ...splat: any[]) => {
-    return logHandler.log(optimizely.enums.LOG_LEVEL.ERROR, sprintf(msg, ...splat));
-  } 
+    return logHandler.log(optimizely.enums.LOG_LEVEL.ERROR, msg, ...splat);
+  },
 };
