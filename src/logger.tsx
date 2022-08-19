@@ -19,7 +19,6 @@ const logHandler = optimizely.logging.createLogger({ prefix: '[React-SDK]' });
 
 export const logger = {
   warn: (msg: string, ...splat: any[]) => {
-    console.log('splat', ...splat);
     return logHandler.log(optimizely.enums.LOG_LEVEL.WARNING, msg, ...splat);
   },
   info: (msg: string, ...splat: any[]) => {
