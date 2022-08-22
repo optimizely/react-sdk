@@ -32,3 +32,4 @@ export const logger = {
     return logHandler.log(optimizely.enums.LOG_LEVEL.ERROR, sprintf(msg, ...splat));
   },
 };
+
