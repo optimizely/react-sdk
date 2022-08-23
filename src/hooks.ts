@@ -34,6 +34,7 @@ enum HookType {
 type HookOptions = {
   autoUpdate?: boolean;
   timeout?: number;
+  disabled?: boolean;
 };
 
 type DecideHooksOptions = HookOptions & { decideOptions?: OptimizelyDecideOption[] };
@@ -192,6 +193,10 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
+  if (options.disabled) {
+    return [null, false, false];
+  }
+
   if (!optimizely) {
     hooksLogger.error(`Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
     return [null, false, false];
@@ -287,6 +292,15 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
+  if (options.disabled) {
+    return [
+      false,
+      {},
+      false,
+      false,
+    ];
+  }
+
   if (!optimizely) {
     hooksLogger.error(`Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
     return [
@@ -380,6 +394,17 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  */
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
+  if (options.disabled) {
+    return [
+      createFailedDecision(flagKey, 'Hook is disabled', {
+        id: null,
+        attributes: {},
+      }),
+      false,
+      false,
+    ];
+  }
 
   if (!optimizely) {
     hooksLogger.error(`Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
