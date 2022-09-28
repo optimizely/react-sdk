@@ -13,4 +13,4 @@ jobs:
       - name: Check for Jira ticket reference
         uses: optimizely/github-action-ticket-reference-checker-public@master
         with:
-          bodyRegex: 'OASIS-(?<ticketNumber>\d+)' 
+          bodyRegex: 'FSSDK-(?<ticketNumber>\d+)' 
