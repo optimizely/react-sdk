@@ -394,10 +394,12 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
-
-  const getCurrentDecision: () => { decision: OptimizelyDecision } = () => ({
-    decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
-  });
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
+    () => ({
+      decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
+    }),
+    [optimizely, flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs]
+  );
 
   const isClientReady = isServerSide || optimizely.isReady();
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
