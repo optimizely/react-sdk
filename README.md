@@ -10,6 +10,58 @@ Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feat
 
 Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
 
+
+### Features
+
+- Automatic datafile downloading
+- User ID + attributes memoization
+- Render blocking until datafile is ready via a React API
+- Optimizely timeout (only block rendering up to the number of milliseconds you specify)
+- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/full-stack/v4.0/docs/create-feature-flags)
+
+### Compatibility
+
+The React SDK is compatible with `React 16.3.0 +`
+
+### Example
+
+```jsx
+import {
+  createInstance,
+  OptimizelyProvider,
+  useDecision,
+} from '@optimizely/react-sdk';
+
+const optimizelyClient = createInstance({
+  sdkKey: 'your-optimizely-sdk-key',
+});
+
+function MyComponent() {
+  const [decision] = useDecision('sort-algorithm');
+  return (
+    <React.Fragment>
+      <SearchComponent algorithm={decision.variables.algorithm} />
+      { decision.variationKey === 'relevant_first' && <RelevantFirstList /> }
+      { decision.variationKey === 'recent_first' && <RecentFirstList /> }
+    </React.Fragment>
+  );
+}
+
+class App extends React.Component {
+  render() {
+    return (
+      <OptimizelyProvider
+        optimizely={optimizelyClient}
+        timeout={500}
+        user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
+      >
+        <MyComponent />
+      </OptimizelyProvider>
+    );
+  }
+}
+```
+
 ### Install the SDK
 
 ```
@@ -18,7 +70,7 @@ npm install @optimizely/react-sdk
 
 ## Use the React SDK
 
-### "Initialization"
+### Initialization
 
 ## `createInstance`
 
@@ -27,8 +79,8 @@ The `ReactSDKClient` client created via `createInstance` is the programmatic API
 _arguments_
 
 - `config : object` Object with SDK configuration parameters. This has the same format as the object passed to the `createInstance` method of the core `@optimizely/javascript-sdk` module. For details on this object, see the following pages from the developer docs:
-  - [Instantiate](https://docs.developers.optimizely.com/full-stack/v4.0/docs/initialize-sdk-react)
-  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/full-stack/v4.0/docs/javascript-client-side-implementation)
+  - [Instantiate](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/initialize-sdk-react)
+  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-client-side-implementation)
 
 _returns_
 
@@ -268,7 +320,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 - `VariableValuesObject : { [key: string]: any }`
 - `EventTags : { [key: string]: string | number | boolean; }`
 
-`ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely X Full Stack developer docs site](https://docs.developers.optimizely.com/full-stack/docs). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
+`ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely Feature Experimentation developer docs site](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/welcome). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
 
 - `onReady(opts?: { timeout?: number }): Promise<onReadyResult>` Returns a Promise that fulfills with an `onReadyResult` object representing the initialization process. The instance is ready when it has fetched a datafile and a user is available (via `setUser` being called with an object, or a Promise passed to `setUser` becoming fulfilled). If the `timeout` period happens before the client instance is ready, the `onReadyResult` object will contain an additional key, `dataReadyPromise`, which can be used to determine when, if ever, the instance does become ready.
 - `user: User` The current user associated with this client instance
@@ -292,7 +344,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 
 ## Rollout or experiment a feature user-by-user
 
-To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/rollouts/docs/run-a-beta) using the React code samples.
+To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/run-a-beta) using the React code samples.
 
 ## Server Side Rendering
 
