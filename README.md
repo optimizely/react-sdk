@@ -16,7 +16,7 @@ Refer to the [React SDK's developer documentation](https://docs.developers.optim
 - User ID + attributes memoization
 - Render blocking until datafile is ready via a React API
 - Optimizely timeout (only block rendering up to the number of milliseconds you specify)
-- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/full-stack/v4.0/docs/create-feature-flags)
+- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/create-feature-flags)
 
 ### Compatibility
 
