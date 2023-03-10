@@ -10,7 +10,6 @@ Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feat
 
 Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
 
-
 ### Features
 
 - Automatic datafile downloading
@@ -491,7 +490,6 @@ To regenerate the dependencies use by this package, run the following command:
 ```sh
 npx license-checker --production --json | jq 'map_values({ licenses, publisher, repository }) | del(.[][] | nulls)'
 ```
-
 
 ### Contributing
 
