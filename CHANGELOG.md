@@ -5,15 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- None yet!
 
 ## [2.9.2] - March 13, 2023
 
 ### Enhancements
 - Update README.MD
-
-## [Unreleased]
-
-- None yet!
 
 ## [2.9.1] - July 20, 2022
 
