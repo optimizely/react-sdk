@@ -5,9 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.9.2] - March 13, 2023
 
-- None yet!
+### Enhancements
+- We updated our README.md and other non-functional code to reflect that this SDK supports both Optimizely Feature Experimentation and Optimizely Full Stack. ([#190](https://github.com/optimizely/react-sdk/pull/190)).
 
 ## [2.9.1] - July 20, 2022
 
