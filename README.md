@@ -1,10 +1,14 @@
 # Optimizely React SDK
 
-This repository houses the React SDK for use with Optimizely Full Stack and Optimizely Rollouts.
+This repository houses the React SDK for use with Optimizely Feature Experimentation and Optimizely Full Stack (legacy).
 
-Optimizely Full Stack is A/B testing and feature flag management for product development teams. Experiment in any application. Make every feature on your roadmap an opportunity to learn. Learn more at https://www.optimizely.com/platform/full-stack/, or see the [documentation](https://docs.developers.optimizely.com/full-stack/docs).
+Optimizely Feature Experimentation is an A/B testing and feature management tool for product development teams that enables you to experiment at every step. Using Optimizely Feature Experimentation allows for every feature on your roadmap to be an opportunity to discover hidden insights. Learn more at [Optimizely.com](https://www.optimizely.com/products/experiment/feature-experimentation/), or see the [developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/welcome).
 
-Optimizely Rollouts is free feature flags for development teams. Easily roll out and roll back features in any application without code deploys. Mitigate risk for every feature on your roadmap. Learn more at https://www.optimizely.com/rollouts/, or see the [documentation](https://docs.developers.optimizely.com/rollouts/docs).
+Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feature-flagging/) for development teams. You can easily roll out and roll back features in any application without code deploys, mitigating risk for every feature on your roadmap.
+
+## Get Started
+
+Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
 
 ### Features
 
@@ -12,7 +16,7 @@ Optimizely Rollouts is free feature flags for development teams. Easily roll out
 - User ID + attributes memoization
 - Render blocking until datafile is ready via a React API
 - Optimizely timeout (only block rendering up to the number of milliseconds you specify)
-- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/full-stack/v4.0/docs/create-feature-flags)
+- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/create-feature-flags)
 
 ### Compatibility
 
@@ -57,21 +61,15 @@ class App extends React.Component {
 }
 ```
 
-# Contents
-
-1. [Installation](#installation)
-2. [Usage](#usage)
-3. [Credits](#credits)
-4. [Additional code](#additional-code)
-5. [Contribute to this repo](#contribute-to-this-repo)
-
-# Installation
+### Install the SDK
 
 ```
 npm install @optimizely/react-sdk
 ```
 
-# Usage
+## Use the React SDK
+
+### Initialization
 
 ## `createInstance`
 
@@ -80,8 +78,8 @@ The `ReactSDKClient` client created via `createInstance` is the programmatic API
 _arguments_
 
 - `config : object` Object with SDK configuration parameters. This has the same format as the object passed to the `createInstance` method of the core `@optimizely/javascript-sdk` module. For details on this object, see the following pages from the developer docs:
-  - [Instantiate](https://docs.developers.optimizely.com/full-stack/v4.0/docs/initialize-sdk-react)
-  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/full-stack/v4.0/docs/javascript-client-side-implementation)
+  - [Instantiate](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/initialize-sdk-react)
+  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-client-side-implementation)
 
 _returns_
 
@@ -321,7 +319,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 - `VariableValuesObject : { [key: string]: any }`
 - `EventTags : { [key: string]: string | number | boolean; }`
 
-`ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely X Full Stack developer docs site](https://docs.developers.optimizely.com/full-stack/docs). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
+`ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely Feature Experimentation developer docs site](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/welcome). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
 
 - `onReady(opts?: { timeout?: number }): Promise<onReadyResult>` Returns a Promise that fulfills with an `onReadyResult` object representing the initialization process. The instance is ready when it has fetched a datafile and a user is available (via `setUser` being called with an object, or a Promise passed to `setUser` becoming fulfilled). If the `timeout` period happens before the client instance is ready, the `onReadyResult` object will contain an additional key, `dataReadyPromise`, which can be used to determine when, if ever, the instance does become ready.
 - `user: User` The current user associated with this client instance
@@ -345,7 +343,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 
 ## Rollout or experiment a feature user-by-user
 
-To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/rollouts/docs/run-a-beta) using the React code samples.
+To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/run-a-beta) using the React code samples.
 
 ## Server Side Rendering
 
@@ -426,11 +424,7 @@ const optimizely = createInstance({
 });
 ```
 
-# Credits
-
-First-party code subject to copyrights held by Optimizely, Inc. and its contributors and licensed to you under the terms of the Apache 2.0 license.
-
-# Additional code
+### Additional code
 
 This repository includes the following third party open source code:
 
@@ -497,6 +491,36 @@ To regenerate the dependencies use by this package, run the following command:
 npx license-checker --production --json | jq 'map_values({ licenses, publisher, repository }) | del(.[][] | nulls)'
 ```
 
-# Contribute to this repo
+### Contributing
 
 Please see [CONTRIBUTING](./CONTRIBUTING.md) for more information.
+
+### Credits
+
+First-party code subject to copyrights held by Optimizely, Inc. and its contributors and licensed to you under the terms of the Apache 2.0 license.
+
+### Other Optimizely SDKs
+
+- Agent - https://github.com/optimizely/agent
+
+- Android - https://github.com/optimizely/android-sdk
+
+- C# - https://github.com/optimizely/csharp-sdk
+
+- Flutter - https://github.com/optimizely/optimizely-flutter-sdk
+
+- Go - https://github.com/optimizely/go-sdk
+
+- Java - https://github.com/optimizely/java-sdk
+
+- JavaScript - https://github.com/optimizely/javascript-sdk
+
+- PHP - https://github.com/optimizely/php-sdk
+
+- Python - https://github.com/optimizely/python-sdk
+
+- React - https://github.com/optimizely/react-sdk
+
+- Ruby - https://github.com/optimizely/ruby-sdk
+
+- Swift - https://github.com/optimizely/swift-sdk
