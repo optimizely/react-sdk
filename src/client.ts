@@ -178,7 +178,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   public initialConfig: optimizely.Config;
   public user: UserInfo = {
     id: null,
-    attributes: {},
+    attributes: {}
   };
   private userContext: optimizely.OptimizelyUserContext | null = null;
   private userPromiseResolver: (user: UserInfo) => void;
