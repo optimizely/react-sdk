@@ -30,25 +30,28 @@ jobs:
       TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
           
   publish:
-    if: startsWith(github.ref, 'refs/tags/')
+    # if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: install
-        run: |
-          URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
-          curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
-          hub version
+      # - name: install
+      #   run: |
+      #     URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
+      #     curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
+      #     echo "${HOME}/.local/bin" >> $GITHUB_PATH
+      #     hub version
       - name: Get the version
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
       - name: set the env
         run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
-      - name: script
-        run: |
-          NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
-          hub release create -m "Release ${{ env.travis_tag }}" -m "${DESCRIPTION}" "${{ env.travis_tag }}"
+      - name: review
+        id: review
+        run: echo $GITHUB_OUTPUT
+      #- name: script
+      #  run: |
+      #    NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+      #    LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
+      #    DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
+      #    hub release create -m "Release ${{ env.travis_tag }}" -m "${DESCRIPTION}" "${{ env.travis_tag }}"
           
