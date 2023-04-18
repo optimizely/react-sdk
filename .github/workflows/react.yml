@@ -46,7 +46,7 @@ jobs:
         run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
         
       - name: set the env
-        run: echo "travis_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "travis_tag=${{GITHUB_REF#refs/tags/}}" >> $GITHUB_ENV
       - name: review
         id: review
         run: echo $GITHUB_OUTPUT
