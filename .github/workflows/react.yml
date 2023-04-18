@@ -42,7 +42,9 @@ jobs:
       #     hub version
       - name: Get the version
         id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        #run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+        
       - name: set the env
         run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
       - name: review
