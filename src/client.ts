@@ -1198,6 +1198,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   // TODO: discuss if we want to expose these method and provide implementation
   sendOdpEvent(action: string, type: string | undefined, identifiers: Map<string, string> | undefined, data: Map<string, unknown> | undefined): void {
+    // no-op
   }
 }
 
