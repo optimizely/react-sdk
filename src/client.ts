@@ -22,7 +22,7 @@ import { logger } from './logger';
 export type VariableValuesObject = {
   [key: string]: any;
 };
- 
+
 type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserInfo) => void;
@@ -39,7 +39,7 @@ export type OnReadyResult = {
 };
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '2.9.2';
+const REACT_SDK_CLIENT_VERSION = '3.0.0-beta';
 
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
@@ -211,7 +211,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => { };
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -321,7 +321,19 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return null;
   }
 
-  setUser(userInfo: UserInfo): void {
+  async fetchQualifiedSegments(): Promise<boolean> {
+    if (!this.userContext) {
+      logger.warn(
+        'Unable to fetch qualified segments for user id "%s" because Optimizely client failed to initialize.',
+        this.user.id
+      );
+      return false;
+    }
+
+    return await this.userContext.fetchQualifiedSegments();
+  }
+
+  async setUser(userInfo: UserInfo): Promise<void> {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
@@ -329,6 +341,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
       if (this._client) {
         this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
+        // TODO: how do we know if ODP is enabled?
+        await this.userContext?.fetchQualifiedSegments();
       } else {
         logger.warn(
           'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
@@ -1123,7 +1137,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
         resolve({
           success: true,
-          reason: 'Optimizely client is not initialized.'
+          reason: 'Optimizely client is not initialized.',
         })
       );
     }
@@ -1175,6 +1189,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       id: finalUserId,
       attributes: finalUserAttributes,
     };
+  }
+
+  // TODO: discuss if we want to expose these method and provide implementation
+  getVuid(): string | undefined {
+    return undefined;
+  }
+
+  // TODO: discuss if we want to expose these method and provide implementation
+  sendOdpEvent(action: string, type: string | undefined, identifiers: Map<string, string> | undefined, data: Map<string, unknown> | undefined): void {
+    // no-op
   }
 }
 
