@@ -23,11 +23,11 @@
   "scripts": {
     "tsc": "rm -rf lib/ && tsc",
     "build": "rm -rf dist/ && node ./scripts/build.js",
-    "winbuild": "rd /s/q dist && node ./scripts/winbuild.js",
+    "build:win": "rd /s/q dist && node ./scripts/winbuild.js",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
-    "prepare": "npm run winbuild"
+    "prepare": "npm run build:win"
   },
   "publishConfig": {
     "access": "public"
