@@ -1180,12 +1180,58 @@ describe('ReactSDKClient', () => {
     });
 
     describe('fetchQualifedSegments', () => {
+      it('should never call fetchQualifiedSegments if user ID is not set', ()=> {
 
+      });
+
+      it('should never call fetchQualifiedSegments if Optimizely client is not set', () => {
+
+      });
+
+      it('should never call fetchQualifiedSegments if Optimizely User Context is not set', () => {
+
+      });
+
+      it('should return log an info when ODP not integrated', ()=> {
+  
+      });
+
+      it('should return false if fetch fails', ()=>{
+
+      });
+
+      it('should return true if fetch successful', () => {
+
+      });
     });
   });
 
-  describe('fetchQualifiedSegments', ()=> {
+  describe('fetchQualifedSegments', () => {
+    describe('if Optimizely user context is undefined', () => {
+      it('should never call fetchQualifiedSegments', () => {
 
+      });
+
+      it('should return false', () => { 
+
+      });
+
+      it('should log a warning', () => {
+
+      });
+    });
+
+    it('should return log an info and return false when ODP not integrated', ()=> {
+
+    });
+
+    it('should return false if fetch fails', () => {
+
+    });
+      
+    it('should return true if fetch successful', ()=> {
+
+    });
   });
 
   describe('onForcedVariationsUpdate', () => {
