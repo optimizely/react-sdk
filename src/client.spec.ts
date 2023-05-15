@@ -46,6 +46,7 @@ describe('ReactSDKClient', () => {
       decide: jest.fn(),
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
+      fetchQualifiedSegments: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -72,6 +73,8 @@ describe('ReactSDKClient', () => {
       getOptimizelyConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
+      getVuid: jest.fn(),
+      sendOdpEvent: jest.fn(),
       notificationCenter: {
         addNotificationListener: jest.fn(() => 0),
         removeNotificationListener: jest.fn(() => false),
@@ -116,7 +119,7 @@ describe('ReactSDKClient', () => {
     expect(createInstanceSpy).toBeCalledWith({
       ...config,
       clientEngine: 'react-sdk',
-      clientVersion: '2.9.2',
+      clientVersion: '3.0.0-beta',
     });
   });
 
@@ -198,9 +201,9 @@ describe('ReactSDKClient', () => {
   });
 
   describe('setUser', () => {
-    it('updates the user object with id and attributes', () => {
+    it('updates the user object with id and attributes', async () => {
       const instance = createInstance(config);
-      instance.setUser({
+      await instance.setUser({
         id: 'xxfueaojfe8&86',
         attributes: {
           foo: 'bar',
@@ -214,11 +217,11 @@ describe('ReactSDKClient', () => {
       });
     });
 
-    it('adds and removes update handlers', () => {
+    it('adds and removes update handlers', async () => {
       const instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
       const dispose = instance.onUserUpdate(onUserUpdateListener);
-      instance.setUser({
+      await instance.setUser({
         id: 'newUser',
       });
       expect(onUserUpdateListener).toBeCalledTimes(1);
@@ -1117,7 +1120,7 @@ describe('ReactSDKClient', () => {
         });
       });
 
-      it('can use pre-set and override user for getAllFeatureVariables', () => {
+      it('can use pre-set and override user for getAllFeatureVariables', async () => {
         const mockFn = mockInnerClient.getAllFeatureVariables as jest.Mock;
         mockFn.mockReturnValue({
           bvar: true,
@@ -1129,7 +1132,7 @@ describe('ReactSDKClient', () => {
           },
         });
         const instance = createInstance(config);
-        instance.setUser({
+        await instance.setUser({
           id: 'user1',
           attributes: {
             foo: 'bar',
