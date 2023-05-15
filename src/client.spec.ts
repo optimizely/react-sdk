@@ -1175,6 +1175,14 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
       });
     });
+
+    describe('fetchQualifedSegments', () => {
+
+    });
+  });
+
+  describe('fetchQualifiedSegments', ()=> {
+
   });
 
   describe('onForcedVariationsUpdate', () => {
