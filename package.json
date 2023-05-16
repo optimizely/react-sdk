@@ -23,7 +23,7 @@
   "scripts": {
     "tsc": "rm -rf lib/ && tsc",
     "build": "rm -rf dist/ && node ./scripts/build.js",
-    "build:win": "rd /s/q dist && node ./scripts/winbuild.js",
+    "build:win": "(if exist dist rd /s/q dist) && node ./scripts/winbuild.js",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
