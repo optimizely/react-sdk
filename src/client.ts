@@ -170,6 +170,9 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
+
+  fetchQualifiedSegments(): Promise<boolean>;
+
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -324,8 +327,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   async fetchQualifiedSegments(): Promise<boolean> {
     if (!this.userContext) {
       logger.warn(
-        'Unable to fetch qualified segments for user id "%s" because Optimizely client failed to initialize.',
-        this.user.id
+        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
       );
       return false;
     }

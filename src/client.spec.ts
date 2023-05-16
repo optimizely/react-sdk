@@ -26,6 +26,8 @@ jest.mock('./logger', () => {
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+import { logger } from './logger';
+
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
@@ -1181,22 +1183,16 @@ describe('ReactSDKClient', () => {
   });
 
   describe('fetchQualifedSegments', () => {
-    describe('if Optimizely user context is undefined', () => {
-      it('should never call fetchQualifiedSegments', () => {
-
-      });
-
-      it('should return false', () => { 
-
-      });
-
-      it('should log a warning', () => {
-
-      });
-    });
-
-    it('should return log an info and return false when ODP not integrated', ()=> {
-
+    it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
+      mockOptimizelyUserContext = null as unknown as optimizely.OptimizelyUserContext;
+      mockInnerClient.createUserContext = jest.fn(() => mockOptimizelyUserContext);
+      const instance = createInstance(config);
+      
+      const result = await instance.fetchQualifiedSegments();
+      
+      expect(result).toEqual(false);
+      expect(logger.warn).toHaveBeenCalledTimes(1) 
+      expect(logger.warn).toBeCalledWith('Unable to fetch qualified segments for user because Optimizely client failed to initialize.') 
     });
 
     it('should return false if fetch fails', () => {
