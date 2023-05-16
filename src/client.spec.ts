@@ -1178,32 +1178,6 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
       });
     });
-
-    describe('fetchQualifedSegments', () => {
-      it('should never call fetchQualifiedSegments if user ID is not set', ()=> {
-
-      });
-
-      it('should never call fetchQualifiedSegments if Optimizely client is not set', () => {
-
-      });
-
-      it('should never call fetchQualifiedSegments if Optimizely User Context is not set', () => {
-
-      });
-
-      it('should return log an info when ODP not integrated', ()=> {
-  
-      });
-
-      it('should return false if fetch fails', ()=>{
-
-      });
-
-      it('should return true if fetch successful', () => {
-
-      });
-    });
   });
 
   describe('fetchQualifedSegments', () => {
