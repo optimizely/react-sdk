@@ -201,9 +201,9 @@ describe('ReactSDKClient', () => {
   });
 
   describe('setUser', () => {
-    it('updates the user object with id and attributes', async () => {
+    it('updates the user object with id and attributes', () => {
       const instance = createInstance(config);
-      await instance.setUser({
+      instance.setUser({
         id: 'xxfueaojfe8&86',
         attributes: {
           foo: 'bar',
@@ -217,11 +217,11 @@ describe('ReactSDKClient', () => {
       });
     });
 
-    it('adds and removes update handlers', async () => {
+    it('adds and removes update handlers', () => {
       const instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
       const dispose = instance.onUserUpdate(onUserUpdateListener);
-      await instance.setUser({
+      instance.setUser({
         id: 'newUser',
       });
       expect(onUserUpdateListener).toBeCalledTimes(1);
@@ -1120,7 +1120,7 @@ describe('ReactSDKClient', () => {
         });
       });
 
-      it('can use pre-set and override user for getAllFeatureVariables', async () => {
+      it('can use pre-set and override user for getAllFeatureVariables', () => {
         const mockFn = mockInnerClient.getAllFeatureVariables as jest.Mock;
         mockFn.mockReturnValue({
           bvar: true,
@@ -1132,7 +1132,7 @@ describe('ReactSDKClient', () => {
           },
         });
         const instance = createInstance(config);
-        await instance.setUser({
+        instance.setUser({
           id: 'user1',
           attributes: {
             foo: 'bar',

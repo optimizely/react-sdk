@@ -330,12 +330,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false;
     }
 
-    // TODO: check if ODP is enabled
-
     return await this.userContext.fetchQualifiedSegments();
   }
 
-  async setUser(userInfo: UserInfo): Promise<void> {
+  setUser(userInfo: UserInfo): void {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
@@ -343,8 +341,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
       if (this._client) {
         this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-        // TODO: check if ODP is enabled
-        await this.userContext?.fetchQualifiedSegments();
       } else {
         logger.warn(
           'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
