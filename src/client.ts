@@ -39,7 +39,7 @@ export type OnReadyResult = {
 };
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '3.0.0-beta';
+const REACT_SDK_CLIENT_VERSION = '2.9.2';
 
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
@@ -172,7 +172,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 
   fetchQualifiedSegments(): Promise<boolean>;
-
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
