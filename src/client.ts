@@ -325,9 +325,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   async fetchQualifiedSegments(): Promise<boolean> {
     if (!this.userContext) {
-      logger.warn(
-        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
-      );
+      logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
       return false;
     }
 
@@ -1196,7 +1194,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   // TODO: discuss if we want to expose these method and provide implementation
-  sendOdpEvent(action: string, type: string | undefined, identifiers: Map<string, string> | undefined, data: Map<string, unknown> | undefined): void {
+  sendOdpEvent(
+    action: string,
+    type: string | undefined,
+    identifiers: Map<string, string> | undefined,
+    data: Map<string, unknown> | undefined
+  ): void {
     // no-op
   }
 }

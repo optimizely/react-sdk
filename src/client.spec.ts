@@ -15,14 +15,16 @@
  */
 jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
-  return { logger: {
-    warn : jest.fn(() => ()=>{}),
-    info : jest.fn(() => ()=>{}),
-    error : jest.fn(() => ()=>{}),
-    debug : jest.fn(() => ()=>{})
-  } };
-})
- 
+  return {
+    logger: {
+      warn: jest.fn(() => () => {}),
+      info: jest.fn(() => () => {}),
+      error: jest.fn(() => () => {}),
+      debug: jest.fn(() => () => {}),
+    },
+  };
+});
+
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
@@ -31,7 +33,6 @@ import { logger } from './logger';
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
-
 }
 
 describe('ReactSDKClient', () => {
@@ -121,7 +122,7 @@ describe('ReactSDKClient', () => {
     expect(createInstanceSpy).toBeCalledWith({
       ...config,
       clientEngine: 'react-sdk',
-      clientVersion: '3.0.0-beta',
+      clientVersion: '2.9.2',
     });
   });
 
@@ -1190,10 +1191,12 @@ describe('ReactSDKClient', () => {
 
     it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
       const result = await instance.fetchQualifiedSegments();
-      
+
       expect(result).toEqual(false);
-      expect(logger.warn).toHaveBeenCalledTimes(1) 
-      expect(logger.warn).toBeCalledWith('Unable to fetch qualified segments for user because Optimizely client failed to initialize.') 
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith(
+        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
+      );
     });
 
     it('should return false if fetch fails', async () => {
@@ -1203,18 +1206,18 @@ describe('ReactSDKClient', () => {
 
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
       const result = await instance.fetchQualifiedSegments();
-      
+
       expect(result).toEqual(false);
     });
-      
-    it('should return true if fetch successful', async ()=> {
+
+    it('should return true if fetch successful', async () => {
       instance.setUser({
         id: 'user1',
       });
 
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       const result = await instance.fetchQualifiedSegments();
-      
+
       expect(result).toEqual(true);
     });
   });
