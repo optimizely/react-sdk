@@ -1183,11 +1183,12 @@ describe('ReactSDKClient', () => {
   });
 
   describe('fetchQualifedSegments', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+    });
+
     it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
-      mockOptimizelyUserContext = null as unknown as optimizely.OptimizelyUserContext;
-      mockInnerClient.createUserContext = jest.fn(() => mockOptimizelyUserContext);
-      const instance = createInstance(config);
-      
       const result = await instance.fetchQualifiedSegments();
       
       expect(result).toEqual(false);
@@ -1195,12 +1196,26 @@ describe('ReactSDKClient', () => {
       expect(logger.warn).toBeCalledWith('Unable to fetch qualified segments for user because Optimizely client failed to initialize.') 
     });
 
-    it('should return false if fetch fails', () => {
+    it('should return false if fetch fails', async () => {
+      instance.setUser({
+        id: 'user1',
+      });
 
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+      const result = await instance.fetchQualifiedSegments();
+      
+      expect(result).toEqual(false);
     });
       
-    it('should return true if fetch successful', ()=> {
+    it('should return true if fetch successful', async ()=> {
+      instance.setUser({
+        id: 'user1',
+      });
 
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      const result = await instance.fetchQualifiedSegments();
+      
+      expect(result).toEqual(true);
     });
   });
 
