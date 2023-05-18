@@ -22,7 +22,7 @@ import { logger } from './logger';
 export type VariableValuesObject = {
   [key: string]: any;
 };
- 
+
 type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserInfo) => void;
@@ -211,7 +211,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => { };
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -1123,7 +1123,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
         resolve({
           success: true,
-          reason: 'Optimizely client is not initialized.'
+          reason: 'Optimizely client is not initialized.',
         })
       );
     }
@@ -1175,6 +1175,24 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       id: finalUserId,
       attributes: finalUserAttributes,
     };
+  }
+
+  getVuid(): string | undefined {
+    throw new Error('Method not implemented.');
+  }
+
+  sendOdpEvent(
+    action: string,
+    type?: string | undefined,
+    identifiers?: Map<string, string> | undefined,
+    data?: Map<string, unknown> | undefined
+  ): void {
+    if (!action) {
+      logger.error('ODP action is not valid (cannot be empty).');
+      return;
+    }
+
+    this.client?.sendOdpEvent(action, type, identifiers, data);
   }
 }
 

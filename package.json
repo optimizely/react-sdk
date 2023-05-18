@@ -27,13 +27,13 @@
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build:win"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
-    "@optimizely/optimizely-sdk": "^4.9.2",
+    "@optimizely/optimizely-sdk": "^5.0.0-beta",
     "hoist-non-react-statics": "^3.3.0",
     "prop-types": "^15.6.2",
     "utility-types": "^2.1.0 || ^3.0.0"
