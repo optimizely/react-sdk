@@ -15,21 +15,22 @@
  */
 jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
-  return { logger: {
-    warn : jest.fn(() => ()=>{}),
-    info : jest.fn(() => ()=>{}),
-    error : jest.fn(() => ()=>{}),
-    debug : jest.fn(() => ()=>{})
-  } };
-})
- 
+  return {
+    logger: {
+      warn: jest.fn(() => () => {}),
+      info: jest.fn(() => () => {}),
+      error: jest.fn(() => () => {}),
+      debug: jest.fn(() => () => {}),
+    },
+  };
+});
+
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
-
 }
 
 describe('ReactSDKClient', () => {
@@ -72,6 +73,8 @@ describe('ReactSDKClient', () => {
       getOptimizelyConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
+      getVuid: jest.fn(),
+      sendOdpEvent: jest.fn(),
       notificationCenter: {
         addNotificationListener: jest.fn(() => 0),
         removeNotificationListener: jest.fn(() => false),
