@@ -1177,8 +1177,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
+  //todo: this is tobe removed in future once the js-sdk gets updated
   getVuid(): string | undefined {
-    throw new Error('Method not implemented.');
+    return undefined;
   }
 
   sendOdpEvent(
