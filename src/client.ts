@@ -170,6 +170,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
+
+  fetchQualifiedSegments(): Promise<boolean>;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -319,6 +321,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     return null;
+  }
+
+  async fetchQualifiedSegments(): Promise<boolean> {
+    if (!this.userContext) {
+      logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
+      return false;
+    }
+
+    return await this.userContext.fetchQualifiedSegments();
   }
 
   setUser(userInfo: UserInfo): void {
@@ -1177,7 +1188,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
-  //todo: this is tobe removed in future once the js-sdk gets updated
+  // TODO: this is tobe removed in future once the js-sdk gets updated
   getVuid(): string | undefined {
     return undefined;
   }

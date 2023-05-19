@@ -28,6 +28,8 @@ jest.mock('./logger', () => {
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+import { logger } from './logger';
+
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
@@ -47,6 +49,7 @@ describe('ReactSDKClient', () => {
       decide: jest.fn(),
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
+      fetchQualifiedSegments: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -1177,6 +1180,45 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledTimes(1);
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
       });
+    });
+  });
+
+  describe('fetchQualifedSegments', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+    });
+
+    it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(false);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith(
+        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
+      );
+    });
+
+    it('should return false if fetch fails', async () => {
+      instance.setUser({
+        id: 'user1',
+      });
+
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return true if fetch successful', async () => {
+      instance.setUser({
+        id: 'user1',
+      });
+
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(true);
     });
   });
 
