@@ -544,14 +544,6 @@
     "@optimizely/js-sdk-utils" "^0.4.0"
     decompress-response "^4.2.1"
 
-"@optimizely/js-sdk-event-processor@^0.9.2":
-  version "0.9.5"
-  resolved "https://registry.npmjs.org/@optimizely/js-sdk-event-processor/-/js-sdk-event-processor-0.9.5.tgz"
-  integrity sha512-g5zqAjJuexxgbNvn7dacFkQXQxH3+OtjELfmSswvhxP9EHkyNR0ZdQF/kBxFxr335F2/RRPvAJ9tQBPkwaBg8g==
-  dependencies:
-    "@optimizely/js-sdk-logging" "^0.3.1"
-    "@optimizely/js-sdk-utils" "^0.4.0"
-
 "@optimizely/js-sdk-logging@^0.3.1":
   version "0.3.1"
   resolved "https://registry.npmjs.org/@optimizely/js-sdk-logging/-/js-sdk-logging-0.3.1.tgz"
@@ -566,17 +558,16 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@^4.9.2":
-  version "4.9.2"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-4.9.2.tgz#d63edda82e957927a3b9d909aa9f67a34013eb77"
-  integrity sha512-aPUU2KGDgo0VmbYNXeUCttXQgbBr59leUhyNPidy1J3YixEhzo0Q9UXCzhf4SgCTCtHCwahE7g0Lf36U0IVPgQ==
+"@optimizely/optimizely-sdk@^5.0.0-beta":
+  version "5.0.0-beta"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0-beta.tgz#3290713524707d6328ec2c00a4ec1490410d3bcd"
+  integrity sha512-WgiZDAJcdRyRPbJlZ96cuVVAF+6IuwK4hzGT6XBPdfRrBm6jLb9oQ3qUhGJMxNBoUFHlaNVnvm/T4lKS/gcy9Q==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.9.5"
-    "@optimizely/js-sdk-event-processor" "^0.9.2"
-    "@optimizely/js-sdk-logging" "^0.3.1"
+    decompress-response "^4.2.1"
     json-schema "^0.4.0"
-    murmurhash "0.0.2"
-    uuid "^3.3.2"
+    murmurhash "^2.0.1"
+    uuid "^8.3.2"
 
 "@rollup/plugin-commonjs@^16.0.0":
   version "16.0.0"
@@ -3462,10 +3453,10 @@ ms@2.1.2:
   resolved "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
 
-murmurhash@0.0.2:
-  version "0.0.2"
-  resolved "https://registry.npmjs.org/murmurhash/-/murmurhash-0.0.2.tgz"
-  integrity sha512-LKlwdZKWzvCQpMszb2HO5leJ7P9T4m5XuDKku8bM0uElrzqK9cn0+iozwQS8jO4SNjrp4w7olalgd8WgsIjhWA==
+murmurhash@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/murmurhash/-/murmurhash-2.0.1.tgz#4097720e08cf978872194ad84ea5be2dec9b610f"
+  integrity sha512-5vQEh3y+DG/lMPM0mCGPDnyV8chYg/g7rl6v3Gd8WMF9S429ox3Xk8qrk174kWhG767KQMqqxLD1WnGd77hiew==
 
 mute-stream@0.0.8:
   version "0.0.8"
@@ -4757,9 +4748,9 @@ uuid@^3.3.2:
   resolved "https://registry.npmjs.org/uuid/-/uuid-3.4.0.tgz"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uuid@^8.3.0:
+uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-8.3.2.tgz"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
 
 v8-compile-cache@^2.0.3:

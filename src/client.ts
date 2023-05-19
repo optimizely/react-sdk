@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2022, Optimizely
+ * Copyright 2019-2023, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import { logger } from './logger';
 export type VariableValuesObject = {
   [key: string]: any;
 };
- 
+
 type DisposeFn = () => void;
 
 type OnUserUpdateHandler = (userInfo: UserInfo) => void;
@@ -170,6 +170,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   removeForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): boolean;
 
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
+
+  fetchQualifiedSegments(): Promise<boolean>;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -211,7 +213,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => { };
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -319,6 +321,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     return null;
+  }
+
+  async fetchQualifiedSegments(): Promise<boolean> {
+    if (!this.userContext) {
+      logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
+      return false;
+    }
+
+    return await this.userContext.fetchQualifiedSegments();
   }
 
   setUser(userInfo: UserInfo): void {
@@ -1123,7 +1134,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
         resolve({
           success: true,
-          reason: 'Optimizely client is not initialized.'
+          reason: 'Optimizely client is not initialized.',
         })
       );
     }
@@ -1175,6 +1186,21 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       id: finalUserId,
       attributes: finalUserAttributes,
     };
+  }
+
+  // TODO: discuss if we want to expose these method and provide implementation
+  getVuid(): string | undefined {
+    return undefined;
+  }
+
+  // TODO: discuss if we want to expose these method and provide implementation
+  sendOdpEvent(
+    action: string,
+    type: string | undefined,
+    identifiers: Map<string, string> | undefined,
+    data: Map<string, unknown> | undefined
+  ): void {
+    // no-op
   }
 }
 

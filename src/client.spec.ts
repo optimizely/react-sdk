@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2022, Optimizely
+ * Copyright 2019-2023, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,24 @@
  */
 jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
-  return { logger: {
-    warn : jest.fn(() => ()=>{}),
-    info : jest.fn(() => ()=>{}),
-    error : jest.fn(() => ()=>{}),
-    debug : jest.fn(() => ()=>{})
-  } };
-})
- 
+  return {
+    logger: {
+      warn: jest.fn(() => () => {}),
+      info: jest.fn(() => () => {}),
+      error: jest.fn(() => () => {}),
+      debug: jest.fn(() => () => {}),
+    },
+  };
+});
+
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+import { logger } from './logger';
+
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
   initialConfig: optimizely.Config;
-
 }
 
 describe('ReactSDKClient', () => {
@@ -46,6 +49,7 @@ describe('ReactSDKClient', () => {
       decide: jest.fn(),
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
+      fetchQualifiedSegments: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -72,6 +76,8 @@ describe('ReactSDKClient', () => {
       getOptimizelyConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
+      getVuid: jest.fn(),
+      sendOdpEvent: jest.fn(),
       notificationCenter: {
         addNotificationListener: jest.fn(() => 0),
         removeNotificationListener: jest.fn(() => false),
@@ -1174,6 +1180,45 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledTimes(1);
         expect(mockInnerClient.getAllFeatureVariables).toBeCalledWith('feat1', 'user2', { bar: 'baz' });
       });
+    });
+  });
+
+  describe('fetchQualifedSegments', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+    });
+
+    it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(false);
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith(
+        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
+      );
+    });
+
+    it('should return false if fetch fails', async () => {
+      instance.setUser({
+        id: 'user1',
+      });
+
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(false);
+    });
+
+    it('should return true if fetch successful', async () => {
+      instance.setUser({
+        id: 'user1',
+      });
+
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      const result = await instance.fetchQualifiedSegments();
+
+      expect(result).toEqual(true);
     });
   });
 
