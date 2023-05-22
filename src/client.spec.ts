@@ -1558,4 +1558,27 @@ describe('ReactSDKClient', () => {
       });
     });
   });
+
+  describe('sendOdpEvent', () => {
+    let instance: ReactSDKClient;
+    beforeEach(() => {
+      instance = createInstance(config);
+    });
+
+    it('should throw error when action param is falsy', async () => {
+      const badValues = ['', '  '];
+      badValues.forEach(item => {
+        instance.sendOdpEvent(item);
+      });
+
+      expect(logger.error).toHaveBeenCalledTimes(badValues.length);
+      expect(logger.error).toBeCalledWith('ODP action is not valid (cannot be empty).');
+    });
+
+    it('should call sendOdpEvent once', async () => {
+      instance.sendOdpEvent('test');
+
+      expect(mockInnerClient.sendOdpEvent).toHaveBeenCalledTimes(1);
+    });
+  });
 });

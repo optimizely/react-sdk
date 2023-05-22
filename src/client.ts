@@ -177,11 +177,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
-  public initialConfig: optimizely.Config;
-  public user: UserInfo = {
-    id: null,
-    attributes: {},
-  };
   private userContext: optimizely.OptimizelyUserContext | null = null;
   private userPromiseResolver: (user: UserInfo) => void;
   private userPromise: Promise<OnReadyResult>;
@@ -206,6 +201,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   // promise keeping track of async requests for initializing client instance
   private dataReadyPromise: Promise<OnReadyResult>;
+
+  public initialConfig: optimizely.Config;
+  public user: UserInfo = {
+    id: null,
+    attributes: {},
+  };
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -258,15 +259,29 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
   }
 
-  getIsReadyPromiseFulfilled(): boolean {
+  protected getUserContextWithOverrides(
+    overrideUserId?: string,
+    overrideAttributes?: optimizely.UserAttributes
+  ): UserInfo {
+    const finalUserId: string | null = overrideUserId === undefined ? this.user.id : overrideUserId;
+    const finalUserAttributes: optimizely.UserAttributes | undefined =
+      overrideAttributes === undefined ? this.user.attributes : overrideAttributes;
+
+    return {
+      id: finalUserId,
+      attributes: finalUserAttributes,
+    };
+  }
+
+  public getIsReadyPromiseFulfilled(): boolean {
     return this.isReadyPromiseFulfilled;
   }
 
-  getIsUsingSdkKey(): boolean {
+  public getIsUsingSdkKey(): boolean {
     return this.isUsingSdkKey;
   }
 
-  onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
+  public onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
     let timeoutId: number | undefined;
     let timeout: number = DEFAULT_ON_READY_TIMEOUT;
     if (config && config.timeout !== undefined) {
@@ -291,7 +306,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
   }
 
-  getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
+  public getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
       logger.warn(
         'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
@@ -323,7 +338,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return null;
   }
 
-  async fetchQualifiedSegments(): Promise<boolean> {
+  public async fetchQualifiedSegments(): Promise<boolean> {
     if (!this.userContext) {
       logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
       return false;
@@ -332,7 +347,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return await this.userContext.fetchQualifiedSegments();
   }
 
-  setUser(userInfo: UserInfo): void {
+  public setUser(userInfo: UserInfo): void {
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
@@ -360,7 +375,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
   }
 
-  onUserUpdate(handler: OnUserUpdateHandler): DisposeFn {
+  public onUserUpdate(handler: OnUserUpdateHandler): DisposeFn {
     this.onUserUpdateHandlers.push(handler);
 
     return () => {
@@ -377,7 +392,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @param {OnForcedVariationsUpdateHandler} handler
    * @returns {DisposeFn}
    */
-  onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn {
+  public onForcedVariationsUpdate(handler: OnForcedVariationsUpdateHandler): DisposeFn {
     this.onForcedVariationsUpdateHandlers.push(handler);
 
     return (): void => {
@@ -388,7 +403,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
-  isReady(): boolean {
+  public isReady(): boolean {
     // React SDK Instance only becomes ready when both JS SDK client and the user info is ready.
     return this.isUserReady && this.isClientReady;
   }
@@ -952,7 +967,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @returns {(unknown | null)}
    * @memberof OptimizelyReactSDKClient
    */
-  getFeatureVariable(
+  public getFeatureVariable(
     featureKey: string,
     variableKey: string,
     overrideUserId: string,
@@ -989,7 +1004,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @returns {({ [variableKey: string]: unknown } | null)}
    * @memberof OptimizelyReactSDKClient
    */
-  getAllFeatureVariables(
+  public getAllFeatureVariables(
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
@@ -1174,33 +1189,23 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this._client.notificationCenter;
   }
 
-  protected getUserContextWithOverrides(
-    overrideUserId?: string,
-    overrideAttributes?: optimizely.UserAttributes
-  ): UserInfo {
-    const finalUserId: string | null = overrideUserId === undefined ? this.user.id : overrideUserId;
-    const finalUserAttributes: optimizely.UserAttributes | undefined =
-      overrideAttributes === undefined ? this.user.attributes : overrideAttributes;
-
-    return {
-      id: finalUserId,
-      attributes: finalUserAttributes,
-    };
-  }
-
-  // TODO: discuss if we want to expose these method and provide implementation
-  getVuid(): string | undefined {
+  // TODO: this is tobe removed in future once the js-sdk gets updated
+  public getVuid(): string | undefined {
     return undefined;
   }
 
-  // TODO: discuss if we want to expose these method and provide implementation
-  sendOdpEvent(
+  public sendOdpEvent(
     action: string,
-    type: string | undefined,
-    identifiers: Map<string, string> | undefined,
-    data: Map<string, unknown> | undefined
+    type?: string,
+    identifiers?: Map<string, string>,
+    data?: Map<string, unknown>
   ): void {
-    // no-op
+    if (!action || !action.trim()) {
+      logger.error('ODP action is not valid (cannot be empty).');
+      return;
+    }
+
+    this.client?.sendOdpEvent(action, type, identifiers, data);
   }
 }
 
