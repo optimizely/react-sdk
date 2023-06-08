@@ -338,13 +338,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return null;
   }
 
-  public async fetchQualifiedSegments(): Promise<boolean> {
+  public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
     if (!this.userContext) {
       logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
       return false;
     }
 
-    return await this.userContext.fetchQualifiedSegments();
+    return await this.userContext.fetchQualifiedSegments(options);
   }
 
   public setUser(userInfo: UserInfo): void {
