@@ -197,7 +197,7 @@ class AppWrapper extends React.Component {
 
 ## `useDecision` Hook
 
-A [React Hook](https://react.dev/) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
+A [React Hook](https://react.dev/learn/state-a-components-memory#meet-your-first-hook) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
 
 _arguments_
 
