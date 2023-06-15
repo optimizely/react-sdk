@@ -2,7 +2,7 @@
 
 This repository houses the React SDK for use with Optimizely Feature Experimentation and Optimizely Full Stack (legacy).
 
-Optimizely Feature Experimentation is an A/B testing and feature management tool for product development teams that enables you to experiment at every step. Using Optimizely Feature Experimentation allows for every feature on your roadmap to be an opportunity to discover hidden insights. Learn more at [Optimizely.com](https://www.optimizely.com/products/experiment/feature-experimentation/), or see the [developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/welcome).
+Optimizely Feature Experimentation is an A/B testing and feature management tool for product development teams that enables you to experiment at every step. Using Optimizely Feature Experimentation allows for every feature on your roadmap to be an opportunity to discover hidden insights. Learn more at [Optimizely.com](https://www.optimizely.com/products/experiment/feature-experimentation/), or see the [developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/introduction).
 
 Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feature-flagging/) for development teams. You can easily roll out and roll back features in any application without code deploys, mitigating risk for every feature on your roadmap.
 
@@ -197,7 +197,7 @@ class AppWrapper extends React.Component {
 
 ## `useDecision` Hook
 
-A [React Hook](https://reactjs.org/docs/hooks-intro.html) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
+A [React Hook](https://react.dev/) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
 
 _arguments_
 
@@ -343,7 +343,7 @@ The following type definitions are used in the `ReactSDKClient` interface:
 
 ## Rollout or experiment a feature user-by-user
 
-To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/run-a-beta) using the React code samples.
+To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/feature-experimentation/docs/run-a-beta) using the React code samples.
 
 ## Server Side Rendering
 
@@ -518,8 +518,6 @@ First-party code subject to copyrights held by Optimizely, Inc. and its contribu
 - PHP - https://github.com/optimizely/php-sdk
 
 - Python - https://github.com/optimizely/python-sdk
-
-- React - https://github.com/optimizely/react-sdk
 
 - Ruby - https://github.com/optimizely/ruby-sdk
 
