@@ -20,7 +20,7 @@ Refer to the [React SDK's developer documentation](https://docs.developers.optim
 
 ### Compatibility
 
-The React SDK is compatible with `React 16.3.0 +`
+The React SDK is compatible with `React 16.8.0 +`
 
 ### Example
 
