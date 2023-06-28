@@ -1,4 +1,4 @@
-name: react SDK CI
+name: React SDK CI
 
 on:
   push:
@@ -9,13 +9,15 @@ on:
     branches: [ master ]
 
 jobs:
-  unit_tests:
+  unit_tests:    
+    name: Run unit tests under Node ${{ matrix.node }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['14', '16', '18' ]
+        node: [ '16', '18' ]
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout branch
+      uses: actions/checkout@v3
     - name: Set up Node ${{ matrix.node }}
       uses: actions/setup-node@v3
       with:
@@ -23,7 +25,8 @@ jobs:
     - run: yarn install
     - run: yarn test
 
-  integration_tests:
+  integration_tests:    
+    name: Run FSC integration tests
     uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
     secrets:
       CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
@@ -31,21 +34,23 @@ jobs:
           
   publish:
     if: startsWith(github.ref, 'refs/tags/')
+    name: Conditionally publish new release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: install
+      - name: Checkout branch
+        uses: actions/checkout@v3
+      - name: Install
         run: |
           URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
           curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
           echo "${HOME}/.local/bin" >> $GITHUB_PATH
           hub version
-      - name: Get the version
+      - name: Get the version number
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      - name: set the env
+      - name: Set travis tag environmental variable
         run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
-      - name: script
+      - name: Run release script
         run: |
           NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
           LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
