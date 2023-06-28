@@ -22,7 +22,8 @@
 				"dbaeumer.vscode-eslint",
 				"eamodio.gitlens",
 				"esbenp.prettier-vscode",
-				"Gruntfuggly.todo-tree"
+				"Gruntfuggly.todo-tree",
+				"github.vscode-github-actions"
 			]
 		}
 	}
