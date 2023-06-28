@@ -1,20 +1,27 @@
 name: Publish React SDK to NPM
 
 on:
-    release:
-        types: [ published ]
+  # release:
+  #   types: [ published ]
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: 'Execute as dry run'
+        type: boolean
+        required: true
+        default: true
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-        - name: Checkout branch
-          uses: actions/checkout@v3
-        - name: Set up Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18
-        - run: npm install
-        - run: npm publish
-          env:
-            NODE_AUTH_TOKEN:  ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - run: npm install
+    - run: npm publish --dry-run
+      env:
+        NODE_AUTH_TOKEN:  ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
