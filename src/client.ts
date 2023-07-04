@@ -44,7 +44,7 @@ const REACT_SDK_CLIENT_VERSION = '2.9.2';
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
-  onReady(opts?: { timeout?: number }): Promise<any>;
+  onReady(opts?: { timeout?: number; segmentOptions?: optimizely.OptimizelySegmentOption[] }): Promise<any>;
   setUser(userInfo: UserInfo): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
@@ -281,26 +281,28 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.isUsingSdkKey;
   }
 
-  public onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
+  public onReady(
+    config: { timeout?: number; segmentOptions?: optimizely.OptimizelySegmentOption[] } = {}
+  ): Promise<OnReadyResult> {
     let timeoutId: number | undefined;
     let timeout: number = DEFAULT_ON_READY_TIMEOUT;
     if (config && config.timeout !== undefined) {
       timeout = config.timeout;
     }
-
     const timeoutPromise = new Promise<OnReadyResult>(resolve => {
       timeoutId = setTimeout(() => {
         resolve({
           success: false,
           reason: 'TIMEOUT',
           message:
-            'failed to initialize onReady before timeout, either the datafile or user info was not set before the timeout',
+            'failed to initialize onReady before timeout, either the datafile, user info or qualified segments was not set before the timeout',
           dataReadyPromise: this.dataReadyPromise,
         });
       }, timeout) as any;
     });
 
-    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(res => {
+    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
+      await this.fetchQualifiedSegments(config?.segmentOptions);
       clearTimeout(timeoutId);
       return res;
     });
