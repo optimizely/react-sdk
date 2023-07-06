@@ -1,4 +1,4 @@
-name: Jira ticket reference check
+name: Jira Ticket Reference Check
 
 on:
   pull_request:
@@ -7,10 +7,10 @@ on:
 jobs:
 
   jira_ticket_reference_check:
+    name: Check PR description has Jira number
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check for Jira ticket reference
+      - name: Call ticket reference checker
         uses: optimizely/github-action-ticket-reference-checker-public@master
         with:
           bodyRegex: 'FSSDK-(?<ticketNumber>\d+)' 

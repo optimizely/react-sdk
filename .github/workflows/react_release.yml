@@ -1,0 +1,23 @@
+name: Publish React SDK to NPM
+
+on:
+  release:
+    types: [ published ]
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+    - name: Set up Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+    - name: Install dependencies
+      run: yarn install
+    - name: Run npm publish command
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
+      run: npm publish

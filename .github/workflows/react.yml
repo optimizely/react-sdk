@@ -1,54 +1,34 @@
-name: react SDK CI
+name: React SDK CI
 
 on:
   push:
     branches: [ master ]
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: [ master ]
 
 jobs:
-  unit_tests:
+  unitTests:    
+    name: Run Unit Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['14', '16', '18' ]
+        node: [ '16', '18' ]
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout branch
+      uses: actions/checkout@v3
     - name: Set up Node ${{ matrix.node }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
-    - run: yarn install
-    - run: yarn test
+    - name: Install dependencies
+      run: yarn install
+    - name: Run tests
+      run: yarn test
 
-  integration_tests:
+  integration_tests:    
+    name: Run integration tests
+    needs: [ unitTests ]
     uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
     secrets:
       CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
-      TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}
-          
-  publish:
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: install
-        run: |
-          URL=$(curl https://api.github.com/repos/github/hub/releases/latest 2>/dev/null |  jq -r '.assets[] | select(.browser_download_url | contains("linux-amd64")) | .browser_download_url')
-          curl -fsSL "$URL" | tar xz -C /tmp --strip-components=1 --wildcards '*/bin/hub'
-          echo "${HOME}/.local/bin" >> $GITHUB_PATH
-          hub version
-      - name: Get the version
-        id: get_version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-      - name: set the env
-        run: echo "travis_tag=${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_ENV
-      - name: script
-        run: |
-          NEW_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==1' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          LAST_VERSION=$(grep -P '^## \[\d+\.\d+\.\d+.*\]' CHANGELOG.md | awk 'NR==2' |  sed -e 's/\[/\\\[/' | sed -e 's/\]/\\\]/')
-          DESCRIPTION=$(awk "/^${NEW_VERSION}$/,/^${LAST_VERSION:-nothingmatched}$/" CHANGELOG.md | grep -v "^${LAST_VERSION:-nothingmatched}$")
-          hub release create -m "Release ${{ env.travis_tag }}" -m "${DESCRIPTION}" "${{ env.travis_tag }}"
-          
+      TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}         

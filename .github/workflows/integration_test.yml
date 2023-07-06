@@ -1,4 +1,4 @@
-name: Reusable action of running integration of production suite
+name: Run Production Suite
 
 on:
   workflow_call:
@@ -11,18 +11,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout branch
+      uses: actions/checkout@v3
       with:
-        # You should create a personal access token and store it in your repository
         token: ${{ secrets.CI_USER_TOKEN }}
         repository: 'optimizely/travisci-tools'
         path: 'home/runner/travisci-tools'
         ref: 'master'
-    - name: set SDK Branch if PR
+    - name: Set SDK branch if PR
       if: ${{ github.event_name == 'pull_request' }}
       run: |
         echo "SDK_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
-    - name: set SDK Branch if not pull request
+    - name: Set SDK branch if not pull request
       if: ${{ github.event_name != 'pull_request' }}
       run: |
         echo "SDK_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
