@@ -302,7 +302,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
 
     return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
-      await this.fetchQualifiedSegments(config?.segmentOptions);
+      if (res.success) await this.fetchQualifiedSegments(config?.segmentOptions);
       clearTimeout(timeoutId);
       return res;
     });
