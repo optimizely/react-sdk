@@ -172,6 +172,15 @@ describe('ReactSDKClient', () => {
         });
       });
 
+      it('does not call fetchqualifiedsegments on dataReadyPromise success = false', async () => {
+        instance.setUser({
+          id: 'user12345',
+        });
+        jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+        await instance.onReady();
+        expect(instance.fetchQualifiedSegments).toHaveBeenCalledTimes(0);
+      });
+
       it('fulfills the returned promise with success: false when a user is set', async () => {
         instance.setUser({
           id: 'user12345',
