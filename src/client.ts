@@ -289,6 +289,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (config && config.timeout !== undefined) {
       timeout = config.timeout;
     }
+
     const timeoutPromise = new Promise<OnReadyResult>(resolve => {
       timeoutId = setTimeout(() => {
         resolve({
