@@ -3,14 +3,12 @@ name: React SDK CI
 on:
   push:
     branches: [ master ]
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: [ master ]
 
 jobs:
   unit_tests:    
-    name: Run unit tests under Node ${{ matrix.node }}
+    name: Run Unit Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,11 +20,13 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
-    - run: yarn install
-    - run: yarn test
+    - name: Install dependencies
+      run: yarn install
+    - name: Run tests
+      run: yarn test
 
   integration_tests:    
-    name: Run FSC integration tests
+    name: Run integration tests
     uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
     secrets:
       CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}

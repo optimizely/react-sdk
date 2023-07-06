@@ -18,6 +18,6 @@ jobs:
     - name: Install dependencies
       run: yarn install
     - name: Run npm publish command
-      run: npm publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
+      run: npm publish
