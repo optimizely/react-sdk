@@ -347,7 +347,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return await this.userContext.fetchQualifiedSegments(options);
   }
 
-  public setUser(userInfo: UserInfo): void {
+  public async setUser(userInfo: UserInfo): Promise<void> {
+    this.isUserReady = false;
+    this.isUserPromiseResolved = false;
+
     // TODO add check for valid user
     if (userInfo.id) {
       this.user.id = userInfo.id;
@@ -366,6 +369,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
+
+    await this.fetchQualifiedSegments();
 
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver(this.user);
