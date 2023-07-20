@@ -171,7 +171,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 
-  fetchQualifiedSegments(): Promise<boolean>;
+  fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
