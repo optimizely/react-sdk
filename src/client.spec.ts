@@ -220,11 +220,11 @@ describe('ReactSDKClient', () => {
       });
     });
 
-    it('adds and removes update handlers', () => {
+    it('adds and removes update handlers', async () => {
       const instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
       const dispose = instance.onUserUpdate(onUserUpdateListener);
-      instance.setUser({
+      await instance.setUser({
         id: 'newUser',
       });
       expect(onUserUpdateListener).toBeCalledTimes(1);
@@ -233,10 +233,25 @@ describe('ReactSDKClient', () => {
         attributes: {},
       });
       dispose();
-      instance.setUser({
+      await instance.setUser({
         id: 'newUser2',
       });
       expect(onUserUpdateListener).toBeCalledTimes(1);
+    });
+
+    it('calls fetchqualifiedsegements internally on each setuser call', async () => {
+      const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+
+      await instance.setUser({
+        id: 'xxfueaojfe8&86',
+      });
+
+      await instance.setUser({
+        id: 'xxfueaojfe8&87',
+      });
+
+      expect(instance.fetchQualifiedSegments).toBeCalledTimes(2);
     });
 
     describe('pre-set user and user overrides', () => {

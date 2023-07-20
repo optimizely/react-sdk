@@ -45,7 +45,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
-  setUser(userInfo: UserInfo): void;
+  setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
