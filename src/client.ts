@@ -208,7 +208,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private dataReadyPromise: Promise<OnReadyResult>;
 
   public initialConfig: optimizely.Config;
-  public user: UserInfo = default_user;
+  public user: UserInfo = { ...default_user };
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -354,7 +354,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this.isUserReady = true;
 
     //reset user info
-    this.user = default_user;
+    this.user = { ...default_user };
 
     this.user.id = userInfo.id;
 
