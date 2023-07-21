@@ -41,6 +41,11 @@ export type OnReadyResult = {
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.9.2';
 
+const default_user: UserInfo = {
+  id: null,
+  attributes: {},
+};
+
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
@@ -203,10 +208,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private dataReadyPromise: Promise<OnReadyResult>;
 
   public initialConfig: optimizely.Config;
-  public user: UserInfo = {
-    id: null,
-    attributes: {},
-  };
+  public user: UserInfo = default_user;
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -350,6 +352,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   public async setUser(userInfo: UserInfo): Promise<void> {
     this.isUserPromiseResolved = false;
     this.isUserReady = true;
+
+    //reset user info
+    this.user = default_user;
 
     this.user.id = userInfo.id;
 
