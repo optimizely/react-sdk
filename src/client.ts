@@ -348,22 +348,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
-    this.isUserReady = false;
     this.isUserPromiseResolved = false;
+    this.isUserReady = true;
 
-    // TODO add check for valid user
-    if (userInfo.id) {
-      this.user.id = userInfo.id;
-      this.isUserReady = true;
+    this.user.id = userInfo.id;
 
-      if (this._client) {
-        this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-      } else {
-        logger.warn(
-          'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
-          this.user.id
-        );
-      }
+    if (this._client) {
+      this.userContext = this._client.createUserContext(userInfo.id ?? undefined, userInfo.attributes);
+    } else {
+      logger.warn(
+        'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
+        this.user.id
+      );
     }
 
     if (userInfo.attributes) {
