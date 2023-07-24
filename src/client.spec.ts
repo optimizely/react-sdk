@@ -143,11 +143,22 @@ describe('ReactSDKClient', () => {
     });
 
     it('fulfills the returned promise with success: true when a user is set', async () => {
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
         id: 'user12345',
       });
       const result = await instance.onReady();
       expect(result.success).toBe(true);
+    });
+
+    it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+
+      await instance.setUser({
+        id: 'user12345',
+      });
+      const result = await instance.onReady();
+      expect(result.success).toBe(false);
     });
 
     describe('if Optimizely client is null', () => {
@@ -194,6 +205,7 @@ describe('ReactSDKClient', () => {
         resolveInnerClientOnReady = res;
       });
       mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
         id: 'user999',
       });
