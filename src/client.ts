@@ -29,7 +29,7 @@ type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 type OnForcedVariationsUpdateHandler = () => void;
 
-type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT';
+type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'QUALIFIED_SEGMENTS_NOT_READY';
 
 export type OnReadyResult = {
   success: boolean;
@@ -183,7 +183,7 @@ export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   private userContext: optimizely.OptimizelyUserContext | null = null;
-  private userPromiseResolver: (user: UserInfo) => void;
+  private userPromiseResolver: (isRsolved: boolean) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
@@ -230,9 +230,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this.userPromise = new Promise(resolve => {
       this.userPromiseResolver = resolve;
-    }).then(() => {
-      this.isUserReady = true;
-      return { success: true };
+    }).then(isUserResolved => {
+      if (isUserResolved) {
+        this.isUserReady = true;
+        return { success: true };
+      }
+      return { success: false, message: 'Failed to fetch qualified segments.' };
     });
 
     if (this._client) {
@@ -240,7 +243,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isClientReady = true;
       });
 
-      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(() => {
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
+        if (!res[0].success) {
+          return {
+            success: false,
+            reason: 'QUALIFIED_SEGMENTS_NOT_READY',
+            message: res[0].message,
+          };
+        }
+
         // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
         this.isReadyPromiseFulfilled = true;
         return {
@@ -370,11 +381,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
-
-    await this.fetchQualifiedSegments();
+    const isSegmentsFetched = await this.fetchQualifiedSegments();
 
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResolver(this.user);
+      this.userPromiseResolver(isSegmentsFetched);
       this.isUserPromiseResolved = true;
     }
 
