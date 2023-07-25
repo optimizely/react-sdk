@@ -31,12 +31,15 @@ type OnForcedVariationsUpdateHandler = () => void;
 
 type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'USER_NOT_READY';
 
-export type OnReadyResult = {
+type ResolveResult = {
   success: boolean;
   reason?: NotReadyReason;
   message?: string;
-  dataReadyPromise?: Promise<any>;
 };
+
+export interface OnReadyResult extends ResolveResult {
+  dataReadyPromise?: Promise<any>;
+}
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.9.2';
@@ -183,7 +186,7 @@ export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   private userContext: optimizely.OptimizelyUserContext | null = null;
-  private userPromiseResolver: (isRsolved: boolean) => void;
+  private userPromiseResolver: (resolveResult: ResolveResult) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
@@ -230,12 +233,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this.userPromise = new Promise(resolve => {
       this.userPromiseResolver = resolve;
-    }).then(isUserResolved => {
-      if (isUserResolved) {
-        this.isUserReady = true;
-        return { success: true };
-      }
-      return { success: false, reason: 'USER_NOT_READY', message: 'Failed to fetch qualified segments.' };
+    }).then((result: ResolveResult) => {
+      this.isUserReady = result.success;
+      return result;
     });
 
     if (this._client) {
@@ -245,11 +245,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
       this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
         if (!res[0].success) {
-          return {
-            success: false,
-            reason: 'USER_NOT_READY',
-            message: res[0].message,
-          };
+          return res[0];
         }
 
         // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
@@ -383,8 +379,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
     const isSegmentsFetched = await this.fetchQualifiedSegments();
 
+    const segmentsResult: ResolveResult = { success: isSegmentsFetched };
+    if (!isSegmentsFetched) {
+      segmentsResult.reason = 'USER_NOT_READY';
+      segmentsResult.message = 'Failed to fetch qualified segments';
+    }
+
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResolver(isSegmentsFetched);
+      this.userPromiseResolver(segmentsResult);
       this.isUserPromiseResolved = true;
     }
 
