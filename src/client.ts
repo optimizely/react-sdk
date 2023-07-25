@@ -29,23 +29,31 @@ type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 type OnForcedVariationsUpdateHandler = () => void;
 
-type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT';
+type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'USER_NOT_READY';
 
-export type OnReadyResult = {
+type ResolveResult = {
   success: boolean;
   reason?: NotReadyReason;
   message?: string;
-  dataReadyPromise?: Promise<any>;
 };
+
+export interface OnReadyResult extends ResolveResult {
+  dataReadyPromise?: Promise<any>;
+}
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '2.9.2';
+
+const default_user: UserInfo = {
+  id: null,
+  attributes: {},
+};
 
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
-  setUser(userInfo: UserInfo): void;
+  setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
@@ -171,14 +179,14 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 
-  fetchQualifiedSegments(): Promise<boolean>;
+  fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   private userContext: optimizely.OptimizelyUserContext | null = null;
-  private userPromiseResolver: (user: UserInfo) => void;
+  private userPromiseResolver: (resolveResult: ResolveResult) => void;
   private userPromise: Promise<OnReadyResult>;
   private isUserPromiseResolved = false;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
@@ -203,10 +211,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private dataReadyPromise: Promise<OnReadyResult>;
 
   public initialConfig: optimizely.Config;
-  public user: UserInfo = {
-    id: null,
-    attributes: {},
-  };
+  public user: UserInfo = { ...default_user };
 
   /**
    * Creates an instance of OptimizelyReactSDKClient.
@@ -228,9 +233,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     this.userPromise = new Promise(resolve => {
       this.userPromiseResolver = resolve;
-    }).then(() => {
-      this.isUserReady = true;
-      return { success: true };
+    }).then((result: ResolveResult) => {
+      this.isUserReady = result.success;
+      return result;
     });
 
     if (this._client) {
@@ -238,7 +243,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isClientReady = true;
       });
 
-      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(() => {
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
+        if (!res[0].success) {
+          return res[0];
+        }
+
         // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
         this.isReadyPromiseFulfilled = true;
         return {
@@ -347,28 +356,37 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return await this.userContext.fetchQualifiedSegments(options);
   }
 
-  public setUser(userInfo: UserInfo): void {
-    // TODO add check for valid user
-    if (userInfo.id) {
-      this.user.id = userInfo.id;
-      this.isUserReady = true;
+  public async setUser(userInfo: UserInfo): Promise<void> {
+    this.isUserPromiseResolved = false;
+    this.isUserReady = true;
 
-      if (this._client) {
-        this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-      } else {
-        logger.warn(
-          'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
-          this.user.id
-        );
-      }
+    //reset user info
+    this.user = { ...default_user };
+
+    this.user.id = userInfo.id;
+
+    if (this._client) {
+      this.userContext = this._client.createUserContext(userInfo.id ?? undefined, userInfo.attributes);
+    } else {
+      logger.warn(
+        'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
+        this.user.id
+      );
     }
 
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
+    const isSegmentsFetched = await this.fetchQualifiedSegments();
+
+    const segmentsResult: ResolveResult = { success: isSegmentsFetched };
+    if (!isSegmentsFetched) {
+      segmentsResult.reason = 'USER_NOT_READY';
+      segmentsResult.message = 'Failed to fetch qualified segments';
+    }
 
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResolver(this.user);
+      this.userPromiseResolver(segmentsResult);
       this.isUserPromiseResolved = true;
     }
 
