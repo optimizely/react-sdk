@@ -29,7 +29,7 @@ type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 type OnForcedVariationsUpdateHandler = () => void;
 
-type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'QUALIFIED_SEGMENTS_NOT_READY';
+type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'USER_NOT_READY';
 
 export type OnReadyResult = {
   success: boolean;
@@ -235,7 +235,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isUserReady = true;
         return { success: true };
       }
-      return { success: false, message: 'Failed to fetch qualified segments.' };
+      return { success: false, reason: 'USER_NOT_READY', message: 'Failed to fetch qualified segments.' };
     });
 
     if (this._client) {
@@ -247,7 +247,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         if (!res[0].success) {
           return {
             success: false,
-            reason: 'QUALIFIED_SEGMENTS_NOT_READY',
+            reason: 'USER_NOT_READY',
             message: res[0].message,
           };
         }
