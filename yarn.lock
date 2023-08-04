@@ -558,10 +558,10 @@
   dependencies:
     uuid "^3.3.2"
 
-"@optimizely/optimizely-sdk@^5.0.0-beta":
-  version "5.0.0-beta"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0-beta.tgz#3290713524707d6328ec2c00a4ec1490410d3bcd"
-  integrity sha512-WgiZDAJcdRyRPbJlZ96cuVVAF+6IuwK4hzGT6XBPdfRrBm6jLb9oQ3qUhGJMxNBoUFHlaNVnvm/T4lKS/gcy9Q==
+"@optimizely/optimizely-sdk@^5.0.0-beta2":
+  version "5.0.0-beta2"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0-beta2.tgz#83eb7ea3fb94ad6e75263c1493f219d3cfff0595"
+  integrity sha512-UnA5Nk1ZbmpsJoHt2uizJ+Rb0qx6Jrt2+g9rPguzbkr1HMFDiK1apod8+9NVzB98SroXSA+dHTlBc+OAVp7m4w==
   dependencies:
     "@optimizely/js-sdk-datafile-manager" "^0.9.5"
     decompress-response "^4.2.1"
