@@ -28,8 +28,7 @@
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
     "prepare": "npm run build",
-    "bug-bash:setup": "sh ./bug-bash/setup.sh",
-    "bug-bash": "node ./bug-bash/"
+    "bug-bash": "sh ./bug-bash/setup.sh"
   },
   "publishConfig": {
     "access": "public"
