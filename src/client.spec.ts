@@ -17,10 +17,10 @@ jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
   return {
     logger: {
-      warn: jest.fn(() => () => {}),
-      info: jest.fn(() => () => {}),
-      error: jest.fn(() => () => {}),
-      debug: jest.fn(() => () => {}),
+      warn: jest.fn(() => () => { }),
+      info: jest.fn(() => () => { }),
+      error: jest.fn(() => () => { }),
+      debug: jest.fn(() => () => { }),
     },
   };
 });
@@ -251,7 +251,7 @@ describe('ReactSDKClient', () => {
       expect(onUserUpdateListener).toBeCalledTimes(1);
     });
 
-    it('calls fetchqualifiedsegements internally on each setuser call', async () => {
+    it('does not call fetchqualifiedsegements on setUser if onready is not calleed initially', async () => {
       const instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
 
@@ -259,11 +259,27 @@ describe('ReactSDKClient', () => {
         id: 'xxfueaojfe8&86',
       });
 
+      expect(instance.fetchQualifiedSegments).toBeCalledTimes(0);
+    });
+
+    it('calls fetchqualifiedsegements internally on each setuser call after onready', async () => {
+      const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+
+      await instance.setUser({
+        id: 'xxfueaojfe8&86',
+      });
+      await instance.onReady()
+
       await instance.setUser({
         id: 'xxfueaojfe8&87',
       });
 
-      expect(instance.fetchQualifiedSegments).toBeCalledTimes(2);
+      await instance.setUser({
+        id: 'xxfueaojfe8&87',
+      });
+
+      expect(instance.fetchQualifiedSegments).toBeCalledTimes(3);
     });
 
     describe('pre-set user and user overrides', () => {

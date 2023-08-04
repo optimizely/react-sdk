@@ -219,7 +219,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => {};
+    this.userPromiseResolver = () => { };
 
     const configWithClientInfo = {
       ...config,
@@ -244,9 +244,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       });
 
       this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
-        if (!res[0].success) {
-          return res[0];
-        }
 
         // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
         this.isReadyPromiseFulfilled = true;
@@ -309,8 +306,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }, timeout) as any;
     });
 
-    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(res => {
+    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
       clearTimeout(timeoutId);
+      if (res.success) {
+        const isSegmentsFetched = await this.fetchQualifiedSegments();
+        if (!isSegmentsFetched) {
+          return {
+            success: false,
+            reason: 'USER_NOT_READY',
+            message: 'Failed to fetch qualified segments',
+          }
+        }
+      }
       return res;
     });
   }
@@ -357,7 +364,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
-    this.isUserPromiseResolved = false;
     this.isUserReady = true;
 
     //reset user info
@@ -377,16 +383,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
-    const isSegmentsFetched = await this.fetchQualifiedSegments();
 
-    const segmentsResult: ResolveResult = { success: isSegmentsFetched };
-    if (!isSegmentsFetched) {
-      segmentsResult.reason = 'USER_NOT_READY';
-      segmentsResult.message = 'Failed to fetch qualified segments';
+    if (this.getIsReadyPromiseFulfilled()) {
+      await this.fetchQualifiedSegments();
     }
 
     if (!this.isUserPromiseResolved) {
-      this.userPromiseResolver(segmentsResult);
+      this.userPromiseResolver({ success: true });
       this.isUserPromiseResolved = true;
     }
 
