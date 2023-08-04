@@ -27,7 +27,9 @@
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "bug-bash:setup": "sh ./bug-bash/setup.sh",
+    "bug-bash": "node ./bug-bash/"
   },
   "publishConfig": {
     "access": "public"
