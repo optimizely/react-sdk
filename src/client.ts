@@ -49,7 +49,7 @@ const default_user: UserInfo = {
   attributes: {},
 };
 
-export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
+export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext' | 'getVuid'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -1208,11 +1208,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       };
     }
     return this._client.notificationCenter;
-  }
-
-  // TODO: this is tobe removed in future once the js-sdk gets updated
-  public getVuid(): string | undefined {
-    return undefined;
   }
 
   public sendOdpEvent(
