@@ -1,4 +1,8 @@
-const scenario = process.argv[2];
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const scenario: string = process.argv[2];
 
 switch(scenario) {
   case 'scenario1':
