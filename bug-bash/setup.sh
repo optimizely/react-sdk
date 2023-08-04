@@ -25,7 +25,14 @@ else
   echo "SDK_KEY=$sdk_key" >> .env
 fi
 
+cd bug-bash/app
+npm install --silent
+
 echo
 echo "\033[1;38;2;59;224;129mReady\033[0m."
-echo "Please run \"npm run bug-bash -- <your-scenario>\" (note the spaces before & after --)"
+echo "Please go into bug-bash/app-src and begin editing App.tsx for your testing scenarios."
 echo
+echo "Press enter to start the local Bug Bash server. You'll need to leave this terminal active."
+read _discard
+
+npm run dev
