@@ -3,10 +3,13 @@
 echo "Welcome to the Bug Bash 🐞"
 echo "Setting up for the bug bash..."
 
-# Install dotenv via NPM instead of yarn so as not to save to package.json 
-npm install --no-save --legacy-peer-deps --silent dotenv 
-# Revert changes to yarn.lock file
-git checkout -- yarn.lock
+# Conditionally add npm packages
+if ! node -e "require('dotenv')" > /dev/null 2>&1; then
+  # Install via NPM instead of yarn so as not to save to package.json 
+  npm install --no-save --legacy-peer-deps --silent dotenv 
+  # Revert changes to yarn.lock file
+  git checkout -- yarn.lock
+fi
 
 # Prompt for SDK key
 echo
