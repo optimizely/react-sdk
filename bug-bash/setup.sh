@@ -2,10 +2,14 @@
 
 echo "Welcome to the Bug Bash 🐞"
 
-# Install via NPM instead of yarn so as not to save to package.json 
-npm install --no-save --legacy-peer-deps --silent dotenv 
-# Revert changes to yarn.lock file
-git checkout -- yarn.lock
+cd bug-bash/app
+
+# Install deps
+npm install --silent
+# Add dotenv 
+npm install --save-dev --silent dotenv
+# Add a reference to the local React SDK
+npm install --save --silent ../../
 
 # Prompt for SDK key
 echo
@@ -20,9 +24,6 @@ else
   # If it doesn't, create the file and append the new entry
   echo "SDK_KEY=$sdk_key" > .env
 fi
-
-cd bug-bash/app
-npm install --silent
 
 echo
 echo "Please go into bug-bash/app-src and \033[1;38;2;59;224;129mbegin editing App.tsx\033[0m for your testing scenarios."
