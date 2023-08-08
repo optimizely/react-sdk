@@ -1,8 +1,8 @@
 export const Grid = {
-  display: "grid",
-  gap: "50px 100px",
+  display: 'flex',
+  justifyContent: 'space-around',
 };
 
 export const Content = {
-  margin: "16px",
+  margin: '16px',
 };

@@ -1,31 +1,29 @@
-import React, { useEffect, useState } from "react";
-import {
-  createInstance,
-  OptimizelyProvider,
-  useDecision,
-} from "@optimizely/react-sdk";
-import { OptimizelyReturnType } from "./fetch-qualified-segments.types";
+import React, { useEffect, useState } from 'react';
+import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
+import { OptimizelyReturnType } from './fetch-qualified-segments.types';
+import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk';
 
 const optimizelyClient = createInstance({
   sdkKey: process.env.REACT_APP_OPTIMIZELY_SDK_KEY,
 });
 
 export const FetchQualifiedSegments: React.FC = () => {
-  const [isSegmentsFetched, setIsSegmentsFetched] = useState<boolean | null>(
-    null
-  );
+  const [isSegmentsFetched, setIsSegmentsFetched] = useState<boolean | null>(null);
   const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
 
-  const [userId] = useState<string>("matjaz-user-1");
+  const [userId] = useState<string>('matjaz-user-1');
   // const [userId] = useState<string>("matjaz-user-2");
   // const [userId] = useState<string>("matjaz-user-3");
+  // const [userId] = useState<null>(null);
 
   const prepareClient = () => {
-    console.log("optimizelyClient");
+    console.log('optimizelyClient');
     optimizelyClient.onReady().then(async (res: any) => {
       setReadyResult(res);
       setIsSegmentsFetched(true);
       // console.log(optimizelyClient.isReady());
+      await optimizelyClient.fetchQualifiedSegments();
+      await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
     });
   };
 
@@ -40,11 +38,7 @@ export const FetchQualifiedSegments: React.FC = () => {
       user={{ id: userId }}
     >
       {readyResult?.success && (
-        <div>
-          {`Is segments fetched for user ${userId}: ${
-            isSegmentsFetched ? "Yes" : "No"
-          } `}
-        </div>
+        <div>{`Is segments fetched for user ${userId}: ${isSegmentsFetched ? 'Yes' : 'No'} `}</div>
       )}
       {readyResult && !readyResult.success && (
         <div>

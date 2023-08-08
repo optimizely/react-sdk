@@ -1,5 +1,5 @@
-import React, { PropsWithChildren } from "react";
-import { Content, Grid } from "./layout.css";
+import React, { PropsWithChildren } from 'react';
+import { Content, Grid } from './layout.css';
 
 const AppLayout: React.FC<PropsWithChildren> = (props: PropsWithChildren) => {
   const { children } = props;
@@ -7,7 +7,12 @@ const AppLayout: React.FC<PropsWithChildren> = (props: PropsWithChildren) => {
   return (
     <div style={Content}>
       <div style={Grid}>
-        <button>Fetch Qualified Segments</button>
+        <div>
+          <a href="/">Validate User Context</a>
+        </div>
+        <div>
+          <a href="/fetch-qualified-segments">Fetch Qualified Segments</a>
+        </div>
       </div>
       {children}
     </div>
