@@ -6,8 +6,6 @@ cd bug-bash/app
 
 # Install deps
 npm install --silent
-# Add dotenv 
-npm install --save-dev --silent dotenv
 # Add a reference to the local React SDK
 npm install --save --silent ../../
 
