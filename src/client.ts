@@ -359,8 +359,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       logger.warn('Unable to fetch qualified segments for user because Optimizely client failed to initialize.');
       return false;
     }
-
-    return await this.userContext.fetchQualifiedSegments(options);
+    console.log(this.userContext.getUserId())
+    const res = await this.userContext.fetchQualifiedSegments(options);
+    if (res) {
+      logger.debug(
+        "Fetched qualified segments: " + this.userContext.qualifiedSegments
+      );
+    } else {
+      logger.debug(
+        "Failed to fetch qualified segments"
+      );
+    }
+    return res
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
