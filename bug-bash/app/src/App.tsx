@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 import './App.css';
 
-const optimizelyClient = createInstance({ sdkKey: '<YOUR_SDK_KEY>' });
+const sdkKey = import.meta.env.SDK_KEY;
+console.log('>>> SDK_KEY', sdkKey);
+const optimizelyClient = createInstance({ sdkKey });
 
 function Pre(props) {
   return <pre style={{ margin: 0 }}>{props.children}</pre>;
@@ -12,7 +14,7 @@ function isClientValid() {
   return optimizelyClient.getOptimizelyConfig() !== null;
 }
 
-const userIds = [];
+const userIds: string[] = [];
 while (userIds.length < 10) {
   userIds.push((Math.floor(Math.random() * 999999) + 100000).toString());
 }
@@ -34,10 +36,7 @@ function App() {
   }
 
   return (
-    <OptimizelyProvider
-      optimizely={optimizelyClient}
-      user={{ id: 'default_user' }}
-    >
+    <OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'default_user' }}>
       <pre>Welcome to our Quickstart Guide!</pre>
       {isClientReady && (
         <>
@@ -50,7 +49,7 @@ function App() {
       )}
       {isDone && !isClientReady && (
         <Pre>
-          Optimizely client invalid. Verify in Settings -> Environments that you used the primary environment's SDK key
+          Optimizely client invalid. Verify in Settings - Environments that you used the primary environment's SDK key
         </Pre>
       )}
     </OptimizelyProvider>
@@ -64,7 +63,7 @@ function FlagsOffMessage({ projectId }) {
       <Pre>Flag was off for everyone. Some reasons could include:</Pre>
       <Pre>1. Your sample size of visitors was too small. Rerun, or increase the iterations in the FOR loop</Pre>
       <Pre>
-        2. By default you have 2 keys for 2 project environments (dev/prod). Verify in Settings>Environments that you
+        2. By default you have 2 keys for 2 project environments (dev/prod). Verify in Settings - Environments that you
         used the right key for the environment where your flag is toggled to ON.
       </Pre>
       <Pre>
