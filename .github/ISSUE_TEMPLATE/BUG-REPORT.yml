@@ -1,0 +1,94 @@
+name: 🐞 Bug
+description: File a bug/issue
+title: "[BUG] <title>"
+labels: ["bug", "needs-triage"]
+body:
+- type: checkboxes
+  attributes:
+    label: Is there an existing issue for this?
+    description: Please search to see if an issue already exists for the bug you encountered.
+    options:
+    - label: I have searched the existing issues
+      required: true
+- type: textarea
+  attributes:
+    label: SDK Version
+    description: Version of the SDK in use?
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Current Behavior
+    description: A concise description of what you're experiencing.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: A concise description of what you expected to happen.
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: Steps To Reproduce
+    description: Steps to reproduce the behavior.
+    placeholder: |
+      1. In this environment...
+      1. With this config...
+      1. Run '...'
+      1. See error...
+  validations:
+    required: true
+- type: textarea
+  attributes:
+    label: React Framework
+    description: What reactive framework and version are you using?
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Browsers impacted
+    description: What browsers are impacted?
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Link
+    description: Link to code demonstrating the problem.
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Logs
+    description: Logs/stack traces related to the problem (⚠️do not include sensitive information).
+  validations:
+    required: false
+- type: dropdown
+  attributes:
+    label: Severity
+    description: What is the severity of the problem?
+    multiple: true
+    options:
+      - Blocking development
+      - Affecting users
+      - Minor issue
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Workaround/Solution
+    description: Do you have any workaround or solution in mind for the problem?
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Recent Change
+    description: Has this issue started happening after an update or experiment change?
+  validations:
+    required: false
+- type: textarea
+  attributes:
+    label: Conflicts
+    description: Are there other libraries/dependencies potentially in conflict?
+  validations:
+    required: false
