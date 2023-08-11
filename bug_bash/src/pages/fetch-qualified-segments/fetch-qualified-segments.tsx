@@ -9,30 +9,83 @@ import { OdpSegmentManager } from '@optimizely/optimizely-sdk/lib/core/odp/odp_s
 // });
 
 export const FetchQualifiedSegments: React.FC = () => {
-  // const optimizelyClient = createInstance({
-  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
-  // });
   const [featureKey, setFeatureKey] = useState<string>('some_key');
   const [isSegmentsFetched, setIsSegmentsFetched] = useState<boolean | null>(null);
   const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
 
   const [enableDecision, setEnableDecision] = useState<boolean>(false);
   // 1. console should show two qualified segments and a viud
-  // const [userId] = useState<string>('matjaz-user-1');
+  const optimizelyClient = createInstance({
+    sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  });
+  const [userId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(async (res: any) => {
+      setReadyResult(res);
+      setIsSegmentsFetched(true);
+    });
+  };
 
   // 2. console should show three qualified segments and the same viud
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
   // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
   // 3. console should show no qualified segments and the same viud
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
   // const [userId] = useState<string>('matjaz-user-3');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
   // 4. console should show no qualified segments and the same viud
   // const [userId] = useState<null>(null);
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
   // 5. the network tab zaious call should be sending the vuid_xxxxx as the vuid and there shouldnt be a fs_userid sent
   // const [userId] = useState<string>('vuid_overridden');
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
   // 6. the network tab should show 2 graphql calls
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
   // useEffect(() => {
   //   const callSegments = async () => {
   //     if (readyResult?.success) {
@@ -44,6 +97,17 @@ export const FetchQualifiedSegments: React.FC = () => {
   // }, [readyResult?.success]);
 
   // 7. the network tab should show 2 graphql calls
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'KZbunNn9bVfBWLpZPq2XC4',
+  // });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
   // useEffect(() => {
   //   const callSegments = async () => {
   //     if (readyResult?.success) {
@@ -224,19 +288,19 @@ export const FetchQualifiedSegments: React.FC = () => {
   // };
 
   // 18. test identifier should return bad request 400
-  const optimizelyClient = createInstance({
-    sdkKey: 'TbrfRLeKvLyWGusqANoeR',
-  });
+  // const optimizelyClient = createInstance({
+  //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
+  // });
 
-  const [userId] = useState<string>('matjaz-user-2');
+  // const [userId] = useState<string>('-user-2');
 
-  const prepareClient = () => {
-    optimizelyClient.onReady().then(async (res: any) => {
-      setReadyResult(res);
-      setIsSegmentsFetched(true);
-      optimizelyClient.sendOdpEvent('ttype', '', new Map([['test', 'test']]));
-    });
-  };
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     optimizelyClient.sendOdpEvent('ttype', '', new Map([['test', 'test']]));
+  //   });
+  // };
 
   useEffect(prepareClient, []);
 
