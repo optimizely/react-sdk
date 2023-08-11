@@ -198,7 +198,7 @@ export const App: React.FC = () => {
 
   // useEffect(prepareClient, []);
 
-  // 14. call decide for a segment user is not a part of hence user should not qualify,
+  // 13. call decide for a segment user is not a part of hence user should not qualify,
   // later make the user part of the segment and call decide again to check if user qualifies
   // const optimizelyClient = createInstance({
   //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
@@ -211,94 +211,6 @@ export const App: React.FC = () => {
   //     setFeatureKey('test_feature_1')
   //     setIsSegmentsFetched(true);
   //     setEnableDecision(true);
-  //   });
-  // };
-
-  // 15. test fetchQualifiedSegments with different odpOptions
-  // const optimizelyClient = createInstance({
-  //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
-  //   odpOptions: {
-  //     segmentsCacheSize: 1,
-  //     segmentsApiTimeout: 100000,
-  //     segmentManager: new OdpSegmentManager()
-  //     segmentsCache: true,
-  //     eventManager:true,
-  //     eventApiTimeout: 100000,
-  //     eventFlushInterval: 100000,
-  //   }
-  // });
-
-  // const [userId] = useState<string>('matjaz-user-2');
-
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: any) => {
-  //     setReadyResult(res);
-  //     setIsSegmentsFetched(true);
-  //     optimizelyClient.fetchQualifiedSegments();
-  //     optimizelyClient.sendOdpEvent(
-  //           'ttype',
-  //           '',
-  //           new Map([['FS-USER-ID', 'raju.ahmed2@optimizely.com']]),
-  //           new Map([["foo", "bar"]]),
-  //         );
-  //   });
-  // };
-
-  // 16. test sendOdpEvent with multiple types of data and check in event inspector
-  // const odpEventType = 'string';
-  // // const odpEventType = 'boolean';
-  // // const odpEventType = 'number';
-  // const optimizelyClient = createInstance({
-  //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
-  // });
-
-  // const [userId] = useState<string>('matjaz-user-2');
-
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: any) => {
-  //     setReadyResult(res);
-  //     setIsSegmentsFetched(true);
-  //     optimizelyClient.sendOdpEvent(
-  //       'ttype',
-  //       odpEventType,
-  //       new Map([['FS-USER-ID', 'raju.ahmed2@optimizely.com']]),
-  //       new Map([['foo', 'bar']])
-  //     );
-  //   });
-  // };
-
-  // 17. test identifier vuid key in sendevent
-  // const optimizelyClient = createInstance({
-  //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
-  // });
-
-  // const [userId] = useState<string>('matjaz-user-2');
-
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: any) => {
-  //     setReadyResult(res);
-  //     setIsSegmentsFetched(true);
-  //     optimizelyClient.sendOdpEvent(
-  //       'ttype',
-  //       '',
-  //       new Map([['FS-USER-ID', 'raju.ahmed2@optimizely.com']]),
-  //       new Map([['foo', 'bar']])
-  //     );
-  //   });
-  // };
-
-  // 18. test identifier should return bad request 400
-  // const optimizelyClient = createInstance({
-  //   sdkKey: 'TbrfRLeKvLyWGusqANoeR',
-  // });
-
-  // const [userId] = useState<string>('-user-2');
-
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: any) => {
-  //     setReadyResult(res);
-  //     setIsSegmentsFetched(true);
-  //     optimizelyClient.sendOdpEvent('ttype', '', new Map([['test', 'test']]));
   //   });
   // };
 
