@@ -13,6 +13,8 @@ export const App: React.FC = () => {
   const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
   const [enableDecision, setEnableDecision] = useState<boolean>(false);
 
+  /* ⬇️ Tests are below this line ⬇️ */
+
   // 1. console should show two qualified segments and a viud
   const optimizelyClient = createInstance({ sdkKey });
   const [userId] = useState<string>('matjaz-user-1');
@@ -72,7 +74,6 @@ export const App: React.FC = () => {
   //     setIsSegmentsFetched(true);
   //   });
   // };
-
   // useEffect(() => {
   //   const callSegments = async () => {
   //     if (readyResult?.success) {
@@ -92,7 +93,6 @@ export const App: React.FC = () => {
   //     setIsSegmentsFetched(true);
   //   });
   // };
-
   // useEffect(() => {
   //   const callSegments = async () => {
   //     if (readyResult?.success) {
@@ -105,7 +105,6 @@ export const App: React.FC = () => {
 
   // 8. there should be an error for the first call to fetchQualifiedSegments the second call should work fine
   // const [userId] = useState<string>('random-user-id');
-
   // const prepareClient = () => {
   //   console.log('optimizelyClient');
   //   optimizelyClient.onReady().then(async (res: any) => {
@@ -118,7 +117,6 @@ export const App: React.FC = () => {
   // 9. fetch should return error in the console, for segment fetch
   // const optimizelyClient = createInstance({ sdkKey });
   // const [userId] = useState<string>('matjaz-user-2');
-
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: any) => {
   //     setReadyResult(res);
@@ -136,7 +134,6 @@ export const App: React.FC = () => {
   //   },
   // });
   // const [userId] = useState<string>('matjaz-user-2');
-
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: any) => {
   //     setReadyResult(res);
@@ -170,7 +167,6 @@ export const App: React.FC = () => {
   //   },
   // });
   // const [userId] = useState<string>('matjaz-user-2');
-
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: any) => {
   //     setReadyResult(res);
@@ -178,7 +174,6 @@ export const App: React.FC = () => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
   //   });
   // };
-
   // useEffect(prepareClient, []);
 
   // 13. call decide for a segment user is not a part of hence user should not qualify,
@@ -187,7 +182,6 @@ export const App: React.FC = () => {
   //   sdkKey,
   // });
   // const [userId] = useState<string>('matjaz-user-2');
-
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: any) => {
   //     setReadyResult(res);
@@ -196,6 +190,8 @@ export const App: React.FC = () => {
   //     setEnableDecision(true);
   //   });
   // };
+
+  /* ⬆️ Tests are above this line ⬆️ */
 
   useEffect(prepareClient, []);
 
