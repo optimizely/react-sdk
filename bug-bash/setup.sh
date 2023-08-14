@@ -14,13 +14,13 @@ echo
 echo "\033[1;38;2;0;55;255mPlease enter your SDK key: \033[0m\c"
 read sdk_key
 
-# Check if .env file exists and contains SDK_KEY entry
-if [ -f .env ] && grep -q "SDK_KEY" .env; then
+# Check if .env.local file exists and contains SDK_KEY entry
+if [ -f .env.local ] && grep -q "VITE_SDK_KEY" .env.local; then
   # If it does, replace the existing entry
-  sed -i "s/^SDK_KEY=.*/SDK_KEY=$sdk_key/" .env
+  sed -i "s/^VITE_SDK_KEY=.*/VITE_SDK_KEY=$sdk_key/" .env.local
 else
   # If it doesn't, create the file and append the new entry
-  echo "SDK_KEY=$sdk_key" > .env
+  echo "VITE_SDK_KEY=$sdk_key" > .env.local
 fi
 
 echo

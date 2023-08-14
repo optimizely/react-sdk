@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 import './App.css';
 
-const sdkKey = import.meta.env.SDK_KEY;
+const sdkKey = import.meta.env.VITE_SDK_KEY;
 console.log('>>> SDK_KEY', sdkKey);
 const optimizelyClient = createInstance({ sdkKey });
 
