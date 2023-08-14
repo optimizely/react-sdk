@@ -11,8 +11,8 @@ export const App: React.FC = () => {
   const [featureKey, setFeatureKey] = useState<string>('some_key');
   const [isSegmentsFetched, setIsSegmentsFetched] = useState<boolean | null>(null);
   const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
-
   const [enableDecision, setEnableDecision] = useState<boolean>(false);
+
   // 1. console should show two qualified segments and a viud
   const optimizelyClient = createInstance({ sdkKey });
   const [userId] = useState<string>('matjaz-user-1');
@@ -203,22 +203,22 @@ export const App: React.FC = () => {
     <OptimizelyProvider optimizely={optimizelyClient} user={{ id: userId }}>
       {readyResult?.success && (
         <>
-          <h1>Application Output</h1>
-          <h2>Please open your browser's "Developer tools" (Ctrl-Shift-I)</h2>
+          <h1>Bug Bash Output</h1>
+          <h2>Please open your browser's "Developer tools" (Ctrl-Shift-I) for Console output</h2>
           <pre>
-            <div>{`Is segments fetched for user '${userId}': ${isSegmentsFetched ? 'Yes' : 'No'} `}</div>
-            <div>UserID: {optimizelyClient.user.id === null ? 'null' : optimizelyClient.user.id}</div>
-            <div>VUID: {localStorage.getItem('optimizely-vuid')}</div>
+            <p>{`Is segments fetched for user '${userId}': ${isSegmentsFetched ? 'Yes' : 'No'} `}</p>
+            <p>UserID: {optimizelyClient.user.id === null ? 'null' : optimizelyClient.user.id}</p>
+            <p>VUID: {localStorage.getItem('optimizely-vuid')}</p>
             {enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} />}
           </pre>
         </>
       )}
       {readyResult && !readyResult.success && (
-        <div>
+        <pre>
           Client failed to intialized. Check console for more details.
-          <div>Reason: {readyResult.reason}</div>
-          <div>Message: {readyResult.message}</div>
-        </div>
+          <p>Reason: {readyResult.reason}</p>
+          <p>Message: {readyResult.message}</p>
+        </pre>
       )}
     </OptimizelyProvider>
   );
@@ -240,13 +240,11 @@ function Decision({ userId, featureKey }: { userId: string; featureKey: string }
   const sortMethod = decision.variables['sort_method'];
 
   return (
-    <div>
-      {`\nFlag ${
-        decision.enabled ? 'on' : 'off'
-      }. User number ${userId} saw flag variation: ${variationKey} and got products sorted by: ${sortMethod} config variable as part of flag rule: ${
+    <p>
+      {`Flag ${ decision.enabled ? 'on' : 'off'}. User number ${userId} saw flag variation: ${variationKey} and got products sorted by: ${sortMethod} config variable as part of flag rule: ${
         decision.ruleKey
       }`}
-    </div>
+    </p>
   );
 }
 
