@@ -1,84 +1,234 @@
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
-import './App.css';
+import { OptimizelyReturnType } from './App.types';
 
-const sdkKey = import.meta.env.VITE_SDK_KEY;
-console.log('>>> SDK_KEY', sdkKey);
-const optimizelyClient = createInstance({ sdkKey });
+import { OdpSegmentManager } from '@optimizely/optimizely-sdk/lib/core/odp/odp_segment_manager';
+import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk/lib/core/odp/optimizely_segment_option';
 
-function Pre(props) {
-  return <pre style={{ margin: 0 }}>{props.children}</pre>;
-}
+const sdkKey = import.meta.env.VITE_SDK_KEY as string; // update in .env.local file
 
-function isClientValid() {
-  return optimizelyClient.getOptimizelyConfig() !== null;
-}
+export const App: React.FC = () => {
+  const [featureKey, setFeatureKey] = useState<string>('some_key');
+  const [isSegmentsFetched, setIsSegmentsFetched] = useState<boolean | null>(null);
+  const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
 
-const userIds: string[] = [];
-while (userIds.length < 10) {
-  userIds.push((Math.floor(Math.random() * 999999) + 100000).toString());
-}
+  const [enableDecision, setEnableDecision] = useState<boolean>(false);
+  // 1. console should show two qualified segments and a viud
+  const optimizelyClient = createInstance({ sdkKey });
+  const [userId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(async (res: any) => {
+      setReadyResult(res);
+      setIsSegmentsFetched(true);
+    });
+  };
 
-function App() {
-  const [hasOnFlag, setHasOnFlag] = useState(false);
-  const [isDone, setIsDone] = useState(false);
-  const [isClientReady, setIsClientReady] = useState(null);
+  // 2. console should show three qualified segments and the same viud
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
-  optimizelyClient.onReady().then(() => {
-    setIsDone(true);
-    isClientValid() && setIsClientReady(true);
-  });
+  // 3. console should show no qualified segments and the same viud
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
 
-  let projectId = '{project_id}';
-  if (isClientValid()) {
-    const datafile = JSON.parse(optimizelyClient.getOptimizelyConfig().getDatafile());
-    projectId = datafile.projectId;
-  }
+  // 4. console should show no qualified segments and the same viud
+  // const [userId] = useState<null>(null);
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
+  // 5. the network tab zaious call should be sending the vuid_xxxxx as the vuid and there shouldnt be a fs_userid sent
+  // const [userId] = useState<string>('vuid_overridden');
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
+  // 6. the network tab should show 2 graphql calls
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   const callSegments = async () => {
+  //     if (readyResult?.success) {
+  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.RESET_CACHE]);
+  //       await optimizelyClient.fetchQualifiedSegments();
+  //     }
+  //   };
+  //   callSegments();
+  // }, [readyResult?.success]);
+
+  // 7. the network tab should show 2 graphql calls
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   const callSegments = async () => {
+  //     if (readyResult?.success) {
+  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //       await optimizelyClient.fetchQualifiedSegments();
+  //     }
+  //   };
+  //   callSegments();
+  // }, [readyResult?.success]);
+
+  // 8. there should be an error for the first call to fetchQualifiedSegments the second call should work fine
+  // const [userId] = useState<string>('random-user-id');
+
+  // const prepareClient = () => {
+  //   console.log('optimizelyClient');
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //   });
+  // };
+
+  // 9. fetch should return error in the console, for segment fetch
+  // const optimizelyClient = createInstance({ sdkKey });
+  // const [userId] = useState<string>('matjaz-user-2');
+
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //   });
+  // };
+
+  // 10. odp network error
+  // const optimizelyClient = createInstance({
+  //   logLevel: 'debug',
+  //   sdkKey,
+  //   datafileOptions: {
+  //     urlTemplate: 'https://httpstat.us/521?sdkKey=%s',
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //   });
+  // };
+
+  // 11. segment api timeout error
+  // const optimizelyClient = createInstance({
+  //   sdkKey,
+  //   odpOptions: {
+  //     segmentsApiTimeout: 1,
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //   });
+  // };
+
+  // 12. should work fine for proper timeout value
+  // const optimizelyClient = createInstance({
+  //   sdkKey,
+  //   odpOptions: {
+  //     segmentsApiTimeout: 100000,
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setIsSegmentsFetched(true);
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //   });
+  // };
+
+  // useEffect(prepareClient, []);
+
+  // 13. call decide for a segment user is not a part of hence user should not qualify,
+  // later make the user part of the segment and call decide again to check if user qualifies
+  // const optimizelyClient = createInstance({
+  //   sdkKey,
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: any) => {
+  //     setReadyResult(res);
+  //     setFeatureKey('test_feature_1')
+  //     setIsSegmentsFetched(true);
+  //     setEnableDecision(true);
+  //   });
+  // };
+
+  useEffect(prepareClient, []);
 
   return (
-    <OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'default_user' }}>
-      <pre>Welcome to our Quickstart Guide!</pre>
-      {isClientReady && (
+    <OptimizelyProvider optimizely={optimizelyClient} user={{ id: userId }}>
+      {readyResult?.success && (
         <>
-          {userIds.map(userId => (
-            <Decision key={userId} userId={userId} setHasOnFlag={setHasOnFlag} />
-          ))}
-          <br />
-          {!hasOnFlag && <FlagsOffMessage projectId={projectId} />}
+          <h1>Application Output</h1>
+          <h2>Please open your browser's "Developer tools" (Ctrl-Shift-I)</h2>
+          <pre>
+            <div>{`Is segments fetched for user '${userId}': ${isSegmentsFetched ? 'Yes' : 'No'} `}</div>
+            <div>UserID: {optimizelyClient.user.id === null ? 'null' : optimizelyClient.user.id}</div>
+            <div>VUID: {localStorage.getItem('optimizely-vuid')}</div>
+            {enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} />}
+          </pre>
         </>
       )}
-      {isDone && !isClientReady && (
-        <Pre>
-          Optimizely client invalid. Verify in Settings - Environments that you used the primary environment's SDK key
-        </Pre>
+      {readyResult && !readyResult.success && (
+        <div>
+          Client failed to intialized. Check console for more details.
+          <div>Reason: {readyResult.reason}</div>
+          <div>Message: {readyResult.message}</div>
+        </div>
       )}
     </OptimizelyProvider>
   );
-}
+};
 
-function FlagsOffMessage({ projectId }) {
-  const navLink = `https://app.optimizely.com/v2/projects/${projectId}/settings/implementation`;
-  return (
-    <div>
-      <Pre>Flag was off for everyone. Some reasons could include:</Pre>
-      <Pre>1. Your sample size of visitors was too small. Rerun, or increase the iterations in the FOR loop</Pre>
-      <Pre>
-        2. By default you have 2 keys for 2 project environments (dev/prod). Verify in Settings - Environments that you
-        used the right key for the environment where your flag is toggled to ON.
-      </Pre>
-      <Pre>
-        Check your key at <a href={navLink}>{navLink}</a>
-      </Pre>
-      <br />
-    </div>
-  );
-}
-
-function Decision({ userId, setHasOnFlag }) {
-  const [decision, clientReady] = useDecision('product_sort', {}, { overrideUserId: userId });
+function Decision({ userId, featureKey }: { userId: string; featureKey: string }) {
+  const [decision, clientReady] = useDecision(featureKey, {}, { overrideUserId: userId });
 
   if (!clientReady) {
-    return '';
+    return <></>;
   }
 
   const variationKey = decision.variationKey;
@@ -87,20 +237,16 @@ function Decision({ userId, setHasOnFlag }) {
     console.log(' decision error: ', decision['reasons']);
   }
 
-  if (decision.enabled) {
-    setTimeout(() => setHasOnFlag(true));
-  }
-
   const sortMethod = decision.variables['sort_method'];
 
   return (
-    <Pre>
+    <div>
       {`\nFlag ${
         decision.enabled ? 'on' : 'off'
       }. User number ${userId} saw flag variation: ${variationKey} and got products sorted by: ${sortMethod} config variable as part of flag rule: ${
         decision.ruleKey
       }`}
-    </Pre>
+    </div>
   );
 }
 

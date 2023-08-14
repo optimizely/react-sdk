@@ -4,3 +4,8 @@
   padding: 2rem;
   text-align: center;
 }
+
+pre {
+  /* monospaced text*/
+  font-family: monospace;
+}
