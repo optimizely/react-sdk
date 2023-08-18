@@ -4,6 +4,7 @@ import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/rea
 import { OdpOptions } from '@optimizely/optimizely-sdk/dist/shared_types';
 import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk/lib/shared_types';
 import Decision from './Decision';
+import { OdpEvent } from '@optimizely/optimizely-sdk/lib/core/odp/odp_event';
 
 const sdkKey = import.meta.env.VITE_SDK_KEY as string; // update in .env.local file
 const logLevel = 'info'; // adjust as you needed; 'debug' needed later
@@ -181,7 +182,7 @@ export const App: React.FC = () => {
   //   optimizelyClient.onReady().then((res: OptimizelyReturnType) => {
   //     setFeatureKey('flag2');
   //     setEnableDecision(true);
-  //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res)); 
+  //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
   //   });
   // };
 
@@ -189,12 +190,12 @@ export const App: React.FC = () => {
     You have been testing a hacky way to view the qualified segments by accessing the private property in 
     handleReadyResult (NOT recommended) 
   */
- 
+
   /* createUserContext() is done implicity in the React SDK so we cannot test it here */
 
   /* React SDK Omits the getVuid().  We've been getting it from localStorage.getItem('optimizely-vuid') for browsers */
 
-  /* Test other ODP segments and events settings including Odp disabled
+  /* Test other ODP segments settings including Odp disabled
       disabled?: boolean;
       segmentsCache?: ICache<string, string[]>; // probably too hard to test
       segmentsCacheSize?: number;
@@ -202,12 +203,6 @@ export const App: React.FC = () => {
       segmentsApiTimeout?: number;
       segmentsRequestHandler?: RequestHandler; // probably too hard to test
       segmentManager?: IOdpSegmentManager; // probably too hard to test
-      eventFlushInterval?: number;
-      eventBatchSize?: number;
-      eventQueueSize?: number;
-      eventApiTimeout?: number;
-      eventRequestHandler?: RequestHandler; // probably too hard to test
-      eventManager?: IOdpEventManager; // probably too hard to test
   */
   // optimizelyClient = createInstance({
   //   sdkKey,
@@ -218,6 +213,75 @@ export const App: React.FC = () => {
   // const [userId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
+
+  /* Test sending ODP events.
+    View the Network tab and look for zaius.gif calls and inspect the Query String Parameters
+  */
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(() => {
+  //     // optimizelyClient.sendOdpEvent(
+  //     //   'fullstack', // action
+  //     //   'bug_bash', // type
+  //     //   new Map([['fs_user_id', 'fsUserA']]), // identifiers
+  //     //   new Map([['test_key', 'test_value']]), // data; test with various data types
+  //     // );
+  //     // optimizelyClient.sendOdpEvent(''); // error; shouldn't see associated zaius.gif call
+  //     // optimizelyClient.sendOdpEvent(null); // error
+  //     // optimizelyClient.sendOdpEvent(undefined); // error
+  //   });
+  // };
+
+  /* Test when ODP endpoint is down 
+    You can ignore OPTIONS or "preflight" requests focusing on xhr GET
+  */
+  // const originalOpen = XMLHttpRequest.prototype.open;
+  // XMLHttpRequest.prototype.open = function(method: string, url: string, async: boolean) {
+  //   url =
+  //     url.includes('jumbe.zaius.com') && !url.includes('httpstat.us')
+  //       ? `https://httpstat.us/521?original_url=${url}`
+  //       : url;
+  //   originalOpen.call(this, method, url, async);
+  // };
+  // const [userId] = useState<string>('matjaz-user-3');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(() => {
+  //     optimizelyClient.sendOdpEvent(  // feel free to add the loop from below
+  //       'fullstack',
+  //       'bug_bash',
+  //       new Map([['fs_user_id', 'fsUserB']]),
+  //       new Map([['test_count', 1]])
+  //     );
+  //   });
+  // };
+
+  /* Test other ODP events settings
+      eventFlushInterval?: number; // queuing in a browser is not supported
+      eventBatchSize?: number; // queuing in a browser is not supported
+      eventQueueSize?: number; // queuing in a browser is not supported
+      eventApiTimeout?: number;
+      eventRequestHandler?: RequestHandler; // probably too hard to test
+      eventManager?: IOdpEventManager; // probably too hard to test
+  */
+  // optimizelyClient = createInstance({
+  //   sdkKey,
+  //   odpOptions: {
+  //     eventFlushInterval: 1,
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(() => {
+  //     for (let i = 0; i < 10; i++) {
+  //       optimizelyClient.sendOdpEvent(
+  //         'fullstack',
+  //         'bug_bash',
+  //         new Map([['fs_user_id', 'fsUserC']]),
+  //         new Map([['test_count', i]])
+  //       );
+  //     }
+  //   });
   // };
 
   /* ⬆️ Tests are above this line ⬆️ */
