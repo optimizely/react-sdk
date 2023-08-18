@@ -45,10 +45,10 @@ export const App: React.FC = () => {
 
   /* Open the Developer Tools > Console tab
     [BUG BASH 🐝] items should show two qualified segments and a viud */
-  // const [userId] = useState<string>('matjaz-user-1');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(handleReadyResult);
-  // };
+  const [userId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(handleReadyResult);
+  };
 
   /* The Console tab should now show three qualified segments and the same viud */
   // const [userId] = useState<string>('matjaz-user-2');
@@ -165,7 +165,8 @@ export const App: React.FC = () => {
   // };
 
   /* Call decide for a segment user is not a part of hence user should not qualify. 
-    Later make the user part of the segment and call decide again to check if user qualifies
+    Later make the user part of the segment and call decide again to check if user 
+    Look for results in the HTML page instead of the developer tools
      */
   // const [userId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
@@ -283,6 +284,8 @@ export const App: React.FC = () => {
   //     }
   //   });
   // };
+
+  /* You should be seeing `client_initialized` & 'identified' implied events in the Network tab throughout your testing */
 
   /* ⬆️ Tests are above this line ⬆️ */
 
