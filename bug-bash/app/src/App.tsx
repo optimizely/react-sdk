@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 
-import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk';
+import { OdpOptions } from '@optimizely/optimizely-sdk/dist/shared_types';
+import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk/lib/shared_types';
+import Decision from './Decision';
 
 const sdkKey = import.meta.env.VITE_SDK_KEY as string; // update in .env.local file
 const logLevel = 'info'; // adjust as you needed; 'debug' needed later
@@ -119,10 +121,9 @@ export const App: React.FC = () => {
     because we have a stored VUID that has segments */
   // const [userId] = useState<string>('random-user-id');
   // const prepareClient = () => {
-  //   // not using handleReadyResult here because we want to test the error
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //     setReadyResult(res);
+  //     handleReadyResult(res);
   //   });
   // };
 
@@ -131,67 +132,59 @@ export const App: React.FC = () => {
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //     setReadyResult(res);
+  //     handleReadyResult(res);
   //   });
   // };
 
-  /* 10. Testing ODP network error.  You should see a status 521 in the Console & Network tabs */
-  optimizelyClient = createInstance({
-    logLevel,
-    sdkKey,
-    datafileOptions: {
-      urlTemplate: 'https://httpstat.us/521?sdkKey=%s',
-    },
-  });
+  /* Testing ODP network error.  You should see a status 521 in the Console & Network 
+    tabs when an ODP function is called.
+    
+    Monkey patch XMLHttpRequest's open function to make a call to a "down" ODP endpoint
+    */
+  // const originalOpen = XMLHttpRequest.prototype.open;
+  // XMLHttpRequest.prototype.open = function(method:string, url:string, async:boolean) {
+  //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url;
+  //   originalOpen.call(this, method, url, async);
+  // };
+  // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
+
+  /* Simulate segment API timeout. Expect to see error about the audience fetching */
+  // optimizelyClient = createInstance({
+  //   sdkKey,
+  //   odpOptions: {
+  //     segmentsApiTimeout: 10, // too fast timeout 
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
+
+  /* Should work fine for proper timeout value */
+  // optimizelyClient = createInstance({
+  //   sdkKey,
+  //   odpOptions: {
+  //     segmentsApiTimeout: 5_000, // reasonable timeout
+  //   },
+  // });
+  // const [userId] = useState<string>('matjaz-user-2');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
+
+  /* Call decide for a segment user is not a part of hence user should not qualify,
+    later make the user part of the segment and call decide again to check if user qualifies */
   const [userId] = useState<string>('matjaz-user-2');
   const prepareClient = () => {
     optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-      await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-      setReadyResult(res);
+      setFeatureKey('test_feature_1')
+      setEnableDecision(true);
+      handleReadyResult(res);
     });
   };
-
-  // 11. segment api timeout error
-  // const optimizelyClient = createInstance({
-  //   sdkKey,
-  //   odpOptions: {
-  //     segmentsApiTimeout: 1,
-  //   },
-  // });
-  // const [userId] = useState<string>('matjaz-user-2');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-  //     setReadyResult(res);
-  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //   });
-  // };
-
-  // 12. should work fine for proper timeout value
-  // const optimizelyClient = createInstance({
-  //   sdkKey,
-  //   odpOptions: {
-  //     segmentsApiTimeout: 100000,
-  //   },
-  // });
-  // const [userId] = useState<string>('matjaz-user-2');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-  //     setReadyResult(res);
-  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //   });
-  // };
-  // useEffect(prepareClient, []);
-
-  // 13. call decide for a segment user is not a part of hence user should not qualify,
-  // later make the user part of the segment and call decide again to check if user qualifies
-  // const [userId] = useState<string>('matjaz-user-2');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-  //     setReadyResult(res);
-  //     setFeatureKey('test_feature_1')
-  //     setEnableDecision(true);
-  //   });
-  // };
 
   /* ⬆️ Tests are above this line ⬆️ */
 
@@ -217,33 +210,7 @@ export const App: React.FC = () => {
   );
 };
 
-function Decision({ userId, featureKey }: { userId: string; featureKey: string }) {
-  const [decision, clientReady] = useDecision(featureKey, {}, { overrideUserId: userId });
-
-  if (!clientReady) {
-    return <></>;
-  }
-
-  const variationKey = decision.variationKey;
-
-  if (variationKey === null) {
-    console.log(' decision error: ', decision['reasons']);
-  }
-
-  const sortMethod = decision.variables['sort_method'];
-
-  return (
-    <p>
-      {`Flag ${
-        decision.enabled ? 'on' : 'off'
-      }. User number ${userId} saw flag variation: ${variationKey} and got products sorted by: ${sortMethod} config variable as part of flag rule: ${
-        decision.ruleKey
-      }`}
-    </p>
-  );
-}
-
-export type OptimizelyReturnType = {
+type OptimizelyReturnType = {
   success: boolean;
   reason?: string;
   message?: string;
