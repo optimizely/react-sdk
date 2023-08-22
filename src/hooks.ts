@@ -16,7 +16,7 @@
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
-import { getLogger, LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
+import { getLogger, LoggerFacade } from '@optimizely/optimizely-sdk/lib/modules/logging';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
