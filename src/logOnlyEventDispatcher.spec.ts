@@ -1,9 +1,9 @@
-jest.mock('@optimizely/js-sdk-logging', () => ({
+jest.mock('@optimizely/optimizely-sdk/dist/modules/logging', () => ({
   getLogger: jest.fn().mockReturnValue({ debug: jest.fn() }),
 }));
 
 import logOnlyEventDispatcher from './logOnlyEventDispatcher';
-import * as logging from '@optimizely/js-sdk-logging';
+import * as logging from '@optimizely/optimizely-sdk/dist/modules/logging';
 
 const logger = logging.getLogger('ReactSDK');
 

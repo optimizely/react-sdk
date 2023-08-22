@@ -1,5 +1,5 @@
 /**
- * Copyright 2020, Optimizely
+ * Copyright 2020, 2023 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { enums } from '@optimizely/optimizely-sdk';
-import { LoggerFacade } from '@optimizely/js-sdk-logging';
+import { LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
 
 import { ReactSDKClient } from './client';
 

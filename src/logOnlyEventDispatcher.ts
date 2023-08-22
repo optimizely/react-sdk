@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, Optimizely
+ * Copyright 2019, 2023 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 
 import * as optimizely from '@optimizely/optimizely-sdk';
-import * as logging from '@optimizely/js-sdk-logging';
+import * as logging from '@optimizely/optimizely-sdk/dist/modules/logging';
 
 const logger = logging.getLogger('ReactSDK');
 
