@@ -6,11 +6,11 @@ import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk/lib/shared_t
 import Decision from './Decision';
 import { OdpEvent } from '@optimizely/optimizely-sdk/lib/core/odp/odp_event';
 
-const sdkKey = import.meta.env.VITE_SDK_KEY as string; // update in .env.local file
-const logLevel = 'info'; // adjust as you needed; 'debug' needed later
+const sdkKey = import.meta.env.VITE_SDK_KEY as string; // 💡update in .env.local file
+const logLevel = 'debug'; 
 
 const bugBashLog = (message: string) => {
-  console.log(`%c🐝[BUG BASH] - ${message}`, 'color: orange; font-size: 20px;');
+  console.log(`%c🐞[BUG BASH] - ${message}`, 'color: orange; font-size: 20px;');
 };
 
 export const App: React.FC = () => {
@@ -44,25 +44,32 @@ export const App: React.FC = () => {
   /* ⬇️ Tests are below this line ⬇️ */
 
   /* Open the Developer Tools > Console tab
-    [BUG BASH 🐝] items should show two qualified segments and a viud */
-  const [userId] = useState<string>('matjaz-user-1');
-  const prepareClient = () => {
-    optimizelyClient.onReady().then(handleReadyResult);
-  };
-
-  /* The Console tab should now show three qualified segments and the same viud */
-  // const [userId] = useState<string>('matjaz-user-2');
+    [BUG BASH] items should show 2 qualified segments and a viud */
+  // const [userId] = useState<string>('matjaz-user-1');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
-  /* The Console tab should now show no qualified segments and the same vuid */
+  /* After a few minutes from the above test, fill in the VUID as the userid.
+    The Console tab should now show the same qualified segments and previous userid.
+    The Network graphql POST calls should have passed `query {customer(vuid : "vuid_f22c526c1e93406f82294d41e6a")`
+    instead of `fs_user_id`
+    
+    Try deleting the vuid by going to Application tab > Local Storage (left pane) > http://127.0.0.1:5173/ entry then
+    delete the optimizely-vuid entry  in the middle pane then refresh the page
+    */
+  // const [userId] = useState<string>('vuid_f22c526c1e93406f82294d41e6a');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
+
+  /* The Console tab should show empty qualified segments and the same vuid */
   // const [userId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
-  /* The Console tab should show no qualified segments and the same vuid */
+  /* The Console tab should not show qualified segments and USER_NOT_READY error since React requires userId for usercontext */
   // const [userId] = useState<null>(null);
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
@@ -77,30 +84,31 @@ export const App: React.FC = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
-  /* In the Network tab, there should be 1 graphql POST calls since we're using the cache */
+  /* In the Network tab, Clear the network output using the 🚫 button. 
+    Make a small change to this file, then look for the number of graphql POST calls.*/
   // const [userId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
   // useEffect(() => {
   //   (async () => {
-  //     if (readyResult?.success) {
+  //     if (readyResult?.success) { 
   //       await optimizelyClient.fetchQualifiedSegments();
   //       await optimizelyClient.fetchQualifiedSegments();
   //     }
   //   })();
   // }, [readyResult?.success]);
 
-  /* Now the Network tab should show 2 identical graphql POSTs since we're resetting the cache */
-  // const [userId] = useState<string>('matjaz-user-3');
+  /* Now the Network tab should show 2 identical graphql POSTs since we're resetting the cache  */
+  // const [userId] = useState<string>('matjaz-user-3'); 
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
   // useEffect(() => {
   //   (async () => {
   //     if (readyResult?.success) {
-  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.RESET_CACHE]);
-  //       await optimizelyClient.fetchQualifiedSegments();
+  //       await optimizelyClient.fetchQualifiedSegments();  
+  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.RESET_CACHE]); 
   //     }
   //   })();
   // }, [readyResult?.success]);
@@ -113,21 +121,21 @@ export const App: React.FC = () => {
   // useEffect(() => {
   //   (async () => {
   //     if (readyResult?.success) {
+  //       await optimizelyClient.fetchQualifiedSegments(); 
   //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //       await optimizelyClient.fetchQualifiedSegments();
   //     }
   //   })();
   // }, [readyResult?.success]);
 
   /* There should be an error for the first call to fetchQualifiedSegments the second call should work fine
     because we have a stored VUID that has segments */
-  // const [userId] = useState<string>('random-user-id');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-  //     handleReadyResult(res);
-  //   });
-  // };
+  const [userId] = useState<string>('random-user-id');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
+      await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+      handleReadyResult(res);
+    });
+  };
 
   /* Try a different SDK Key that has ODP integratino OFF */
   // optimizelyClient = createInstance({ sdkKey: 'Dp4dLTSVkoP8VhYkdb4Z4', logLevel: 'debug' });

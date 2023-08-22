@@ -11,7 +11,7 @@ npm install --save --silent ../../
 
 # Prompt for SDK key
 echo
-echo "\033[1;38;2;0;55;255mPlease enter your SDK key: \033[0m\c"
+echo "\033[1;38;2;0;55;255mPlease enter your SDK key (use TbrfRLeKvLyWGusqANoeR for AAT): \033[0m\c"
 read sdk_key
 
 # Check if .env.local file exists and contains SDK_KEY entry
