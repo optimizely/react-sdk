@@ -45,10 +45,10 @@ export const App: React.FC = () => {
 
   /* Open the Developer Tools > Console tab
     [BUG BASH] items should show 2 qualified segments and a viud */
-  // const [userId] = useState<string>('matjaz-user-1');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(handleReadyResult);
-  // };
+  const [userId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(handleReadyResult);
+  };
 
   /* After a few minutes from the above test, fill in the VUID as the userid.
     The Console tab should now show the same qualified segments and previous userid.
@@ -129,13 +129,13 @@ export const App: React.FC = () => {
 
   /* There should be an error for the first call to fetchQualifiedSegments the second call should work fine
     because we have a stored VUID that has segments */
-  const [userId] = useState<string>('random-user-id');
-  const prepareClient = () => {
-    optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
-      await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
-      handleReadyResult(res);
-    });
-  };
+  // const [userId] = useState<string>('random-user-id');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
+  //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
+  //     handleReadyResult(res);
+  //   });
+  // };
 
   /* Try a different SDK Key that has ODP integratino OFF */
   // optimizelyClient = createInstance({ sdkKey: 'Dp4dLTSVkoP8VhYkdb4Z4', logLevel: 'debug' });
