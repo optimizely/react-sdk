@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@optimizely/optimizely-sdk": "^5.0.0-beta4",
+    "@types/uuid": "^9.0.2",
     "hoist-non-react-statics": "^3.3.0",
     "prop-types": "^15.6.2",
     "utility-types": "^2.1.0 || ^3.0.0"
