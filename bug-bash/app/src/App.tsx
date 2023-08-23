@@ -129,7 +129,7 @@ export const App: React.FC = () => {
 
   /* There should be an error for the first call to fetchQualifiedSegments the second call should work fine
     because we have a stored VUID that has segments */
-  // const [userId] = useState<string>('random-user-id');
+  // const [userId] = useState<string>('random-user-change-me-every-time'); 
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
@@ -137,7 +137,7 @@ export const App: React.FC = () => {
   //   });
   // };
 
-  /* Try a different SDK Key that has ODP integratino OFF */
+  /* Try a different SDK Key that has ODP integration OFF. You'll need to refresh your page*/
   // optimizelyClient = createInstance({ sdkKey: 'Dp4dLTSVkoP8VhYkdb4Z4', logLevel: 'debug' });
   // const [userId] = useState<null>(null);
   // const prepareClient = () => {
@@ -149,18 +149,19 @@ export const App: React.FC = () => {
     
     Monkey patch XMLHttpRequest's open function to make a call to a "down" ODP endpoint
     https://httpstat.us/521 gives a 521 status code but you can choose others to test (https://httpstat.us/ for details)
+    Use https://httpstat.us/408?sleep=20000 to have the connection timeout after 20 seconds
     */
   // const originalOpen = XMLHttpRequest.prototype.open;
   // XMLHttpRequest.prototype.open = function(method:string, url:string, async:boolean) {
-  //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url;
+  //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url; 
   //   originalOpen.call(this, method, url, async);
   // };
   // const [userId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
-  // };
+  // }; 
 
-  /* Simulate segment API timeout. Expect to see error about the audience fetching */
+  /* Simulate segment API timeout. Expect to see error about the audience fetching too fast then update to a reasonable timeout*/
   // optimizelyClient = createInstance({
   //   sdkKey,
   //   odpOptions: {
@@ -174,7 +175,7 @@ export const App: React.FC = () => {
 
   /* Call decide for a segment user is not a part of hence user should not qualify. 
     Later make the user part of the segment and call decide again to check if user 
-    Look for results in the HTML page instead of the developer tools
+    Look for results in the HTML page or filter your Console output for DECISION_SERVICE
      */
   // const [userId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
@@ -202,7 +203,8 @@ export const App: React.FC = () => {
 
   /* createUserContext() is done implicity in the React SDK so we cannot test it here */
 
-  /* React SDK Omits the getVuid().  We've been getting it from localStorage.getItem('optimizely-vuid') for browsers */
+  /* React SDK Omits the getVuid().  We've been getting it from localStorage.getItem('optimizely-vuid') for browsers 
+    otherwise it's not available for non-browser contexts (react native uses asyncstorage)*/
 
   /* Test other ODP segments settings including Odp disabled
       disabled?: boolean;
@@ -212,6 +214,8 @@ export const App: React.FC = () => {
       segmentsApiTimeout?: number;
       segmentsRequestHandler?: RequestHandler; // probably too hard to test
       segmentManager?: IOdpSegmentManager; // probably too hard to test
+
+    You'll be looking at the Console tab; filter to "cache"
   */
   // optimizelyClient = createInstance({
   //   sdkKey,
@@ -226,16 +230,18 @@ export const App: React.FC = () => {
 
   /* Test sending ODP events.
     View the Network tab and look for zaius.gif calls and inspect the Query String Parameters
+    Also review the Console tab
   */
   // const [userId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(() => {
-  //     // optimizelyClient.sendOdpEvent(
-  //     //   'fullstack', // action
-  //     //   'bug_bash', // type
-  //     //   new Map([['fs_user_id', 'fsUserA']]), // identifiers
-  //     //   new Map([['test_key', 'test_value']]), // data; test with various data types
-  //     // );
+  //     /* Uncomment each of the following individually  to test scenarios of ODP event data*/
+  //     optimizelyClient.sendOdpEvent(
+  //       'fullstack', // action
+  //       'bug_bash', // type
+  //       new Map([['fs_user_id', 'fsUserA']]), // identifiers; feel free to remove the data from here `new Map()` or edit the key-values
+  //       new Map([['test_key', 'test_value']]), // data; test with various data types
+  //     );
   //     // optimizelyClient.sendOdpEvent(''); // error; shouldn't see associated zaius.gif call
   //     // optimizelyClient.sendOdpEvent(null); // error
   //     // optimizelyClient.sendOdpEvent(undefined); // error
@@ -266,6 +272,7 @@ export const App: React.FC = () => {
   // };
 
   /* Test other ODP events settings
+      disabled?: boolean
       eventFlushInterval?: number; // queuing in a browser is not supported
       eventBatchSize?: number; // queuing in a browser is not supported
       eventQueueSize?: number; // queuing in a browser is not supported
@@ -276,7 +283,8 @@ export const App: React.FC = () => {
   // optimizelyClient = createInstance({
   //   sdkKey,
   //   odpOptions: {
-  //     eventFlushInterval: 1,
+  //     disabled: true,
+  //     eventFlushInterval: 10,
   //   },
   // });
   // const [userId] = useState<string>('matjaz-user-2');
