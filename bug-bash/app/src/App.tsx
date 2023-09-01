@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 
-import { OdpOptions } from '@optimizely/optimizely-sdk/dist/shared_types';
-import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk/lib/shared_types';
+import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk';
 import Decision from './Decision';
-import { OdpEvent } from '@optimizely/optimizely-sdk/lib/core/odp/odp_event';
 
 const sdkKey = import.meta.env.VITE_SDK_KEY as string; // 💡update in .env.local file
 const logLevel = 'debug'; 
@@ -45,10 +43,10 @@ export const App: React.FC = () => {
 
   /* Open the Developer Tools > Console tab
     [BUG BASH] items should show 2 qualified segments and a viud */
-  // const [userId, setUserId] = useState<string>('matjaz-user-1');
-  // const prepareClient = () => {
-  //   optimizelyClient.onReady().then(handleReadyResult);
-  // };
+  const [userId, setUserId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then(handleReadyResult);
+  };
 
   /* After a few minutes from the above test, fill in the VUID as the userid.
     The Console tab should now show the same qualified segments and previous userid.
@@ -199,14 +197,14 @@ export const App: React.FC = () => {
   /* Test changing a user that is enabled matjaz-user-1 to a disabled matjaz-user-3 
     Look for a button on the HTML.
   */
-  const [userId, setUserId] = useState<string>('matjaz-user-1');
-  const prepareClient = () => {
-    optimizelyClient.onReady().then((res: OptimizelyReturnType) => {
-      setFeatureKey('flag2');
-      setEnableDecision(true);
-      optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
-    });
-  };  
+  // const [userId, setUserId] = useState<string>('matjaz-user-1');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then((res: OptimizelyReturnType) => {
+  //     setFeatureKey('flag2');
+  //     setEnableDecision(true);
+  //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
+  //   });
+  // };  
 
   /* Cannot test isQualifiedFor since userContext is not exposed (only user)
     You have been testing a hacky way to view the qualified segments by accessing the private property in 

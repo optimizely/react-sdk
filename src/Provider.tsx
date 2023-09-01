@@ -15,7 +15,7 @@
  */
 import * as React from 'react';
 import { UserAttributes } from '@optimizely/optimizely-sdk';
-import { getLogger } from '@optimizely/optimizely-sdk/lib/modules/logging';
+import { getLogger } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyContextProvider } from './Context';
 import { ReactSDKClient } from './client';

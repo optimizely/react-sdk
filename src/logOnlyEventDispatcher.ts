@@ -15,7 +15,7 @@
  */
 
 import * as optimizely from '@optimizely/optimizely-sdk';
-import * as logging from '@optimizely/optimizely-sdk/lib/modules/logging';
+import * as logging from '@optimizely/optimizely-sdk';
 
 const logger = logging.getLogger('ReactSDK');
 

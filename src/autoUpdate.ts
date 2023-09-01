@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { enums } from '@optimizely/optimizely-sdk';
-import { LoggerFacade } from '@optimizely/optimizely-sdk/lib/modules/logging';
 
 import { ReactSDKClient } from './client';
+import { LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
 
 interface AutoUpdate {
   (
