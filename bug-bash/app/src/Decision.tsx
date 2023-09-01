@@ -1,3 +1,4 @@
+import { ConsoleLogHandler } from '@optimizely/optimizely-sdk/dist/modules/logging';
 import { useDecision } from '@optimizely/react-sdk';
 import React from 'react';
 
@@ -12,11 +13,6 @@ export const Decision: React.FC<DecisionProps> = ({ userId, featureKey, setUserI
 
   if (!clientReady) {
     return <></>;
-  }
-
-  const variationKey = decision.variationKey;
-  if (variationKey === null) {
-    console.log('Decision error: ', decision['reasons']);
   }
 
   const sortMethod = decision.variables['sort_method'];
@@ -34,7 +30,7 @@ export const Decision: React.FC<DecisionProps> = ({ userId, featureKey, setUserI
       <div>
         {`Flag ${
           decision.enabled ? 'on' : 'off'
-        }. User id '${userId}' saw flag variation '${variationKey}' and got products sorted by '${sortMethod}' config variable as part of flag rule '${
+        }. User id '${userId}' saw flag variation '${decision.variationKey}' and got products sorted by '${sortMethod}' config variable as part of flag rule '${
           decision.ruleKey
         }'`}
       </div>
