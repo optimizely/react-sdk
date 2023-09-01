@@ -45,10 +45,10 @@ export const App: React.FC = () => {
 
   /* Open the Developer Tools > Console tab
     [BUG BASH] items should show 2 qualified segments and a viud */
-  const [userId] = useState<string>('matjaz-user-1');
-  const prepareClient = () => {
-    optimizelyClient.onReady().then(handleReadyResult);
-  };
+  // const [userId, setUserId] = useState<string>('matjaz-user-1');
+  // const prepareClient = () => {
+  //   optimizelyClient.onReady().then(handleReadyResult);
+  // };
 
   /* After a few minutes from the above test, fill in the VUID as the userid.
     The Console tab should now show the same qualified segments and previous userid.
@@ -58,19 +58,19 @@ export const App: React.FC = () => {
     Try deleting the vuid by going to Application tab > Local Storage (left pane) > http://127.0.0.1:5173/ entry then
     delete the optimizely-vuid entry  in the middle pane then refresh the page
     */
-  // const [userId] = useState<string>('vuid_f22c526c1e93406f82294d41e6a');
+  // const [userId, setUserId] = useState<string>('vuid_f22c526c1e93406f82294d41e6a');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
   /* The Console tab should show empty qualified segments and the same vuid */
-  // const [userId] = useState<string>('matjaz-user-3');
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
   /* The Console tab should not show qualified segments and USER_NOT_READY error since React requires userId for usercontext */
-  // const [userId] = useState<null>(null);
+  // const [userId, setUserId] = useState<null>(null);
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -79,14 +79,14 @@ export const App: React.FC = () => {
     Look for graphql calls that are POST requests (you can ignore the OPTIONS calls)
     Click the latest one and inspect the Payload 
     There should be a `vuid: vuid_xxxxx` as the vuid and there should not be a fs_userid sent */
-  // const [userId] = useState<string>('vuid_overridden');
+  // const [userId, setUserId] = useState<string>('vuid_overridden');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
 
   /* In the Network tab, Clear the network output using the 🚫 button. 
     Make a small change to this file, then look for the number of graphql POST calls.*/
-  // const [userId] = useState<string>('matjaz-user-3');
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -100,7 +100,7 @@ export const App: React.FC = () => {
   // }, [readyResult?.success]);
 
   /* Now the Network tab should show 2 identical graphql POSTs since we're resetting the cache  */
-  // const [userId] = useState<string>('matjaz-user-3'); 
+  // const [userId, setUserId] = useState<string>('matjaz-user-3'); 
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -114,7 +114,7 @@ export const App: React.FC = () => {
   // }, [readyResult?.success]);
 
   /* Again, in the Network tab should show 2 graphql calls since we're ignoring the cache */
-  // const [userId] = useState<string>('matjaz-user-3');
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -129,7 +129,7 @@ export const App: React.FC = () => {
 
   /* There should be an error for the first call to fetchQualifiedSegments the second call should work fine
     because we have a stored VUID that has segments */
-  // const [userId] = useState<string>('random-user-change-me-every-time'); 
+  // const [userId, setUserId] = useState<string>('random-user-change-me-every-time'); 
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
@@ -139,7 +139,7 @@ export const App: React.FC = () => {
 
   /* Try a different SDK Key that has ODP integration OFF. You'll need to refresh your page*/
   // optimizelyClient = createInstance({ sdkKey: 'Dp4dLTSVkoP8VhYkdb4Z4', logLevel: 'debug' });
-  // const [userId] = useState<null>(null);
+  // const [userId, setUserId] = useState<null>(null);
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -156,7 +156,7 @@ export const App: React.FC = () => {
   //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url; 
   //   originalOpen.call(this, method, url, async);
   // };
-  // const [userId] = useState<string>('matjaz-user-2');
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // }; 
@@ -168,7 +168,7 @@ export const App: React.FC = () => {
   //     segmentsApiTimeout: 10, // too fast timeout 10 or reasonable timeout 5_000
   //   },
   // });
-  // const [userId] = useState<string>('matjaz-user-2');
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -176,8 +176,8 @@ export const App: React.FC = () => {
   /* Call decide for a segment user is not a part of hence user should not qualify. 
     Later make the user part of the segment and call decide again to check if user 
     Look for results in the HTML page or filter your Console output for DECISION_SERVICE
-     */
-  // const [userId] = useState<string>('matjaz-user-2');
+  */
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     setFeatureKey('test_feature_1'); // flag1 or flag2 in the AAT SDK project then try again
@@ -187,14 +187,26 @@ export const App: React.FC = () => {
   // };
 
   /* Test Promise version of fetchQualifiedSegments */
-  // const [userId] = useState<string>('matjaz-user-2');
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then((res: OptimizelyReturnType) => {
   //     setFeatureKey('flag2');
   //     setEnableDecision(true);
   //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
   //   });
-  // };
+  // };  
+
+  /* Test changing a user that is enabled matjaz-user-1 to a disabled matjaz-user-3 
+    Look for a button on the HTML.
+  */
+  const [userId, setUserId] = useState<string>('matjaz-user-1');
+  const prepareClient = () => {
+    optimizelyClient.onReady().then((res: OptimizelyReturnType) => {
+      setFeatureKey('flag2');
+      setEnableDecision(true);
+      optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
+    });
+  };  
 
   /* Cannot test isQualifiedFor since userContext is not exposed (only user)
     You have been testing a hacky way to view the qualified segments by accessing the private property in 
@@ -223,7 +235,7 @@ export const App: React.FC = () => {
   //     segmentsCacheSize: 1,
   //   },
   // });
-  // const [userId] = useState<string>('matjaz-user-2');
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
@@ -232,7 +244,7 @@ export const App: React.FC = () => {
     View the Network tab and look for zaius.gif calls and inspect the Query String Parameters
     Also review the Console tab
   */
-  // const [userId] = useState<string>('matjaz-user-3');
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(() => {
   //     /* Uncomment each of the following individually  to test scenarios of ODP event data*/
@@ -259,7 +271,7 @@ export const App: React.FC = () => {
   //       : url;
   //   originalOpen.call(this, method, url, async);
   // };
-  // const [userId] = useState<string>('matjaz-user-3');
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(() => {
   //     optimizelyClient.sendOdpEvent(  // feel free to add the loop from below
@@ -287,7 +299,7 @@ export const App: React.FC = () => {
   //     eventFlushInterval: 10,
   //   },
   // });
-  // const [userId] = useState<string>('matjaz-user-2');
+  // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(() => {
   //     for (let i = 0; i < 10; i++) {
@@ -313,7 +325,7 @@ export const App: React.FC = () => {
         <>
           <h1>Bug Bash</h1>
           <h2>Please open your browser's "Developer tools" (Ctrl-Shift-I) for Console, Network, & Application tabs</h2>
-          <pre>{enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} />}</pre>
+          <pre>{enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} setUserId={setUserId} />}</pre>
         </>
       )}
       {readyResult && !readyResult.success && (
