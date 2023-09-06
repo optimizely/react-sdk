@@ -82,7 +82,8 @@ export const App: React.FC = () => {
   // };
 
   /* In the Network tab, Clear the network output using the 🚫 button. 
-    Make a small change to this file, then look for the number of graphql POST calls.*/
+    Make a small change to this file, then look for the number of graphql POST calls.    
+    You can also look for the Console message: ODP cache hit. Returning segments from cache "fs_user_id-$XXXXX".*/
   // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
