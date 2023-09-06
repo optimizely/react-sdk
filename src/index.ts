@@ -1,11 +1,11 @@
 /**
- * Copyright 2018-2019, Optimizely
+ * Copyright 2018-2019, 2023 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -22,8 +22,7 @@ export { OptimizelyExperiment } from './Experiment';
 export { OptimizelyVariation } from './Variation';
 export { OptimizelyDecision } from './utils';
 
-export
- {
+export {
   logging,
   errorHandler,
   setLogger,
@@ -33,9 +32,9 @@ export
   OptimizelyDecideOption,
   ActivateListenerPayload,
   TrackListenerPayload,
-  ListenerPayload
-} 
-from '@optimizely/optimizely-sdk';
+  ListenerPayload,
+  OptimizelySegmentOption,
+} from '@optimizely/optimizely-sdk';
 
 export { createInstance, ReactSDKClient } from './client';
 
