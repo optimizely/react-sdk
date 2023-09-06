@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
+import { createInstance, OptimizelyProvider, OptimizelySegmentOption, useDecision } from '@optimizely/react-sdk';
 
-import { OptimizelySegmentOption } from '@optimizely/optimizely-sdk';
 import Decision from './Decision';
 
 const sdkKey = import.meta.env.VITE_SDK_KEY as string; // 💡update in .env.local file
-const logLevel = 'debug'; 
+const logLevel = 'debug';
 
 const bugBashLog = (message: string) => {
   console.log(`%c🐞[BUG BASH] - ${message}`, 'color: orange; font-size: 20px;');
@@ -90,7 +89,7 @@ export const App: React.FC = () => {
   // };
   // useEffect(() => {
   //   (async () => {
-  //     if (readyResult?.success) { 
+  //     if (readyResult?.success) {
   //       await optimizelyClient.fetchQualifiedSegments();
   //       await optimizelyClient.fetchQualifiedSegments();
   //     }
@@ -119,7 +118,7 @@ export const App: React.FC = () => {
   // useEffect(() => {
   //   (async () => {
   //     if (readyResult?.success) {
-  //       await optimizelyClient.fetchQualifiedSegments(); 
+  //       await optimizelyClient.fetchQualifiedSegments();
   //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
   //     }
   //   })();
@@ -127,7 +126,7 @@ export const App: React.FC = () => {
 
   /* There should be an error for the first call to fetchQualifiedSegments the second call should work fine
     because we have a stored VUID that has segments */
-  // const [userId, setUserId] = useState<string>('random-user-change-me-every-time'); 
+  // const [userId, setUserId] = useState<string>('random-user-change-me-every-time');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(async (res: OptimizelyReturnType) => {
   //     await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.IGNORE_CACHE]);
@@ -151,13 +150,13 @@ export const App: React.FC = () => {
     */
   // const originalOpen = XMLHttpRequest.prototype.open;
   // XMLHttpRequest.prototype.open = function(method:string, url:string, async:boolean) {
-  //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url; 
+  //   url = url.includes('api.zaius.com') ? 'https://httpstat.us/521' : url;
   //   originalOpen.call(this, method, url, async);
   // };
   // const [userId, setUserId] = useState<string>('matjaz-user-2');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
-  // }; 
+  // };
 
   /* Simulate segment API timeout. Expect to see error about the audience fetching too fast then update to a reasonable timeout*/
   // optimizelyClient = createInstance({
@@ -192,7 +191,7 @@ export const App: React.FC = () => {
   //     setEnableDecision(true);
   //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
   //   });
-  // };  
+  // };
 
   /* Test changing a user that is enabled matjaz-user-1 to a disabled matjaz-user-3 
     Look for a button on the HTML.
@@ -204,7 +203,7 @@ export const App: React.FC = () => {
   //     setEnableDecision(true);
   //     optimizelyClient.fetchQualifiedSegments().then(() => handleReadyResult(res));
   //   });
-  // };  
+  // };
 
   /* Cannot test isQualifiedFor since userContext is not exposed (only user)
     You have been testing a hacky way to view the qualified segments by accessing the private property in 
@@ -323,7 +322,9 @@ export const App: React.FC = () => {
         <>
           <h1>Bug Bash</h1>
           <h2>Please open your browser's "Developer tools" (Ctrl-Shift-I) for Console, Network, & Application tabs</h2>
-          <pre>{enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} setUserId={setUserId} />}</pre>
+          <pre>
+            {enableDecision && featureKey && <Decision userId={userId} featureKey={featureKey} setUserId={setUserId} />}
+          </pre>
         </>
       )}
       {readyResult && !readyResult.success && (
