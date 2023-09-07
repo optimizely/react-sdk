@@ -5,6 +5,8 @@ import Decision from './Decision';
 
 const sdkKey = import.meta.env.VITE_SDK_KEY as string; // 💡update in .env.local file
 const logLevel = 'debug';
+// Using let here because we need to reassign the client in some tests
+let optimizelyClient = createInstance({ sdkKey, logLevel });
 
 const bugBashLog = (message: string) => {
   console.log(`%c🐞[BUG BASH] - ${message}`, 'color: orange; font-size: 20px;');
@@ -14,9 +16,6 @@ export const App: React.FC = () => {
   const [featureKey, setFeatureKey] = useState<string>('some_key');
   const [readyResult, setReadyResult] = useState<OptimizelyReturnType>();
   const [enableDecision, setEnableDecision] = useState<boolean>(false);
-
-  // Using let here because we need to reassign the client in some tests
-  let optimizelyClient = createInstance({ sdkKey, logLevel });
 
   const handleReadyResult = async (res: OptimizelyReturnType) => {
     const userContext = optimizelyClient?.userContext;
@@ -98,15 +97,15 @@ export const App: React.FC = () => {
   // }, [readyResult?.success]);
 
   /* Now the Network tab should show 2 identical graphql POSTs since we're resetting the cache  */
-  // const [userId, setUserId] = useState<string>('matjaz-user-3'); 
+  // const [userId, setUserId] = useState<string>('matjaz-user-3');
   // const prepareClient = () => {
   //   optimizelyClient.onReady().then(handleReadyResult);
   // };
   // useEffect(() => {
   //   (async () => {
   //     if (readyResult?.success) {
-  //       await optimizelyClient.fetchQualifiedSegments();  
-  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.RESET_CACHE]); 
+  //       await optimizelyClient.fetchQualifiedSegments();
+  //       await optimizelyClient.fetchQualifiedSegments([OptimizelySegmentOption.RESET_CACHE]);
   //     }
   //   })();
   // }, [readyResult?.success]);
