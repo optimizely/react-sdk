@@ -243,8 +243,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isClientReady = true;
       });
 
-      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
-
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client?.onReady()]).then(() => {
         // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
         this.isReadyPromiseFulfilled = true;
         return {
@@ -255,7 +254,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
-      this.dataReadyPromise = new Promise((resolve, reject) => {
+      this.dataReadyPromise = new Promise(resolve => {
         resolve({
           success: false,
           reason: 'NO_CLIENT',
@@ -308,14 +307,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
       clearTimeout(timeoutId);
-      if (res.success) {
+      if (res.success && !this.initialConfig.odpOptions?.disabled) {
         const isSegmentsFetched = await this.fetchQualifiedSegments();
         if (!isSegmentsFetched) {
           return {
             success: false,
             reason: 'USER_NOT_READY',
             message: 'Failed to fetch qualified segments',
-          }
+          };
         }
       }
       return res;
