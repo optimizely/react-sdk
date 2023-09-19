@@ -3,6 +3,7 @@
   "version": "2.9.2",
   "description": "React SDK for Optimizely Feature Experimentation, Optimizely Full Stack (legacy), and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
+  "repository": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
   "module": "dist/react-sdk.es.js",
   "types": "dist/index.d.ts",
