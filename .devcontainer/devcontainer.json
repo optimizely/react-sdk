@@ -1,25 +1,24 @@
 {
-	"name": "React SDK",
-  
-	"image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
-  
-	"postCreateCommand": "npm install -g npm && yarn install",
-  
-	"customizations": {
-	  "vscode": {
-		"extensions": [
-		  "dbaeumer.vscode-eslint",
-		  "eamodio.gitlens",
-		  "esbenp.prettier-vscode",
-		  "Gruntfuggly.todo-tree",
-		  "github.vscode-github-actions",
-		  "Orta.vscode-jest",
-		  "ms-vscode.test-adapter-converter"
-		],
-		"settings": {
-		  "files.eol": "\n"
-		}
-	  }
-	}
+  "name": "React SDK",
+
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+
+  "postCreateCommand": "npm install -g npm && yarn install",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "Gruntfuggly.todo-tree",
+        "github.vscode-github-actions",
+        "Orta.vscode-jest",
+        "ms-vscode.test-adapter-converter"
+      ],
+      "settings": {
+        "files.eol": "\n"
+      }
+    }
   }
-  
+}
