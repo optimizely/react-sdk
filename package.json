@@ -36,8 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@optimizely/optimizely-sdk": "5.0.0-beta5",
-    "@types/uuid": "^9.0.2",
+    "@optimizely/optimizely-sdk": "5.0.0-beta2",
     "hoist-non-react-statics": "^3.3.0",
     "prop-types": "^15.6.2",
     "tough-cookie": "4.1.3",

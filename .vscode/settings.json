@@ -4,6 +4,4 @@
             "all-tests"
         ]
     },
-    "jest.jestCommandLine": "./node_modules/.bin/jest",
-    "jest.autoRevealOutput": "on-exec-error"
 }

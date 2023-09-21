@@ -540,6 +540,30 @@
   resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0-beta5.tgz#67ac961be3d1269d2774ec758659d42a3e763e38"
   integrity sha512-xQ1Lv306d9xQoK/vr0o4Wpn53gJNVUeJVi8N90NinDYjtFPsXasdWEFNXNN+qH678VmdpBsPPKLg/5olLoFrKg==
   dependencies:
+    "@optimizely/js-sdk-logging" "^0.3.1"
+    "@optimizely/js-sdk-utils" "^0.4.0"
+    decompress-response "^4.2.1"
+
+"@optimizely/js-sdk-logging@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-logging/-/js-sdk-logging-0.3.1.tgz#358b48f4ce2ce22b1969d9e3e929caac1e6e6351"
+  integrity sha512-K71Jf283FP0E4oXehcXTTM3gvgHZHr7FUrIsw//0mdJlotHJT4Nss4hE0CWPbBxO7LJAtwNnO+VIA/YOcO4vHg==
+  dependencies:
+    "@optimizely/js-sdk-utils" "^0.4.0"
+
+"@optimizely/js-sdk-utils@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/js-sdk-utils/-/js-sdk-utils-0.4.0.tgz#835b88bc7b5365a5c4a3d073c01c3a55d9f93a8f"
+  integrity sha512-QG2oytnITW+VKTJK+l0RxjaS5VrA6W+AZMzpeg4LCB4Rn4BEKtF+EcW/5S1fBDLAviGq/0TLpkjM3DlFkJ9/Gw==
+  dependencies:
+    uuid "^3.3.2"
+
+"@optimizely/optimizely-sdk@5.0.0-beta2":
+  version "5.0.0-beta2"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0-beta2.tgz#83eb7ea3fb94ad6e75263c1493f219d3cfff0595"
+  integrity sha512-UnA5Nk1ZbmpsJoHt2uizJ+Rb0qx6Jrt2+g9rPguzbkr1HMFDiK1apod8+9NVzB98SroXSA+dHTlBc+OAVp7m4w==
+  dependencies:
+    "@optimizely/js-sdk-datafile-manager" "^0.9.5"
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
     murmurhash "^2.0.1"
@@ -4762,6 +4786,11 @@ use@^3.1.0:
   version "3.10.0"
   resolved "https://registry.npmjs.org/utility-types/-/utility-types-3.10.0.tgz"
   integrity sha512-O11mqxmi7wMKCo6HKFt5AhO4BwY3VV68YU07tgxfz8zJTIxr4BpsezN49Ffwy9j3ZpwwJp4fkRwjRzq3uWE6Rg==
+
+uuid@^3.3.2:
+  version "3.4.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
+  integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
 uuid@^8.3.0, uuid@^8.3.2:
   version "8.3.2"
