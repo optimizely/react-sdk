@@ -1,35 +1,24 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
 {
-	"name": "React SDK",
-	
-	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+  "name": "React SDK",
 
-	// Features to add to the dev container. More info: https://containers.dev/features.
-	// "features": {},
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
 
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
+  "postCreateCommand": "npm install -g npm && yarn install",
 
-	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "npm install -g npm && yarn install",
-
-	// Configure tool-specific properties.
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"dbaeumer.vscode-eslint",
-				"eamodio.gitlens",
-				"esbenp.prettier-vscode",
-				"Gruntfuggly.todo-tree",
-				"github.vscode-github-actions",
-				"Orta.vscode-jest",
-				"ms-vscode.test-adapter-converter"
-			]
-		}
-	}
-
-	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "Gruntfuggly.todo-tree",
+        "github.vscode-github-actions",
+        "Orta.vscode-jest",
+        "ms-vscode.test-adapter-converter"
+      ],
+      "settings": {
+        "files.eol": "\n"
+      }
+    }
+  }
 }

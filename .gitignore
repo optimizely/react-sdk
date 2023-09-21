@@ -7,3 +7,4 @@ lib
 dist/
 build/
 .rpt2_cache
+.env

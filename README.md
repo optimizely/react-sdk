@@ -286,6 +286,44 @@ const WrappedMyComponent = withOptimizely(MyComp);
 
 **_Note:_** The `optimizely` client object provided via `withOptimizely` is automatically associated with the `user` prop passed to the ancestor `OptimizelyProvider` - the `id` and `attributes` from that `user` object will be automatically forwarded to all appropriate SDK method calls. So, there is no need to pass the `userId` or `attributes` arguments when calling methods of the `optimizely` client object, unless you wish to use _different_ `userId` or `attributes` than those given to `OptimizelyProvider`.
 
+## `useContext`
+
+Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the `OptimizelyContext` with `useContext`.
+
+_arguments_
+- `OptimizelyContext : React.Context<OptimizelyContextInterface>` The Optimizely context initialized in a parent component (or App).
+
+_returns_
+- Wrapped object:
+  - `optimizely : ReactSDKClient` The client object which was passed to the `OptimizelyProvider`
+  - `isServerSide : boolean` Value that was passed to the `OptimizelyProvider`
+  - `timeout : number | undefined` The timeout which was passed to the `OptimizelyProvider`
+
+### Example
+
+```jsx
+import React, { useContext } from 'react';
+import { OptimizelyContext } from '@optimizely/react-sdk';
+
+function MyComponent() {
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+  const decision = optimizely.decide('my-feature');
+  const onClick = () => {
+    optimizely.track('signup-clicked');
+    // rest of your click handling code
+  };
+  return (
+    <>
+      { decision.enabled && <p>My feature is enabled</p> }
+      { !decision.enabled && <p>My feature is disabled</p> }
+      { decision.variationKey === 'control-variation' && <p>Current Variation</p> }
+      { decision.variationKey === 'experimental-variation' && <p>Better Variation</p> }
+      <button onClick={onClick}>Sign Up!</button>
+    </>
+  );
+}
+```
+
 ### Tracking
 
 Use the `withOptimizely` HoC for tracking.
