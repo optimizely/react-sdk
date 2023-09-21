@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2022, Optimizely
+ * Copyright 2018-2019, 2022-2023, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
-
 import { UserAttributes, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
-import { getLogger, LoggerFacade } from '@optimizely/js-sdk-logging';
-
+import { getLogger } from '@optimizely/optimizely-sdk';
+import { LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { notifier } from './notifier';
