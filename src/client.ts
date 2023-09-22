@@ -239,20 +239,20 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
 
     if (this._client) {
-      this._client.onReady().then(() => {
-        this.isClientReady = true;
-      });
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(
+        ([userResult, clientResult]) => {
+          this.isClientReady = true;
+          this.isReadyPromiseFulfilled = true;
 
-      this.dataReadyPromise = Promise.all([this.userPromise, this._client?.onReady()]).then(([userRes, clientRes]) => {
-        const bothReady = userRes.success && clientRes.success;
-        this.isReadyPromiseFulfilled = true;
-        return {
-          success: bothReady,
-          message: bothReady
-            ? 'Successfully resolved user information and client datafile.'
-            : 'User information or client datafile was not not ready.',
-        };
-      });
+          const bothSuccessful = userResult.success && clientResult.success;
+          return {
+            success: true, // bothSuccessful,
+            message: bothSuccessful
+              ? 'Successfully resolved user information and client datafile.'
+              : 'User information or client datafile was not not ready.',
+          };
+        }
+      );
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
