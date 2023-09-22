@@ -57,7 +57,7 @@ For details, refer to our documentation pages:
 - Dropped support for Node JS versions earlier than `14`.
 
 ## Changed
-- Updated `createUserContext`'s `userId` parameter to be optional due to the Browser variation's use of the new `vuid` field. Note: The Node variation of the SDK does **not** use the new `vuid` field, and you should pass in a `userId` when within the context of the Node variant.
+- Updated `createUserContext`'s `userId` parameter to be optional due to the Browser variation's use of the new `vuid` field.
 
 ## [2.9.2] - March 13, 2023
 
