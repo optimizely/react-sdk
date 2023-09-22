@@ -239,9 +239,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
 
     if (this._client) {
+      this._client.onReady().then(() => {
+        this.isClientReady = true;
+      });
+
       this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(
         ([userResult, clientResult]) => {
-          this.isClientReady = true;
           this.isReadyPromiseFulfilled = true;
 
           const bothSuccessful = userResult.success && clientResult.success;
