@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
-import { UserAttributes, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
-import { getLogger } from '@optimizely/optimizely-sdk';
-import { LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
+
+import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
+
 import { setupAutoUpdateListeners } from './autoUpdate';
 import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
-const hooksLogger: LoggerFacade = getLogger('ReactSDK');
+const hooksLogger = getLogger('ReactSDK');
 
 enum HookType {
   EXPERIMENT = 'Experiment',

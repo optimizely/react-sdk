@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -243,19 +243,23 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.isClientReady = true;
       });
 
-      this.dataReadyPromise = Promise.all([this.userPromise, this._client!.onReady()]).then(res => {
+      this.dataReadyPromise = Promise.all([this.userPromise, this._client.onReady()]).then(
+        ([userResult, clientResult]) => {
+          this.isReadyPromiseFulfilled = true;
 
-        // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
-        this.isReadyPromiseFulfilled = true;
-        return {
-          success: true,
-          message: 'Successfully resolved datafile and user information.',
-        };
-      });
+          const bothSuccessful = userResult.success && clientResult.success;
+          return {
+            success: true, // bothSuccessful,
+            message: bothSuccessful
+              ? 'Successfully resolved user information and client datafile.'
+              : 'User information or client datafile was not not ready.',
+          };
+        }
+      );
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
-      this.dataReadyPromise = new Promise((resolve, reject) => {
+      this.dataReadyPromise = new Promise(resolve => {
         resolve({
           success: false,
           reason: 'NO_CLIENT',
@@ -308,14 +312,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
       clearTimeout(timeoutId);
-      if (res.success) {
+      if (res.success && !this.initialConfig.odpOptions?.disabled) {
         const isSegmentsFetched = await this.fetchQualifiedSegments();
         if (!isSegmentsFetched) {
           return {
             success: false,
             reason: 'USER_NOT_READY',
             message: 'Failed to fetch qualified segments',
-          }
+          };
         }
       }
       return res;
