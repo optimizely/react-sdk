@@ -22,4 +22,4 @@ jobs:
     - name: Test, build, then publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
-      run: yarn npm publish
+      run: npm publish
