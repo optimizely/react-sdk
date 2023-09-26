@@ -3,9 +3,6 @@ name: Publish React SDK to NPM
 on:
   release:
     types: [ published ]
-  push:
-    branches:
-      - mike/tag-correctly-during-publish
 
 jobs:
   publish:
@@ -28,7 +25,7 @@ jobs:
       run: yarn install
 
     - id: npm-tag
-      name: Determine NPM Tag
+      name: Determine NPM tag
       run: |
         version=$(jq -r '.version' package.json)
         if [[ "$version" == *"-beta"* ]]; then
@@ -44,4 +41,4 @@ jobs:
     - name: Test, build, then publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
-      run: npm publish --tag ${{ steps.npm-tag.outputs['npm-tag'] }} --dry-run
+      run: npm publish --tag ${{ steps.npm-tag.outputs['npm-tag'] }}
