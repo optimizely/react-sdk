@@ -21,5 +21,5 @@ jobs:
       run: yarn install
     - name: Test, build, then publish
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_SDK_TO_NPM }}
+        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
       run: npm publish
