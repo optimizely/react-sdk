@@ -181,6 +181,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
 
+  getQualifedSegments(): string[] | null;
+
   getVuid(): string | undefined;
 }
 
@@ -367,6 +369,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     return await this.userContext.fetchQualifiedSegments(options);
+  }
+
+  public getQualifedSegments(): string[] | null {
+    if (!this.userContext) {
+      logger.warn('Unable to get qualified segments for user because Optimizely user context failed to initialize.');
+      return [];
+    }
+
+    return this.userContext.qualifiedSegments;
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
