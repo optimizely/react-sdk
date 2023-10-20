@@ -269,7 +269,7 @@ describe('ReactSDKClient', () => {
       await instance.setUser({
         id: 'xxfueaojfe8&86',
       });
-      await instance.onReady()
+      await instance.onReady();
 
       await instance.setUser({
         id: 'xxfueaojfe8&87',
@@ -1622,6 +1622,53 @@ describe('ReactSDKClient', () => {
       instance.sendOdpEvent('test');
 
       expect(mockInnerClient.sendOdpEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getVuid', () => {
+    const vuidFormat = /^vuid_[a-f0-9]{27}$/;
+    let instance: ReactSDKClient;
+
+    beforeEach(async () => {
+      instance = createInstance(config);
+    });
+    
+
+    it('should return undefined if client is null', () => {
+      // @ts-ignore
+      instance._client = null;
+
+      const vuid = instance.getVuid();
+
+      expect(vuid).toBeUndefined();
+    });
+
+    it('should call the JS getVuid if a user set', async () => {
+      await instance.setUser({
+        id: 'user1',
+      });
+
+      instance.getVuid();
+
+      expect(mockInnerClient.getVuid).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledTimes(0);
+    });
+
+    it('should call the JS getVuid if even if a user is not set', async () => {
+      instance.getVuid();
+
+      expect(mockInnerClient.getVuid).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toHaveBeenCalledTimes(0);
+    });
+
+    it('should return a valid vuid', async () => {
+      const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
+      const mockGetVuid = mockInnerClient.getVuid as jest.Mock;
+      mockGetVuid.mockReturnValue(validVuid);
+
+      const vuid = instance.getVuid();
+
+      expect(vuid).toMatch(vuidFormat);
     });
   });
 });
