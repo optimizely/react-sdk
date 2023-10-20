@@ -49,7 +49,7 @@ const default_user: UserInfo = {
   attributes: {},
 };
 
-export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext' | 'getVuid'> {
+export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -180,6 +180,8 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   getForcedDecision(decisionContext: optimizely.OptimizelyDecisionContext): optimizely.OptimizelyForcedDecision | null;
 
   fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
+
+  getVuid(): string | undefined;
 }
 
 export const DEFAULT_ON_READY_TIMEOUT = 5000;
@@ -219,7 +221,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => { };
+    this.userPromiseResolver = () => {};
 
     const configWithClientInfo = {
       ...config,
@@ -1226,6 +1228,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     this.client?.sendOdpEvent(action, type, identifiers, data);
+  }
+
+  public getVuid(): string | undefined {
+    if (!this._client) {
+      logger.warn('Unable to get VUID because Optimizely client failed to initialize.');
+      return undefined;
+    }
+    return this._client.getVuid();
   }
 }
 
