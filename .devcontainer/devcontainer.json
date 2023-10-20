@@ -3,7 +3,7 @@
 
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
 
-  "postCreateCommand": "npm install -g npm && yarn install",
+  "postCreateCommand": "yarn install",
 
   "customizations": {
     "vscode": {
