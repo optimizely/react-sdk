@@ -184,7 +184,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   getVuid(): string | undefined;
 }
 
-export const DEFAULT_ON_READY_TIMEOUT = 5000;
+export const DEFAULT_ON_READY_TIMEOUT = 5_000;
 
 class OptimizelyReactSDKClient implements ReactSDKClient {
   private userContext: optimizely.OptimizelyUserContext | null = null;
@@ -345,8 +345,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }
 
       if (userInfo.id) {
-        userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-        return userContext;
+        this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
+        return this.userContext;
       }
 
       return null;
