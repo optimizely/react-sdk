@@ -11,15 +11,34 @@ jobs:
     steps:
     - name: Checkout branch
       uses: actions/checkout@v4
+
     - name: Set up Node
       uses: actions/setup-node@v3
       with:
         node-version: 18
         registry-url: "https://registry.npmjs.org/"
         always-auth: "true"
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
+
     - name: Install dependencies
       run: yarn install
+
+    - id: npm-tag
+      name: Determine NPM tag
+      run: |
+        version=$(jq -r '.version' package.json)
+        if [[ "$version" == *"-beta"* ]]; then
+          echo "npm-tag=beta" >> "$GITHUB_OUTPUT"
+        elif [[ "$version" == *"-alpha"* ]]; then
+          echo "npm-tag=alpha" >> "$GITHUB_OUTPUT"
+        elif [[ "$version" == *"-rc"* ]]; then
+          echo "npm-tag=rc" >> "$GITHUB_OUTPUT"
+        else
+          echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Test, build, then publish
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
-      run: npm publish
+      run: npm publish --tag ${{ steps.npm-tag.outputs['npm-tag'] }}
