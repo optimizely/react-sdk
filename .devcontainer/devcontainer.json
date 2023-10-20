@@ -1,10 +1,7 @@
 {
   "name": "React SDK",
-
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
-
   "postCreateCommand": "yarn install",
-
   "customizations": {
     "vscode": {
       "extensions": [
@@ -14,7 +11,8 @@
         "Gruntfuggly.todo-tree",
         "github.vscode-github-actions",
         "Orta.vscode-jest",
-        "ms-vscode.test-adapter-converter"
+        "ms-vscode.test-adapter-converter",
+        "GitHub.copilot-chat"
       ],
       "settings": {
         "files.eol": "\n"
