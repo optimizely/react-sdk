@@ -1679,16 +1679,18 @@ describe('ReactSDKClient', () => {
     });
 
     it('returns null if userContext is not initialized', () => {
-      instance['userContext'] = null;
+      // @ts-ignore
+      instance.userContext = null;
 
       expect(instance.getQualifedSegments()).toBeNull();
     });
 
-    it('returns qualified segments if userContext is initialized', () => {      
-      instance['userContext'] = {
+    it('returns qualified segments if userContext is initialized', () => {
+      // @ts-ignore
+      instance.userContext = {
         qualifiedSegments: ['segment1', 'segment2'],
       };
-      
+
       expect(instance.getQualifedSegments()).toEqual(['segment1', 'segment2']);
     });
 
@@ -1696,7 +1698,7 @@ describe('ReactSDKClient', () => {
       const loggerWarnSpy = jest.spyOn(logger, 'warn');
 
       instance.getQualifedSegments();
-      
+
       expect(loggerWarnSpy).toHaveBeenCalledWith('Unable to get qualified segments for user because Optimizely user context failed to initialize.');
     });
   });

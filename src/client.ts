@@ -374,7 +374,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   public getQualifedSegments(): string[] | null {
     if (!this.userContext) {
       logger.warn('Unable to get qualified segments for user because Optimizely user context failed to initialize.');
-      return [];
+      return null;
     }
 
     return this.userContext.qualifiedSegments;
