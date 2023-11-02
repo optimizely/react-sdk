@@ -29,6 +29,8 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
 import { logger } from './logger';
+import * as utils from './utils';
+import { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
@@ -1671,35 +1673,64 @@ describe('ReactSDKClient', () => {
     });
   });
 
-  describe('getQualifedSegments', () => {
+  describe('getUserContextInstance', () => {
     let instance: ReactSDKClient;
 
     beforeEach(async () => {
       instance = createInstance(config);
     });
 
-    it('returns null if userContext is not initialized', () => {
+    it('should log a warning if client is not defined', () => {
+      // @ts-ignore
+      instance._client = null;
+
+      instance.getUserContextInstance({ id: 'user1' });
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith("Unable to get user context for user id \"%s\" because Optimizely client failed to initialize.", "user1");
+    });
+
+    it('should return null if userContext is not initialized', () => {
       // @ts-ignore
       instance.userContext = null;
 
-      expect(instance.getQualifedSegments()).toBeNull();
+      const context = instance.getUserContextInstance({ id: 'user1' });
+
+      expect(context).toBeDefined();
     });
 
-    it('returns qualified segments if userContext is initialized', () => {
+    it('should test that this.userContext are equal', () => {
+      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
+      jest.spyOn(utils, 'areUsersEqual');
       // @ts-ignore
-      instance.userContext = {
-        qualifiedSegments: ['segment1', 'segment2'],
-      };
+      instance.userContext = mockOptimizelyUserContext;
+      // @ts-ignore
+      instance.user = expectedUserInfo;
 
-      expect(instance.getQualifedSegments()).toEqual(['segment1', 'segment2']);
+      instance.getUserContextInstance(expectedUserInfo);
+
+      expect(utils.areUsersEqual).toBeCalledTimes(1);
+      expect(utils.areUsersEqual).toHaveBeenCalledWith(expectedUserInfo, expectedUserInfo);
     });
 
-    it('logs a warning if userContext is not initialized', () => {
-      const loggerWarnSpy = jest.spyOn(logger, 'warn');
+    it('should return userContext if userContext is not defined', () => {
+      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
+      // @ts-ignore
+      instance.userContext = null;
 
-      instance.getQualifedSegments();
+      const actualContext = instance.getUserContextInstance(expectedUserInfo);
 
-      expect(loggerWarnSpy).toHaveBeenCalledWith('Unable to get qualified segments for user because Optimizely user context failed to initialize.');
+      expect(actualContext).toBeDefined();
+    });
+
+    it('should set and return userContext if userContext is defined', () => {
+      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
+      // @ts-ignore
+      instance.userContext = {};
+
+      const actualContext = instance.getUserContextInstance(expectedUserInfo);
+
+      expect(actualContext).toBeDefined();
     });
   });
 });
