@@ -52,7 +52,7 @@ const default_user: UserInfo = {
 export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
   user: UserInfo;
 
-  onReady(opts?: { timeout?: number }): Promise<any>;
+  onReady(opts?: { timeout?: number; }): Promise<any>;
   setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
@@ -123,7 +123,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown } | null;
+  ): { [variableKey: string]: unknown; } | null;
 
   isFeatureEnabled(
     featureKey: string,
@@ -159,14 +159,14 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision };
+  ): { [key: string]: OptimizelyDecision; };
 
   decideForKeys(
     keys: string[],
     options?: optimizely.OptimizelyDecideOption[],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision };
+  ): { [key: string]: OptimizelyDecision; };
 
   setForcedDecision(
     decisionContext: optimizely.OptimizelyDecisionContext,
@@ -223,7 +223,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-    this.userPromiseResolver = () => {};
+    this.userPromiseResolver = () => { };
 
     const configWithClientInfo = {
       ...config,
@@ -295,7 +295,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.isUsingSdkKey;
   }
 
-  public onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
+  public onReady(config: { timeout?: number; } = {}): Promise<OnReadyResult> {
     let timeoutId: number | undefined;
     let timeout: number = DEFAULT_ON_READY_TIMEOUT;
     if (config && config.timeout !== undefined) {
@@ -523,7 +523,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } {
+  ): { [key: string]: OptimizelyDecision; } {
     if (!this._client) {
       logger.warn('Unable to evaluate features for keys because Optimizely client failed to initialize.');
       return {};
@@ -539,7 +539,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const optlyUserContext = this.getUserContextInstance(user);
     if (optlyUserContext) {
       return Object.entries(optlyUserContext.decideForKeys(keys, options)).reduce(
-        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+        (decisions: { [key: string]: OptimizelyDecision; }, [key, decision]) => {
           decisions[key] = {
             ...decision,
             userContext: {
@@ -559,7 +559,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     options: optimizely.OptimizelyDecideOption[] = [],
     overrideUserId?: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [key: string]: OptimizelyDecision } {
+  ): { [key: string]: OptimizelyDecision; } {
     if (!this._client) {
       logger.warn('Unable to evaluate all feature decisions because Optimizely client is not initialized.');
       return {};
@@ -575,7 +575,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const optlyUserContext = this.getUserContextInstance(user);
     if (optlyUserContext) {
       return Object.entries(optlyUserContext.decideAll(options)).reduce(
-        (decisions: { [key: string]: OptimizelyDecision }, [key, decision]) => {
+        (decisions: { [key: string]: OptimizelyDecision; }, [key, decision]) => {
           decisions[key] = {
             ...decision,
             userContext: {
@@ -1055,7 +1055,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     featureKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): { [variableKey: string]: unknown } | null {
+  ): { [variableKey: string]: unknown; } | null {
     if (!this._client) {
       logger.warn(
         'Unable to get all feature variables from feature "%s" because Optimizely client failed to initialize.',
@@ -1184,7 +1184,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * Cleanup method for killing an running timers and flushing eventQueue
    * @returns {Promise<{ success: boolean; reason?: string }>}
    */
-  public close(): Promise<{ success: boolean; reason?: string }> {
+  public close(): Promise<{ success: boolean; reason?: string; }> {
     if (!this._client) {
       /**
        * Note:
@@ -1193,7 +1193,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
        * - If we resolve as "false", then the cleanup for timers and the event queue will never trigger.
        * - Not triggering cleanup may lead to memory leaks and other inefficiencies.
        */
-      return new Promise<{ success: boolean; reason: string }>((resolve, reject) =>
+      return new Promise<{ success: boolean; reason: string; }>((resolve, reject) =>
         resolve({
           success: true,
           reason: 'Optimizely client is not initialized.',

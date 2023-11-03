@@ -29,8 +29,6 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 
 import { createInstance, OnReadyResult, ReactSDKClient } from './client';
 import { logger } from './logger';
-import * as utils from './utils';
-import { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 interface MockedReactSDKClient extends ReactSDKClient {
   client: optimizely.Client;
@@ -1673,7 +1671,7 @@ describe('ReactSDKClient', () => {
       expect(logger.warn).toBeCalledWith("Unable to get user context because Optimizely client failed to initialize.");
     });
 
-    
+
     it('should log a warning and return null if setUser is not called first', () => {
       instance.getUserContext();
 
