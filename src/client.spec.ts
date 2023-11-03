@@ -1656,64 +1656,43 @@ describe('ReactSDKClient', () => {
     });
   });
 
-  describe('getUserContextInstance', () => {
+  describe('getUserContext', () => {
     let instance: ReactSDKClient;
 
     beforeEach(async () => {
       instance = createInstance(config);
     });
 
-    it('should log a warning if client is not defined', () => {
+    it('should log a warning and return null if client is not defined', () => {
       // @ts-ignore
       instance._client = null;
 
-      instance.getUserContextInstance({ id: 'user1' });
+      instance.getUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith("Unable to get user context for user id \"%s\" because Optimizely client failed to initialize.", "user1");
+      expect(logger.warn).toBeCalledWith("Unable to get user context because Optimizely client failed to initialize.");
     });
 
-    it('should return null if userContext is not initialized', () => {
-      // @ts-ignore
-      instance.userContext = null;
+    
+    it('should log a warning and return null if setUser is not called first', () => {
+      instance.getUserContext();
 
-      const context = instance.getUserContextInstance({ id: 'user1' });
-
-      expect(context).toBeDefined();
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith("Unable to get user context because user was not set.");
     });
 
-    it('should test that this.userContext are equal', () => {
-      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
-      jest.spyOn(utils, 'areUsersEqual');
-      // @ts-ignore
-      instance.userContext = mockOptimizelyUserContext;
-      // @ts-ignore
-      instance.user = expectedUserInfo;
+    it('should return a userContext if setUser is called', () => {
+      instance.setUser({
+        id: 'user1',
+        attributes: {
+          foo: 'bar',
+        },
+      });
 
-      instance.getUserContextInstance(expectedUserInfo);
+      const currentUserContext = instance.getUserContext();
 
-      expect(utils.areUsersEqual).toBeCalledTimes(1);
-      expect(utils.areUsersEqual).toHaveBeenCalledWith(expectedUserInfo, expectedUserInfo);
-    });
-
-    it('should return userContext if userContext is not defined', () => {
-      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
-      // @ts-ignore
-      instance.userContext = null;
-
-      const actualContext = instance.getUserContextInstance(expectedUserInfo);
-
-      expect(actualContext).toBeDefined();
-    });
-
-    it('should set and return userContext if userContext is defined', () => {
-      const expectedUserInfo = { id: 'user1', attributes: { custom: 'attribute' } } as utils.UserInfo;
-      // @ts-ignore
-      instance.userContext = {};
-
-      const actualContext = instance.getUserContextInstance(expectedUserInfo);
-
-      expect(actualContext).toBeDefined();
+      expect(logger.warn).toHaveBeenCalledTimes(0);
+      expect(currentUserContext).not.toBeNull();
     });
   });
 });

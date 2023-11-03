@@ -181,7 +181,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
 
-  getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null;
+  getUserContext(): optimizely.OptimizelyUserContext | null;
 
   getVuid(): string | undefined;
 }
@@ -328,6 +328,24 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }
       return res;
     });
+  }
+
+  public getUserContext(): optimizely.OptimizelyUserContext | null {
+    if (!this._client) {
+      logger.warn(
+        'Unable to get user context because Optimizely client failed to initialize.'
+      );
+      return null;
+    }
+
+    if (!this.userContext) {
+      logger.warn(
+        'Unable to get user context because user was not set.'
+      );
+      return null;
+    }
+
+    return this.userContext;
   }
 
   public getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
