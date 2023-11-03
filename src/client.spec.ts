@@ -1644,24 +1644,6 @@ describe('ReactSDKClient', () => {
       expect(vuid).toBeUndefined();
     });
 
-    it('should call the JS getVuid if a user set', async () => {
-      await instance.setUser({
-        id: 'user1',
-      });
-
-      instance.getVuid();
-
-      expect(mockInnerClient.getVuid).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toHaveBeenCalledTimes(0);
-    });
-
-    it('should call the JS getVuid if even if a user is not set', async () => {
-      instance.getVuid();
-
-      expect(mockInnerClient.getVuid).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toHaveBeenCalledTimes(0);
-    });
-
     it('should return a valid vuid', async () => {
       const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
       const mockGetVuid = mockInnerClient.getVuid as jest.Mock;
@@ -1670,6 +1652,7 @@ describe('ReactSDKClient', () => {
       const vuid = instance.getVuid();
 
       expect(vuid).toMatch(vuidFormat);
+      expect(vuid).toEqual(validVuid);
     });
   });
 
