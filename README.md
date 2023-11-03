@@ -89,7 +89,7 @@ _returns_
 import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 
 const optimizely = createInstance({
-  datafile: window.datafile,
+  datafile: window.optimizelyDatafile,
 });
 ```
 
@@ -118,7 +118,7 @@ Synchronous loading is the preferred method to ensure that Optimizely is always 
 import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 
 const optimizelyClient = createInstance({
-  datafile: window.datafile,
+  datafile: window.optimizelyDatafile,
   sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
 });
 
@@ -179,7 +179,7 @@ import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
 import { fetchUser } from './user';
 
 const optimizely = createInstance({
-  datafile: window.datafile,
+  datafile: window.optimizelyDatafile,
 });
 
 const userPromise = fetchUser(); // fetchUser returns a Promise for an object with { id, attributes }
@@ -457,7 +457,7 @@ To disable sending all events to Optimizely's results backend, use the `logOnlyE
 import { createInstance, logOnlyEventDispatcher } from '@optimizely/react-sdk';
 
 const optimizely = createInstance({
-  datafile: window.datafile,
+  datafile: window.optimizelyDatafile,
   eventDispatcher: logOnlyEventDispatcher,
 });
 ```
