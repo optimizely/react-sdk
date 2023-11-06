@@ -269,7 +269,7 @@ describe('ReactSDKClient', () => {
       await instance.setUser({
         id: 'xxfueaojfe8&86',
       });
-      await instance.onReady()
+      await instance.onReady();
 
       await instance.setUser({
         id: 'xxfueaojfe8&87',
@@ -1622,6 +1622,75 @@ describe('ReactSDKClient', () => {
       instance.sendOdpEvent('test');
 
       expect(mockInnerClient.sendOdpEvent).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getVuid', () => {
+    const vuidFormat = /^vuid_[a-f0-9]{27}$/;
+    let instance: ReactSDKClient;
+
+    beforeEach(async () => {
+      instance = createInstance(config);
+    });
+
+    it('should return undefined if client is null', () => {
+      // @ts-ignore
+      instance._client = null;
+
+      const vuid = instance.getVuid();
+
+      expect(vuid).toBeUndefined();
+    });
+
+    it('should return a valid vuid', async () => {
+      const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
+      const mockGetVuid = mockInnerClient.getVuid as jest.Mock;
+      mockGetVuid.mockReturnValue(validVuid);
+
+      const vuid = instance.getVuid();
+
+      expect(vuid).toMatch(vuidFormat);
+      expect(vuid).toEqual(validVuid);
+    });
+  });
+
+  describe('getUserContext', () => {
+    let instance: ReactSDKClient;
+
+    beforeEach(async () => {
+      instance = createInstance(config);
+    });
+
+    it('should log a warning and return null if client is not defined', () => {
+      // @ts-ignore
+      instance._client = null;
+
+      instance.getUserContext();
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith("Unable to get user context because Optimizely client failed to initialize.");
+    });
+
+
+    it('should log a warning and return null if setUser is not called first', () => {
+      instance.getUserContext();
+
+      expect(logger.warn).toHaveBeenCalledTimes(1);
+      expect(logger.warn).toBeCalledWith("Unable to get user context because user was not set.");
+    });
+
+    it('should return a userContext if setUser is called', () => {
+      instance.setUser({
+        id: 'user1',
+        attributes: {
+          foo: 'bar',
+        },
+      });
+
+      const currentUserContext = instance.getUserContext();
+
+      expect(logger.warn).toHaveBeenCalledTimes(0);
+      expect(currentUserContext).not.toBeNull();
     });
   });
 });
