@@ -55,26 +55,33 @@ const Experiment: React.FunctionComponent<ExperimentProps> = props => {
     return <>{(children as ChildrenRenderFunction)(variation, clientReady, didTimeout)}</>;
   }
 
-  let match: React.ReactElement<VariationProps> | null = null;
+  let defaultMatch: React.ReactElement<VariationProps> | null = null;
+  let variationMatch: React.ReactElement<VariationProps> | null = null;
 
   // We use React.Children.forEach instead of React.Children.toArray().find()
   // here because toArray adds keys to all child elements and we do not want
   // to trigger an unmount/remount
   React.Children.forEach(children, (child: React.ReactElement<VariationProps>) => {
-    if (match || !React.isValidElement(child)) {
+    if (!React.isValidElement(child)) {
       return;
     }
 
     if (child.props.variation) {
       if (variation === child.props.variation) {
-        match = child;
+        variationMatch = child;
       }
     } else if (child.props.default) {
-      match = child;
+      defaultMatch = child;
     }
   });
 
-  return match ? React.cloneElement(match, { variation }) : null;
+  let match: React.ReactElement<VariationProps> | null = null;
+  if (variationMatch) {
+    match = variationMatch;
+  } else if (defaultMatch) {
+    match = defaultMatch;
+  }
+  return match;
 };
 
 export const OptimizelyExperiment = Experiment;
