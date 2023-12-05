@@ -26,7 +26,7 @@ import { OptimizelyVariation } from './Variation';
 
 describe('<OptimizelyExperiment>', () => {
   const variationKey = 'variationResult';
-  let resolver: unknown;
+  let resolver: any;
   let optimizelyMock: ReactSDKClient;
   let isReady: boolean;
 
