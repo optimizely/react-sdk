@@ -26,6 +26,7 @@ import { OptimizelyVariation } from './Variation';
 
 describe('<OptimizelyExperiment>', () => {
   const variationKey = 'matchingVariation';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let resolver: any;
   let optimizelyMock: ReactSDKClient;
   let isReady: boolean;
@@ -40,12 +41,12 @@ describe('<OptimizelyExperiment>', () => {
     });
 
     optimizelyMock = ({
-      onReady: jest.fn().mockImplementation(config => onReadyPromise),
-      activate: jest.fn().mockImplementation(experimentKey => variationKey),
-      onUserUpdate: jest.fn().mockImplementation(handler => () => { }),
+      onReady: jest.fn().mockImplementation(() => onReadyPromise),
+      activate: jest.fn().mockImplementation(() => variationKey),
+      onUserUpdate: jest.fn().mockImplementation(() => () => { }),
       notificationCenter: {
-        addNotificationListener: jest.fn().mockImplementation((type, handler) => { }),
-        removeNotificationListener: jest.fn().mockImplementation(id => { }),
+        addNotificationListener: jest.fn().mockImplementation(() => { }),
+        removeNotificationListener: jest.fn().mockImplementation(() => { }),
       },
       user: {
         id: 'testuser',
