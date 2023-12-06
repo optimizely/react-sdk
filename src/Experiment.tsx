@@ -70,7 +70,9 @@ const Experiment: React.FunctionComponent<ExperimentProps> = props => {
       if (variation === child.props.variation) {
         variationMatch = child;
       }
-    } else if (child.props.default) {
+    }
+    // Last child with default prop wins
+    if (child.props.default) {
       defaultMatch = child;
     }
   });
