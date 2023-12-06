@@ -25,7 +25,7 @@ import { ReactSDKClient } from './client';
 import { OptimizelyVariation } from './Variation';
 
 describe('<OptimizelyExperiment>', () => {
-  const variationKey = 'variationResult';
+  const variationKey = 'matchingVariation';
   let resolver: any;
   let optimizelyMock: ReactSDKClient;
   let isReady: boolean;
@@ -96,7 +96,7 @@ describe('<OptimizelyExperiment>', () => {
         </OptimizelyProvider>
       );
 
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('variationResult'));
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation'));
 
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
     });
@@ -150,7 +150,7 @@ describe('<OptimizelyExperiment>', () => {
             <OptimizelyVariation variation="otherVariation">
               <span data-testid="variation-key">other variation</span>
             </OptimizelyVariation>
-            <OptimizelyVariation variation="variationResult">
+            <OptimizelyVariation variation="matchingVariation">
               <span data-testid="variation-key">correct variation</span>
             </OptimizelyVariation>
             <OptimizelyVariation default>
@@ -203,7 +203,7 @@ describe('<OptimizelyExperiment>', () => {
             <OptimizelyVariation default>
               <span data-testid="variation-key">default variation</span>
             </OptimizelyVariation>
-            <OptimizelyVariation variation="variationResult">
+            <OptimizelyVariation variation="matchingVariation">
               <span data-testid="variation-key">matching variation</span>
             </OptimizelyVariation>
           </OptimizelyExperiment>
@@ -281,7 +281,7 @@ describe('<OptimizelyExperiment>', () => {
               <OptimizelyVariation default variation="nonMatchingVariation">
                 <span data-testid="variation-key">default & non matching variation</span>
               </OptimizelyVariation>
-              <OptimizelyVariation variation="variationResult">
+              <OptimizelyVariation variation="matchingVariation">
                 <span data-testid="variation-key">matching variation</span>
               </OptimizelyVariation>
             </OptimizelyExperiment>
@@ -381,7 +381,7 @@ describe('<OptimizelyExperiment>', () => {
 
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', 'james123', { betaUser: true });
 
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('variationResult'));
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation'));
     });
 
     it('should pass the values for clientReady and didTimeout', async () => {
@@ -404,7 +404,7 @@ describe('<OptimizelyExperiment>', () => {
       await optimizelyMock.onReady();
 
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('variationResult|true|false'));
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation|true|false'));
     });
 
     describe('when the onReady() promise return { success: false }', () => {
@@ -456,7 +456,7 @@ describe('<OptimizelyExperiment>', () => {
 
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
 
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('variationResult'));
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation'));
 
       // capture the OPTIMIZELY_CONFIG_UPDATE function
       // change the return value of activate
@@ -491,7 +491,7 @@ describe('<OptimizelyExperiment>', () => {
       await act(async () => await optimizelyMock.onReady());
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
 
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('variationResult'));
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation'));
 
       // capture the onUserUpdate function
       const updateFn = (optimizelyMock.onUserUpdate as jest.Mock).mock.calls[0][0];
@@ -527,7 +527,7 @@ describe('<OptimizelyExperiment>', () => {
             <OptimizelyVariation variation="otherVariation">
               <span data-testid="variation-key">other variation</span>
             </OptimizelyVariation>
-            <OptimizelyVariation variation="variationResult">
+            <OptimizelyVariation variation="matchingVariation">
               <span data-testid="variation-key">correct variation</span>
             </OptimizelyVariation>
             <OptimizelyVariation default>
