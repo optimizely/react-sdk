@@ -1,11 +1,11 @@
 /**
- * Copyright 2018-2019, Optimizely
+ * Copyright 2018-2019, 2023, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -170,7 +170,7 @@ describe('<OptimizelyExperiment>', () => {
       await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('correct variation'));
     });
 
-    it('should render using <OptimizelyVariation default>', async () => {
+    it('should render using <OptimizelyVariation default> in last position', async () => {
       const { container } = render(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <OptimizelyExperiment experiment="experiment1">
@@ -180,6 +180,56 @@ describe('<OptimizelyExperiment>', () => {
 
             <OptimizelyVariation default>
               <span data-testid="variation-key">default variation</span>
+            </OptimizelyVariation>
+          </OptimizelyExperiment>
+        </OptimizelyProvider>
+      );
+
+      // while it's waiting for onReady()
+      expect(container.innerHTML).toBe('');
+
+      // Simulate client becoming ready
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('default variation'));
+    });
+
+    it('should NOT render using <OptimizelyVariation default> in first position when matching variation', async () => {
+      const { container } = render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <OptimizelyExperiment experiment="experiment1">
+            <OptimizelyVariation default>
+              <span data-testid="variation-key">default variation</span>
+            </OptimizelyVariation>
+            <OptimizelyVariation variation="variationResult">
+              <span data-testid="variation-key">matching variation</span>
+            </OptimizelyVariation>
+          </OptimizelyExperiment>
+        </OptimizelyProvider>
+      );
+
+      // while it's waiting for onReady()
+      expect(container.innerHTML).toBe('');
+
+      // Simulate client becoming ready
+      resolver.resolve({ success: true });
+
+      await optimizelyMock.onReady();
+
+      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matching variation'));
+    });
+
+    it('should render using <OptimizelyVariation default> in first position when NO matching variation', async () => {
+      const { container } = render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <OptimizelyExperiment experiment="experiment1">
+            <OptimizelyVariation default>
+              <span data-testid="variation-key">default variation</span>
+            </OptimizelyVariation>
+            <OptimizelyVariation variation="otherVariation">
+              <span data-testid="variation-key">other non-matching variation</span>
             </OptimizelyVariation>
           </OptimizelyExperiment>
         </OptimizelyProvider>
