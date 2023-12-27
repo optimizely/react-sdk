@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as React from 'react';
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger } from '@optimizely/optimizely-sdk';
@@ -44,7 +45,10 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     super(props);
     const { optimizely, userId, userAttributes, user } = props;
 
-    // check if user id/attributes are provided as props and set them ReactSDKClient
+    if (!optimizely) {
+      logger.error('OptimizelyProvider must be passed an instance of the Optimizely SDK client');
+    }
+
     let finalUser: UserInfo | null = null;
 
     if (user) {
@@ -65,17 +69,18 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       };
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
+    } else {
+      finalUser = {
+        id: optimizely.getVuid() || null,
+        attributes: {},
+      };
     }
 
     if (finalUser) {
-      if (!optimizely) {
-        logger.error(`Unable to set user ${finalUser} because optimizely object does not exist.`)
-      } else {
-        try {
-          optimizely.setUser(finalUser);
-        } catch (err) {
-          logger.error(`Unable to set user ${finalUser} because passed in optimizely object does not contain the setUser function.`)
-        }
+      try {
+        optimizely.setUser(finalUser);
+      } catch {
+        logger.error('Unable to set user because passed in optimizely object does not contain the setUser function.');
       }
     }
   }
@@ -109,7 +114,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     }
   }
 
-  render() {
+  render(): JSX.Element {
     const { optimizely, children, timeout } = this.props;
     const isServerSide = !!this.props.isServerSide;
     const value = {
