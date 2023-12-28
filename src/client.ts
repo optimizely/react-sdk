@@ -348,6 +348,26 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.userContext;
   }
 
+  public getCurrentUserContext(): optimizely.OptimizelyUserContext | null {
+    return this.userContext;
+  }
+
+  public setCurrentUserContext(userInfo: UserInfo): void {
+    if (!this._client) {
+      logger.warn(
+        'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
+        userInfo.id
+      );
+      return;
+    }
+
+    let userContext: optimizely.OptimizelyUserContext | null = null;
+
+    if (!this.userContext || (this.userContext && !areUsersEqual(userInfo, this.user))) {
+      this.userContext = this._client.createUserContext(userInfo.id ?? undefined, userInfo.attributes);
+    }
+  }
+
   public getUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
       logger.warn(
@@ -357,27 +377,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
 
-    let userContext: optimizely.OptimizelyUserContext | null = null;
-
-    if (this.userContext) {
-      if (areUsersEqual(userInfo, this.user)) {
-        return this.userContext;
-      }
-
-      if (userInfo.id) {
-        userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-        return userContext;
-      }
-
-      return null;
-    }
-
-    if (userInfo.id) {
-      this.userContext = this._client.createUserContext(userInfo.id, userInfo.attributes);
-      return this.userContext;
-    }
-
-    return null;
+    return this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
   }
 
   public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
