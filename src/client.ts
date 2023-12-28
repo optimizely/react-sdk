@@ -337,16 +337,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public getCurrentUserContext(): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
-      logger.warn(
-        'Unable to get user context because Optimizely client failed to initialize.'
-      );
+      logger.warn('Unable to get user context. Optimizely client not initialized.');
       return null;
     }
 
-    if (!this.userContext) {
-      logger.warn(
-        'Unable to get user context because user was not set.'
-      );
+    if (!this.userContext || !this.isUserReady) {
+      logger.warn('Unable to get user context. User was not set nor ready.');
       return null;
     }
 
@@ -355,14 +351,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public setCurrentUserContext(userInfo: UserInfo): void {
     if (!this._client) {
-      logger.warn(
-        'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
-        userInfo.id
-      );
+      logger.warn(`Unable to set user context for user ID ${userInfo.id}. Optimizely client not initialized.`);
       return;
     }
-
-    let userContext: optimizely.OptimizelyUserContext | null = null;
 
     if (!this.userContext || (this.userContext && !areUsersEqual(userInfo, this.user))) {
       this.userContext = this._client.createUserContext(userInfo.id ?? undefined, userInfo.attributes);
