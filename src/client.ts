@@ -53,7 +53,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   user: UserInfo;
 
   onReady(opts?: { timeout?: number; }): Promise<any>;
-  setUser(userInfo: UserInfo): Promise<void>;
+  setUser(userInfo: UserInfo): void;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
@@ -383,7 +383,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return await this.userContext.fetchQualifiedSegments(options);
   }
 
-  public async setUser(userInfo: UserInfo): Promise<void> {
+  public setUser(userInfo: UserInfo): void {
     this.isUserReady = true;
 
     this.user = { ...default_user };
@@ -396,7 +396,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this.setCurrentUserContext(userInfo);
 
     if (this.getIsReadyPromiseFulfilled()) {
-      await this.fetchQualifiedSegments();
+      this.fetchQualifiedSegments();
     }
 
     if (!this.isUserPromiseResolved) {
