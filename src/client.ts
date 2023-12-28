@@ -281,6 +281,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.isReadyPromiseFulfilled;
   }
 
+  public isReady(): boolean {
+    // React SDK Instance only becomes ready when both JS SDK client and the user info is ready.
+    return this.isUserReady && this.isClientReady;
+  }
+
   public getIsUsingSdkKey(): boolean {
     return this.isUsingSdkKey;
   }
@@ -362,10 +367,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client) {
-      logger.warn(
-        'Unable to get user context for user id "%s" because Optimizely client failed to initialize.',
-        userInfo.id
-      );
+      logger.warn(`Unable to create user context for ${userInfo.id}. Optimizely client failed to initialize.`);
       return null;
     }
 
@@ -387,19 +389,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this.user = { ...default_user };
 
     this.user.id = userInfo.id;
-
-    if (this._client) {
-      this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
-    } else {
-      logger.warn(
-        'Unable to create user context for user id "%s" because Optimizely client failed to initialize.',
-        this.user.id
-      );
-    }
-
     if (userInfo.attributes) {
       this.user.attributes = userInfo.attributes;
     }
+    
+    this.setCurrentUserContext(userInfo);
 
     if (this.getIsReadyPromiseFulfilled()) {
       await this.fetchQualifiedSegments();
@@ -439,11 +433,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.onForcedVariationsUpdateHandlers.splice(ind, 1);
       }
     };
-  }
-
-  public isReady(): boolean {
-    // React SDK Instance only becomes ready when both JS SDK client and the user info is ready.
-    return this.isUserReady && this.isClientReady;
   }
 
   /**
