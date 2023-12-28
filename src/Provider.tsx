@@ -77,26 +77,6 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       };
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
-    } else {
-      const localStorageVuid = localStorage.getItem('optimizely-vuid');
-
-      if (localStorageVuid) {
-        finalUser = {
-          id: localStorageVuid,
-          attributes: {},
-        };
-      } else {
-        try {
-          await optimizely.onReady();
-
-          finalUser = {
-            id: optimizely.getVuid() || null,
-            attributes: {},
-          };
-        } catch {
-          logger.error('Unable to set user. The Optimizely SDK client is not ready.');
-        }
-      }
     }
 
     if (finalUser) {
