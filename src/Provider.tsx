@@ -43,10 +43,14 @@ interface OptimizelyProviderState {
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
   constructor(props: OptimizelyProviderProps) {
     super(props);
-    const { optimizely, userId, userAttributes, user } = props;
+  }
+
+  async componentDidMount() {
+    const { optimizely, userId, userAttributes, user } = this.props;
 
     if (!optimizely) {
       logger.error('OptimizelyProvider must be passed an instance of the Optimizely SDK client');
+      return;
     }
 
     let finalUser: UserInfo | null = null;
@@ -70,17 +74,28 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
     } else {
-      finalUser = {
-        id: optimizely.getVuid() || null,
-        attributes: {},
-      };
+      const localStorageVuid = localStorage.getItem('optimizely-vuid');
+
+      if (localStorageVuid) {
+        finalUser = {
+          id: localStorageVuid,
+          attributes: {},
+        };
+      } else {
+        await optimizely.onReady();
+
+        finalUser = {
+          id: optimizely.getVuid() || null,
+          attributes: {},
+        };
+      }
     }
 
     if (finalUser) {
       try {
         optimizely.setUser(finalUser);
       } catch {
-        logger.error('Unable to set user because passed in optimizely object does not contain the setUser function.');
+        logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
       }
     }
   }
