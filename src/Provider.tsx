@@ -45,7 +45,11 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     super(props);
   }
 
-  async componentDidMount() {
+  componentDidMount(): void {
+    this.setUserInOptimizely();
+  }
+
+  async setUserInOptimizely(): Promise<void> {
     const { optimizely, userId, userAttributes, user } = this.props;
 
     if (!optimizely) {
