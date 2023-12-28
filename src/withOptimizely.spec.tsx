@@ -53,6 +53,7 @@ describe('withOptimizely', () => {
     optimizelyClient = ({
       setUser: jest.fn(),
       getVuid: jest.fn(),
+      onReady: jest.fn(),
     } as unknown) as ReactSDKClient;
   });
 

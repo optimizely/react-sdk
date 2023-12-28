@@ -82,12 +82,16 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
           attributes: {},
         };
       } else {
-        await optimizely.onReady();
+        try {
+          await optimizely.onReady();
 
-        finalUser = {
-          id: optimizely.getVuid() || null,
-          attributes: {},
-        };
+          finalUser = {
+            id: optimizely.getVuid() || null,
+            attributes: {},
+          };
+        } catch {
+          logger.error('Unable to set user. The Optimizely SDK client is not ready.');
+        }
       }
     }
 
