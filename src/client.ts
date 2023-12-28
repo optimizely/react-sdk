@@ -181,7 +181,11 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean>;
 
-  getUserContext(): optimizely.OptimizelyUserContext | null;
+  getCurrentUserContext(): optimizely.OptimizelyUserContext | null;
+
+  setCurrentUserContext(userInfo: UserInfo): void;
+
+  makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null;
 
   getVuid(): string | undefined;
 }
