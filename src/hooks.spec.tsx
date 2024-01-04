@@ -84,7 +84,7 @@ describe('hooks', () => {
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
       new Promise(resolve => {
-        setTimeout(function () {
+        setTimeout(function() {
           resolve(
             Object.assign(
               {
@@ -117,13 +117,13 @@ describe('hooks', () => {
       getVuid: jest.fn().mockReturnValue('vuid_95bf72cebc774dfd8e8e580a5a1'),
       onUserUpdate: jest.fn().mockImplementation(handler => {
         userUpdateCallbacks.push(handler);
-        return () => { };
+        return () => {};
       }),
       notificationCenter: {
         addNotificationListener: jest.fn().mockImplementation((type, handler) => {
           notificationListenerCallbacks.push(handler);
         }),
-        removeNotificationListener: jest.fn().mockImplementation(id => { }),
+        removeNotificationListener: jest.fn().mockImplementation(id => {}),
       },
       user: {
         id: 'testuser',
@@ -134,7 +134,7 @@ describe('hooks', () => {
       getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockImplementation(handler => {
         forcedVariationUpdateCallbacks.push(handler);
-        return () => { };
+        return () => {};
       }),
       getForcedVariations: jest.fn().mockReturnValue({}),
       decide: decideMock,
@@ -294,7 +294,7 @@ describe('hooks', () => {
 
     it('should re-render after the client becomes ready', async () => {
       readySuccess = false;
-      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any>; }) => void;
+      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
       const readyPromise: Promise<any> = new Promise(res => {
         resolveReadyPromise = (result): void => {
           readySuccess = true;
@@ -560,7 +560,7 @@ describe('hooks', () => {
 
     it('should re-render after the client becomes ready', async () => {
       readySuccess = false;
-      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any>; }) => void;
+      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
       const readyPromise: Promise<any> = new Promise(res => {
         resolveReadyPromise = (result): void => {
           readySuccess = true;
@@ -816,7 +816,7 @@ describe('hooks', () => {
 
     it('should re-render after the client becomes ready', async () => {
       readySuccess = false;
-      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any>; }) => void;
+      let resolveReadyPromise: (result: { success: boolean; dataReadyPromise: Promise<any> }) => void;
       const readyPromise: Promise<any> = new Promise(res => {
         resolveReadyPromise = (result): void => {
           readySuccess = true;

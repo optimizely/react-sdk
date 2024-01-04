@@ -18,10 +18,10 @@ jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
   return {
     logger: {
-      warn: jest.fn(() => () => { }),
-      info: jest.fn(() => () => { }),
-      error: jest.fn(() => () => { }),
-      debug: jest.fn(() => () => { }),
+      warn: jest.fn(() => () => {}),
+      info: jest.fn(() => () => {}),
+      error: jest.fn(() => () => {}),
+      debug: jest.fn(() => () => {}),
     },
   };
 });
@@ -1665,15 +1665,14 @@ describe('ReactSDKClient', () => {
       instance.getCurrentUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith("Unable to get user context. Optimizely client not initialized or ready.");
+      expect(logger.warn).toBeCalledWith('Unable to get user context. Optimizely client not initialized or ready.');
     });
-
 
     it('should log a warning and return null if setUser is not called first', () => {
       instance.getCurrentUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith("Unable to get user context. User context not set.");
+      expect(logger.warn).toBeCalledWith('Unable to get user context. User context not set.');
     });
 
     it('should return a userContext if setUser is called', () => {
