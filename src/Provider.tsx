@@ -37,7 +37,7 @@ interface OptimizelyProviderProps {
 
 interface OptimizelyProviderState {
   userId: string;
-  attributes: { [key: string]: string; } | undefined;
+  attributes: { [key: string]: string } | undefined;
 }
 
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
