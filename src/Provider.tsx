@@ -20,7 +20,7 @@ import { getLogger } from '@optimizely/optimizely-sdk';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OptimizelyContextProvider } from './Context';
-import { ReactSDKClient } from './client';
+import { ReactSDKClient, DefaultUser } from './client';
 import { areUsersEqual, UserInfo } from './utils';
 
 const logger = getLogger('<OptimizelyProvider>');
@@ -57,35 +57,39 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       return;
     }
 
-    let finalUser: UserInfo | null = null;
+    optimizely.onReady().then(() => {
+      let finalUser: UserInfo | null = null;
 
-    if (user) {
-      if ('then' in user) {
-        user.then((res: UserInfo) => {
-          optimizely.setUser(res);
-        });
-      } else {
+      if (user) {
+        if ('then' in user) {
+          user.then((res: UserInfo) => {
+            optimizely.setUser(res);
+          });
+        } else {
+          finalUser = {
+            id: user.id,
+            attributes: user.attributes || {},
+          };
+        }
+      } else if (userId) {
         finalUser = {
-          id: user.id,
-          attributes: user.attributes || {},
+          id: userId,
+          attributes: userAttributes || {},
         };
+        // deprecation warning
+        logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
+      } else {
+        finalUser = DefaultUser;
       }
-    } else if (userId) {
-      finalUser = {
-        id: userId,
-        attributes: userAttributes || {},
-      };
-      // deprecation warning
-      logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
-    }
 
-    if (finalUser) {
-      try {
-        optimizely.setUser(finalUser);
-      } catch {
-        logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
+      if (finalUser) {
+        try {
+          optimizely.setUser(finalUser);
+        } catch {
+          logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
+        }
       }
-    }
+    });
   }
 
   componentDidUpdate(prevProps: OptimizelyProviderProps): void {
