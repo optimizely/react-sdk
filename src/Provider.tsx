@@ -37,7 +37,7 @@ interface OptimizelyProviderProps {
 
 interface OptimizelyProviderState {
   userId: string;
-  attributes: { [key: string]: string } | undefined;
+  attributes: { [key: string]: string; } | undefined;
 }
 
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
@@ -45,8 +45,8 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     super(props);
   }
 
-  componentDidMount(): void {
-    this.setUserInOptimizely();
+  async componentDidMount(): Promise<void> {
+    await this.setUserInOptimizely();
   }
 
   async setUserInOptimizely(): Promise<void> {
@@ -57,39 +57,38 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       return;
     }
 
-    optimizely.onReady().then(() => {
-      let finalUser: UserInfo | null = null;
+    await optimizely.onReady();
+    let finalUser: UserInfo | null = null;
 
-      if (user) {
-        if ('then' in user) {
-          user.then((res: UserInfo) => {
-            optimizely.setUser(res);
-          });
-        } else {
-          finalUser = {
-            id: user.id,
-            attributes: user.attributes || {},
-          };
-        }
-      } else if (userId) {
-        finalUser = {
-          id: userId,
-          attributes: userAttributes || {},
-        };
-        // deprecation warning
-        logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
+    if (user) {
+      if ('then' in user) {
+        user.then((res: UserInfo) => {
+          optimizely.setUser(res);
+        });
       } else {
-        finalUser = DefaultUser;
+        finalUser = {
+          id: user.id,
+          attributes: user.attributes || {},
+        };
       }
+    } else if (userId) {
+      finalUser = {
+        id: userId,
+        attributes: userAttributes || {},
+      };
+      // deprecation warning
+      logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
+    } else {
+      finalUser = DefaultUser;
+    }
 
-      if (finalUser) {
-        try {
-          optimizely.setUser(finalUser);
-        } catch {
-          logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
-        }
+    if (finalUser) {
+      try {
+        await optimizely.setUser(finalUser);
+      } catch {
+        logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
       }
-    });
+    }
   }
 
   componentDidUpdate(prevProps: OptimizelyProviderProps): void {

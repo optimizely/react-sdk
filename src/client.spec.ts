@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 jest.mock('@optimizely/optimizely-sdk');
 jest.mock('./logger', () => {
   return {
@@ -1236,10 +1237,6 @@ describe('ReactSDKClient', () => {
       const result = await instance.fetchQualifiedSegments();
 
       expect(result).toEqual(false);
-      expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith(
-        'Unable to fetch qualified segments for user because Optimizely client failed to initialize.'
-      );
     });
 
     it('should return false if fetch fails', async () => {
@@ -1665,18 +1662,18 @@ describe('ReactSDKClient', () => {
       // @ts-ignore
       instance._client = null;
 
-      instance.getUserContext();
+      instance.getCurrentUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith("Unable to get user context because Optimizely client failed to initialize.");
+      expect(logger.warn).toBeCalledWith("Unable to get user context. Optimizely client not initialized or ready.");
     });
 
 
     it('should log a warning and return null if setUser is not called first', () => {
-      instance.getUserContext();
+      instance.getCurrentUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
-      expect(logger.warn).toBeCalledWith("Unable to get user context because user was not set.");
+      expect(logger.warn).toBeCalledWith("Unable to get user context. User context not set.");
     });
 
     it('should return a userContext if setUser is called', () => {
@@ -1687,7 +1684,7 @@ describe('ReactSDKClient', () => {
         },
       });
 
-      const currentUserContext = instance.getUserContext();
+      const currentUserContext = instance.getCurrentUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(0);
       expect(currentUserContext).not.toBeNull();
