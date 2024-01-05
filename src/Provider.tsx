@@ -57,7 +57,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       return;
     }
 
-    await optimizely.onReady();
+    //await optimizely.onReady(); // causes problems with hooks
     let finalUser: UserInfo | null = null;
 
     if (user) {

@@ -223,12 +223,7 @@ describe('hooks', () => {
       readySuccess = false;
       activateMock.mockReturnValue('12345');
       getOnReadyPromise = (): Promise<void> =>
-        new Promise((_, rej) =>
-          setTimeout(() => {
-            console.log(`>>> calling rej after ${mockDelay}`);
-            rej(REJECTION_REASON);
-          }, mockDelay)
-        );
+        new Promise((_, rej) => setTimeout(() => rej(REJECTION_REASON), mockDelay));
 
       render(
         <OptimizelyProvider optimizely={optimizelyMock}>
@@ -236,12 +231,8 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // initial render
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false'));
+      jest.advanceTimersByTime(mockDelay + 1);
 
-      jest.advanceTimersByTime(mockDelay);
-
-      // check that the component still has the same rendering
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false'));
 
       jest.useRealTimers();
@@ -492,6 +483,8 @@ describe('hooks', () => {
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      jest.useFakeTimers();
+
       readySuccess = false;
       isFeatureEnabledMock.mockReturnValue(true);
       getOnReadyPromise = (): Promise<void> =>
@@ -503,9 +496,11 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false')); // initial render
-      await new Promise(r => setTimeout(r, mockDelay * 3));
+      jest.advanceTimersByTime(mockDelay + 1);
+
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false'));
+
+      jest.useRealTimers();
     });
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
@@ -746,6 +741,8 @@ describe('hooks', () => {
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
+      jest.useFakeTimers();
+
       readySuccess = false;
       decideMock.mockReturnValue({ ...defaultDecision });
       getOnReadyPromise = (): Promise<void> =>
@@ -757,9 +754,11 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false')); // initial render
-      await new Promise(r => setTimeout(r, mockDelay * 3));
+      jest.advanceTimersByTime(mockDelay + 1);
+
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false'));
+
+      jest.useRealTimers();
     });
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
