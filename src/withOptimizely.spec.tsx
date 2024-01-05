@@ -58,7 +58,7 @@ describe('withOptimizely', () => {
   });
 
   describe('when userId / userAttributes props are provided', () => {
-    it('should call setUser with the correct user id / attributes', () => {
+    it('should call setUser with the correct user id / attributes', async () => {
       const attributes = {
         foo: 'bar',
       };
@@ -69,13 +69,13 @@ describe('withOptimizely', () => {
         </OptimizelyProvider>
       );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({ id: userId, attributes });
     });
   });
 
   describe('when only userId prop is provided', () => {
-    it('should call setUser with the correct user id / attributes', () => {
+    it('should call setUser with the correct user id / attributes', async () => {
       const userId = 'jordan';
       render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} userId={userId}>
@@ -83,7 +83,7 @@ describe('withOptimizely', () => {
         </OptimizelyProvider>
       );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes: {},
@@ -92,7 +92,7 @@ describe('withOptimizely', () => {
   });
 
   describe(`when the user prop is passed only with "id"`, () => {
-    it('should call setUser with the correct user id / attributes', () => {
+    it('should call setUser with the correct user id / attributes', async () => {
       const userId = 'jordan';
       render(
         <OptimizelyProvider optimizely={optimizelyClient} timeout={200} user={{ id: userId }}>
@@ -100,7 +100,7 @@ describe('withOptimizely', () => {
         </OptimizelyProvider>
       );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes: {},
@@ -109,7 +109,7 @@ describe('withOptimizely', () => {
   });
 
   describe(`when the user prop is passed with "id" and "attributes"`, () => {
-    it('should call setUser with the correct user id / attributes', () => {
+    it('should call setUser with the correct user id / attributes', async () => {
       const userId = 'jordan';
       const attributes = { foo: 'bar' };
       render(
@@ -118,7 +118,7 @@ describe('withOptimizely', () => {
         </OptimizelyProvider>
       );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes,
@@ -127,7 +127,7 @@ describe('withOptimizely', () => {
   });
 
   describe('when both the user prop and userId / userAttributes props are passed', () => {
-    it('should respect the user object prop', () => {
+    it('should respect the user object prop', async () => {
       const userId = 'jordan';
       const attributes = { foo: 'bar' };
       render(
@@ -142,7 +142,7 @@ describe('withOptimizely', () => {
         </OptimizelyProvider>
       );
 
-      expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1);
+      await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
       expect(optimizelyClient.setUser).toHaveBeenCalledWith({
         id: userId,
         attributes,
@@ -190,13 +190,9 @@ describe('withOptimizely', () => {
     const OptimizelyInput = withOptimizely(ForwardingFancyInput);
     const inputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
-    const optimizelyMock: ReactSDKClient = ({
-      setUser: jest.fn(),
-    } as unknown) as ReactSDKClient;
-
     render(
       <OptimizelyProvider
-        optimizely={optimizelyMock}
+        optimizely={optimizelyClient}
         timeout={200}
         user={{ id: 'jordan' }}
         userAttributes={{ plan_type: 'bronze' }}
