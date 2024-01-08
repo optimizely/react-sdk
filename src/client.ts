@@ -18,6 +18,7 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
 import { logger } from './logger';
+import { FeatureVariableValue } from '@optimizely/optimizely-sdk';
 
 export type VariableValuesObject = {
   [key: string]: any;
@@ -117,7 +118,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     variableKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): unknown;
+  ): FeatureVariableValue;
 
   getAllFeatureVariables(
     featureKey: string,
@@ -314,22 +315,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public getCurrentUserContext(): optimizely.OptimizelyUserContext | null {
-    if (!this._client || !this.isReady()) {
-      logger.warn('Unable to get user context. Optimizely client not initialized or ready.');
-      return null;
-    }
-
-    if (!this.userContext) {
-      logger.warn('Unable to get user context. User context not set.');
-      return null;
-    }
-
     return this.userContext;
   }
 
   public setCurrentUserContext(userInfo: UserInfo): void {
-    if (!this._client || !this.isReady()) {
-      logger.warn(`Unable to set user context for user ID ${userInfo.id}. Optimizely client not initialized or ready.`);
+    if (!this._client) {
+      logger.warn(`Unable to set user context for user ID ${userInfo.id}. Optimizely client not initialized.`);
       return;
     }
 
@@ -358,16 +349,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
-    //reset user info
-    this.user = { ...DefaultUser };
-
-    this.user.id = userInfo.id;
-
     this.setCurrentUserContext(userInfo);
 
-    if (userInfo.attributes) {
-      this.user.attributes = userInfo.attributes;
-    }
+    this.user = {
+      id: this.userContext?.getUserId() || DefaultUser.id,
+      attributes: this.userContext?.getAttributes() || DefaultUser.attributes,
+    };
 
     if (this.getIsReadyPromiseFulfilled()) {
       await this.fetchQualifiedSegments();
@@ -968,7 +955,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     variableKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): unknown {
+  ): FeatureVariableValue {
     if (!this._client) {
       logger.warn(
         'Unable to get feature variable from feature "%s" because Optimizely client failed to initialize.',
