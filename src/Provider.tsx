@@ -57,7 +57,6 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       return;
     }
 
-    //await optimizely.onReady(); // causes problems with hooks
     let finalUser: UserInfo | null = null;
 
     if (user) {
@@ -84,9 +83,10 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
 
     if (finalUser) {
       try {
+        await optimizely.onReady();
         await optimizely.setUser(finalUser);
       } catch {
-        logger.error('Unable to set user. Prop optimizely object does not contain the setUser function.');
+        logger.error('Error while trying to set user.');
       }
     }
   }
