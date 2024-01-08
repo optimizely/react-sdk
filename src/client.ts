@@ -271,10 +271,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.isReadyPromiseFulfilled;
   }
 
-  public isReady(): boolean {
-    return this.isClientReady;
-  }
-
   public getIsUsingSdkKey(): boolean {
     return this.isUsingSdkKey;
   }
@@ -398,6 +394,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         this.onForcedVariationsUpdateHandlers.splice(ind, 1);
       }
     };
+  }
+
+  public isReady(): boolean {
+    return this.isClientReady;
   }
 
   /**
