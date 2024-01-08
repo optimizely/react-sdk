@@ -18,7 +18,6 @@ import * as optimizely from '@optimizely/optimizely-sdk';
 import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
 import { logger } from './logger';
-import { FeatureVariableValue } from '@optimizely/optimizely-sdk';
 
 export type VariableValuesObject = {
   [key: string]: any;
@@ -118,7 +117,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
     variableKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): FeatureVariableValue;
+  ): unknown;
 
   getAllFeatureVariables(
     featureKey: string,
@@ -955,7 +954,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     variableKey: string,
     overrideUserId: string,
     overrideAttributes?: optimizely.UserAttributes
-  ): FeatureVariableValue {
+  ): unknown {
     if (!this._client) {
       logger.warn(
         'Unable to get feature variable from feature "%s" because Optimizely client failed to initialize.',
