@@ -256,6 +256,17 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
   }
 
+  protected getUserWithOverrides(overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): UserInfo {
+    const id: string | null = overrideUserId === undefined ? this.user.id : overrideUserId;
+    const attributes: optimizely.UserAttributes | undefined =
+      overrideAttributes === undefined ? this.user.attributes : overrideAttributes;
+
+    return {
+      id,
+      attributes,
+    };
+  }
+
   public getIsReadyPromiseFulfilled(): boolean {
     return this.isReadyPromiseFulfilled;
   }
@@ -300,17 +311,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }
       return res;
     });
-  }
-
-  protected getUserWithOverrides(overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): UserInfo {
-    const id: string | null = overrideUserId === undefined ? this.user.id : overrideUserId;
-    const attributes: optimizely.UserAttributes | undefined =
-      overrideAttributes === undefined ? this.user.attributes : overrideAttributes;
-
-    return {
-      id,
-      attributes,
-    };
   }
 
   public getCurrentUserContext(): optimizely.OptimizelyUserContext | null {
