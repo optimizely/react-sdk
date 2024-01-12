@@ -1662,14 +1662,14 @@ describe('ReactSDKClient', () => {
       // @ts-ignore
       instance._client = null;
 
-      instance.getCurrentUserContext();
+      instance.getUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
       expect(logger.warn).toBeCalledWith('Unable to get user context. Optimizely client not initialized.');
     });
 
     it('should log a warning and return null if setUser is not called first', () => {
-      instance.getCurrentUserContext();
+      instance.getUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(1);
       expect(logger.warn).toBeCalledWith('Unable to get user context. User context not set.');
@@ -1683,7 +1683,7 @@ describe('ReactSDKClient', () => {
         },
       });
 
-      const currentUserContext = instance.getCurrentUserContext();
+      const currentUserContext = instance.getUserContext();
 
       expect(logger.warn).toHaveBeenCalledTimes(0);
       expect(currentUserContext).not.toBeNull();
