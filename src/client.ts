@@ -183,10 +183,6 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
 
   getUserContext(): optimizely.OptimizelyUserContext | null;
 
-  setCurrentUserContext(userInfo: UserInfo): void;
-
-  makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null;
-
   getVuid(): string | undefined;
 }
 
@@ -323,7 +319,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return this.userContext;
   }
 
-  public setCurrentUserContext(userInfo: UserInfo): void {
+  private setCurrentUserContext(userInfo: UserInfo): void {
     if (!this._client) {
       logger.warn(`Unable to set user context for user ID ${userInfo.id}. Optimizely client not initialized.`);
       return;
@@ -334,7 +330,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
   }
 
-  public makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
+  private makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
     if (!this._client || !this.isReady()) {
       logger.warn(
         `Unable to create user context for ${userInfo.id}. Optimizely client failed to initialize or not ready.`
