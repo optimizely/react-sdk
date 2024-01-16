@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import * as React from 'react';
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger } from '@optimizely/optimizely-sdk';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OptimizelyContextProvider } from './Context';
-import { ReactSDKClient } from './client';
+import { ReactSDKClient, DefaultUser } from './client';
 import { areUsersEqual, UserInfo } from './utils';
 
 const logger = getLogger('<OptimizelyProvider>');
@@ -42,9 +43,20 @@ interface OptimizelyProviderState {
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
   constructor(props: OptimizelyProviderProps) {
     super(props);
-    const { optimizely, userId, userAttributes, user } = props;
+  }
 
-    // check if user id/attributes are provided as props and set them ReactSDKClient
+  componentDidMount(): void {
+    this.setUserInOptimizely();
+  }
+
+  async setUserInOptimizely(): Promise<void> {
+    const { optimizely, userId, userAttributes, user } = this.props;
+
+    if (!optimizely) {
+      logger.error('OptimizelyProvider must be passed an instance of the Optimizely SDK client');
+      return;
+    }
+
     let finalUser: UserInfo | null = null;
 
     if (user) {
@@ -65,17 +77,16 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       };
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
+    } else {
+      finalUser = DefaultUser;
     }
 
     if (finalUser) {
-      if (!optimizely) {
-        logger.error(`Unable to set user ${finalUser} because optimizely object does not exist.`)
-      } else {
-        try {
-          optimizely.setUser(finalUser);
-        } catch (err) {
-          logger.error(`Unable to set user ${finalUser} because passed in optimizely object does not contain the setUser function.`)
-        }
+      try {
+        await optimizely.onReady();
+        await optimizely.setUser(finalUser);
+      } catch {
+        logger.error('Error while trying to set user.');
       }
     }
   }
@@ -109,7 +120,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     }
   }
 
-  render() {
+  render(): JSX.Element {
     const { optimizely, children, timeout } = this.props;
     const isServerSide = !!this.props.isServerSide;
     const value = {

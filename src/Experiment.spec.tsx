@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 /// <reference types="jest" />
+
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -43,10 +45,11 @@ describe('<OptimizelyExperiment>', () => {
     optimizelyMock = ({
       onReady: jest.fn().mockImplementation(() => onReadyPromise),
       activate: jest.fn().mockImplementation(() => variationKey),
-      onUserUpdate: jest.fn().mockImplementation(() => () => { }),
+      onUserUpdate: jest.fn().mockImplementation(() => () => {}),
+      getVuid: jest.fn().mockImplementation(() => 'vuid_95bf72cebc774dfd8e8e580a5a1'),
       notificationCenter: {
-        addNotificationListener: jest.fn().mockImplementation(() => { }),
-        removeNotificationListener: jest.fn().mockImplementation(() => { }),
+        addNotificationListener: jest.fn().mockImplementation(() => {}),
+        removeNotificationListener: jest.fn().mockImplementation(() => {}),
       },
       user: {
         id: 'testuser',
@@ -55,7 +58,7 @@ describe('<OptimizelyExperiment>', () => {
       isReady: jest.fn().mockImplementation(() => isReady),
       getIsReadyPromiseFulfilled: () => true,
       getIsUsingSdkKey: () => true,
-      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => { }),
+      onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
     } as unknown) as ReactSDKClient;
   });
 
@@ -405,7 +408,9 @@ describe('<OptimizelyExperiment>', () => {
       await optimizelyMock.onReady();
 
       expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined);
-      await waitFor(() => expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation|true|false'));
+      await waitFor(() =>
+        expect(screen.getByTestId('variation-key')).toHaveTextContent('matchingVariation|true|false')
+      );
     });
 
     describe('when the onReady() promise return { success: false }', () => {
