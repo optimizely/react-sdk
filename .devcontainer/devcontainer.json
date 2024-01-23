@@ -12,7 +12,8 @@
         "github.vscode-github-actions",
         "Orta.vscode-jest",
         "ms-vscode.test-adapter-converter",
-        "GitHub.copilot-chat"
+        "GitHub.copilot-chat",
+        "vivaxy.vscode-conventional-commits"
       ],
       "settings": {
         "files.eol": "\n"
