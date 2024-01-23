@@ -104,9 +104,9 @@ export function hoistStaticsAndForwardRefs<R, P extends AcceptsForwardedRef<R>>(
 
 function coerceUnknownAttrsValueForComparison(maybeAttrs: unknown): optimizely.UserAttributes {
   if (typeof maybeAttrs === 'object' && maybeAttrs !== null) {
-    return maybeAttrs;
+    return maybeAttrs as optimizely.UserAttributes;
   }
-  return {};
+  return {} as optimizely.UserAttributes;
 }
 
 /**
