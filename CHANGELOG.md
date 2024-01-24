@@ -1,9 +1,59 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## [3.0.0] - January 24, 2024
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+### New Features  
+
+The 3.0.0 release introduces a new primary feature, [Advanced Audience Targeting]( https://docs.developers.optimizely.com/feature-experimentation/docs/optimizely-data-platform-advanced-audience-targeting) enabled through integration with [Optimizely Data Platform (ODP)](https://docs.developers.optimizely.com/optimizely-data-platform/docs)  (#214, #213, #212, #208, #207, #206, #205, #201, #200, #199)
+
+You can use ODP, a high-performance [Customer Data Platform (CDP)]( https://www.optimizely.com/optimization-glossary/customer-data-platform/), to easily create complex real-time segments (RTS) using first-party and 50+ third-party data sources out of the box. You can create custom schemas that support the user attributes important for your business, and stitch together user behavior done on different devices to better understand and target your customers for personalized user experiences. ODP can be used as a single source of truth for these segments in any Optimizely or 3rd party tool.  
+
+With ODP accounts integrated into Optimizely projects, you can build audiences using segments pre-defined in ODP. The SDK will fetch the segments for given users and make decisions using the segments. For access to ODP audience targeting in your Feature Experimentation account, please contact your Customer Success Manager. 
+
+This release leverages the Optimizely JavaScript SDK beta5+
+
+This version includes the following changes: 
+
+- New API added to `OptimizelyUserContext`: 
+
+	- `fetchQualifiedSegments()`: this API will retrieve user segments from the ODP server. The fetched segments will be used for audience evaluation. The fetched data will be stored in the local cache to avoid repeated network delays. 
+
+	- When an `OptimizelyUserContext` is created, the SDK will automatically send an identify request to the ODP server to facilitate observing user activities. 
+
+- New APIs added to `OptimizelyClient`: 
+
+	- `sendOdpEvent()`: customers can build/send arbitrary ODP events that will bind user identifiers and data to user profiles in ODP. 
+
+	- `createUserContext()` with anonymous user IDs: user-contexts can be created without a userId. The SDK will create and use a persistent `VUID` specific to a device when userId is not provided. 
+
+For details, refer to our documentation pages:  
+
+- [Advanced Audience Targeting](https://docs.developers.optimizely.com/feature-experimentation/docs/optimizely-data-platform-advanced-audience-targeting)  
+
+- [Client SDK Support](https://docs.developers.optimizely.com/feature-experimentation/v1.0/docs/advanced-audience-targeting-for-client-side-sdks) 
+
+- [Initialize React SDK](https://docs.developers.optimizely.com/feature-experimentation/docs/initialize-sdk-react) 
+
+- [Advanced Audience Targeting segment qualification methods](https://docs.developers.optimizely.com/feature-experimentation/docs/advanced-audience-targeting-segment-qualification-methods-react) 
+
+- [Send Optimizely Data Platform data using Advanced Audience Targeting](https://docs.developers.optimizely.com/feature-experimentation/docs/send-odp-data-using-advanced-audience-targeting-react) 
+
+### Breaking Changes 
+- `OdpManager` in the SDK is enabled by default. Unless an ODP account is integrated into the Optimizely projects, most `OdpManager` functions will be ignored. If needed, `OdpManager` can be disabled when `OptimizelyClient` is instantiated.
+- Updated `murmurhash` dependency to version `2.0.1`.
+- Updated `uuid` dependency to version `8.3.2`.
+- Dropped support for the following browser versions.
+  - All versions of Microsoft Internet Explorer.
+  - Chrome versions earlier than `102.0`.
+  - Microsoft Edge versions earlier than `84.0`.
+  - Firefox versions earlier than `91.0`.
+  - Opera versions earlier than `76.0`.
+  - Safari versions earlier than `13.0`.
+- Dropped support for Node JS versions earlier than `14`.
+
+### Changed
+- Updated `createUserContext`'s `userId` parameter to be optional due to the Browser variation's use of the new `vuid` field ([#229](https://github.com/optimizely/react-sdk/pull/229))
+- Updated `@optimizely/optimizely-sdk` to version `5.0.0` ([#230](https://github.com/optimizely/react-sdk/pull/230))
 
 ## [3.0.0-beta2] - December 26, 2023
 
@@ -65,7 +115,7 @@ For details, refer to our documentation pages:
   - Safari versions earlier than `13.0`.
 - Dropped support for Node JS versions earlier than `14`.
 
-## Changed
+### Changed
 - Updated `createUserContext`'s `userId` parameter to be optional due to the Browser variation's use of the new `vuid` field.
 
 ## [2.9.2] - March 13, 2023
