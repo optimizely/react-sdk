@@ -625,10 +625,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@optimizely/optimizely-sdk@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.0.tgz#9dc06e6aa05fafa5a0a689cf986f5198deb93786"
-  integrity sha512-qOJhCa/q/GXcuHSjbuDVB7kepo1GzLs2dS9iwZBD2Auupy/XjCh77cAuMQpqCbeNlQJsqr5meqxHeN+HGKqzAA==
+"@optimizely/optimizely-sdk@^5.0.1":
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.1.tgz#9ac9e098f3840c8b381a7d3df77cfacb2e381e78"
+  integrity sha512-KFXFIUKwmNDJGCjOqDE8pPnI6fmpW1bPAPUWTtVOxUXvty+fhSVFqfsVY0pvWsY6WOEuMGM30iIKoItcU4Raig==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
