@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023, Optimizely
+ * Copyright 2019-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,7 +123,7 @@ describe('ReactSDKClient', () => {
     expect(createInstanceSpy).toBeCalledWith({
       ...config,
       clientEngine: 'react-sdk',
-      clientVersion: '3.0.0',
+      clientVersion: '3.0.1',
     });
   });
 

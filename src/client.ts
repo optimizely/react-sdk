@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2023, Optimizely
+ * Copyright 2019-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ export interface OnReadyResult extends ResolveResult {
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '3.0.0';
+const REACT_SDK_CLIENT_VERSION = '3.0.1';
 
 export const DefaultUser: UserInfo = {
   id: null,
