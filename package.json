@@ -1,6 +1,6 @@
 {
   "name": "@optimizely/react-sdk",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "React SDK for Optimizely Feature Experimentation, Optimizely Full Stack (legacy), and Optimizely Rollouts",
   "homepage": "https://github.com/optimizely/react-sdk",
   "repository": "https://github.com/optimizely/react-sdk",
