@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.0.1] - February 27, 2024
+
+### Changed
+- Updated `@optimizely/optimizely-sdk` to version `5.0.1` ([#242](https://github.com/optimizely/react-sdk/pull/242))
+- Updated Dependabot alerts ([#239](https://github.com/optimizely/react-sdk/pull/239), [#241](https://github.com/optimizely/react-sdk/pull/241))
+
 ## [3.0.0] - January 24, 2024
 
 ### New Features  
