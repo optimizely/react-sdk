@@ -18,7 +18,7 @@ const typescript = require('rollup-plugin-typescript2');
 const commonjs = require('@rollup/plugin-commonjs');
 const replace = require('@rollup/plugin-replace');
 const { nodeResolve } = require('@rollup/plugin-node-resolve');
-const { uglify } = require('rollup-plugin-uglify');
+const terser = require('@rollup/plugin-terser');
 
 const packageDeps = require('../package.json').dependencies || {};
 const packagePeers = require('../package.json').peerDependencies || {};
@@ -57,7 +57,7 @@ function getPlugins(env, externals) {
   plugins.push(typescript());
 
   if (env === 'production') {
-    plugins.push(uglify());
+    plugins.push(terser());
   }
 
   return plugins;
