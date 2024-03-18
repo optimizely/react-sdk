@@ -290,17 +290,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }, timeout) as any;
     });
 
-    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
+    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(res => {
       clearTimeout(timeoutId);
       if (res.success && !this.initialConfig.odpOptions?.disabled) {
-        const isSegmentsFetched = await this.fetchQualifiedSegments();
-        if (!isSegmentsFetched) {
-          return {
-            success: false,
-            reason: 'USER_NOT_READY',
-            message: 'Failed to fetch qualified segments',
-          };
-        }
+        this.fetchQualifiedSegments();       
       }
       return res;
     });
