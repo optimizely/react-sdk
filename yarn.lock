@@ -655,7 +655,7 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@optimizely/optimizely-sdk@^5.1.0":
+"@optimizely/optimizely-sdk@^5.2.0":
   version "5.2.0"
   resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.2.0.tgz#6449336182515dd4cca9d6913e24ca8e814e6278"
   integrity sha512-JxdhWHU9OiJKrKfyWe9lL+2/e28gBZnPNHQAA+heyWTAtcuxZWdSZ24bIkLwAAuIf26dh89o9LNB2L8aKPmwWw==

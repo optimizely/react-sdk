@@ -8,3 +8,6 @@ dist/
 build/
 .rpt2_cache
 .env
+
+# test artifacts
+**.tgz
