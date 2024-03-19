@@ -655,10 +655,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@optimizely/optimizely-sdk@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.0.1.tgz#9ac9e098f3840c8b381a7d3df77cfacb2e381e78"
-  integrity sha512-KFXFIUKwmNDJGCjOqDE8pPnI6fmpW1bPAPUWTtVOxUXvty+fhSVFqfsVY0pvWsY6WOEuMGM30iIKoItcU4Raig==
+"@optimizely/optimizely-sdk@^5.1.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.2.0.tgz#6449336182515dd4cca9d6913e24ca8e814e6278"
+  integrity sha512-JxdhWHU9OiJKrKfyWe9lL+2/e28gBZnPNHQAA+heyWTAtcuxZWdSZ24bIkLwAAuIf26dh89o9LNB2L8aKPmwWw==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
@@ -5002,9 +5002,9 @@ which@^2.0.1, which@^2.0.2:
     isexe "^2.0.0"
 
 word-wrap@~1.2.3:
-  version "1.2.3"
-  resolved "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.3.tgz"
-  integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
+  integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
 
 wrap-ansi@^6.2.0:
   version "6.2.0"
