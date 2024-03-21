@@ -18,7 +18,7 @@ import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult, DEFAULT_ON_READY_TIMEOUT } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
 import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
@@ -123,8 +123,6 @@ function subscribeToInitialization(
   timeout: number | undefined,
   onInitStateChange: (initState: InitializationState) => void
 ): void {
-  timeout = timeout || DEFAULT_ON_READY_TIMEOUT;
-
   optimizely
     .onReady({ timeout })
     .then((res: OnReadyResult) => {
