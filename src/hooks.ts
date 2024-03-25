@@ -143,7 +143,7 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: false,
           });
-          res?.dataReadyPromise?.then(() => {
+          res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready.');
             onInitStateChange({
               clientReady: true,
@@ -159,7 +159,7 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: true,
           });
-          res?.dataReadyPromise?.then(() => {
+          res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready after timeout already elapsed');
             onInitStateChange({
               clientReady: true,
