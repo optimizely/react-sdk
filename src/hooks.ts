@@ -159,6 +159,7 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: true,
           });
+          // dataReadyPromise? is optional in the OnReadyResult interface in client.ts
           res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready after timeout already elapsed');
             onInitStateChange({
