@@ -46,7 +46,7 @@ const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
 const REACT_SDK_CLIENT_VERSION = '3.0.1';
 
 export const DefaultUser: UserInfo = {
-  id: null, // null signals JS SDK to try to use VUID
+  id: null,
   attributes: {},
 };
 
@@ -351,11 +351,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
-    // The JS SDK will try to assign VUID if the user ID is null
     this.setCurrentUserContext(userInfo);
 
     this.user = {
-      id: userInfo.id || this.getUserContext()?.getUserId() || DefaultUser.id,
+      id: userInfo.id || DefaultUser.id,
       attributes: userInfo.attributes || DefaultUser.attributes,
     };
 
