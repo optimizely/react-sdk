@@ -18,7 +18,7 @@ import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult, NotReadyReason } from './client';
 import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
@@ -127,7 +127,7 @@ function subscribeToInitialization(
     .onReady({ timeout })
     .then((res: OnReadyResult) => {
       if (res.success) {
-        hooksLogger.info('Client became ready');
+        hooksLogger.info('Client immediately ready');
         onInitStateChange({
           clientReady: true,
           didTimeout: false,
@@ -137,7 +137,7 @@ function subscribeToInitialization(
 
       switch (res.reason) {
         // Optimizely client failed to initialize.
-        case 'NO_CLIENT':
+        case NotReadyReason.NO_CLIENT:
           hooksLogger.warn(`Client not ready, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
@@ -151,15 +151,26 @@ function subscribeToInitialization(
             });
           });
           break;
-        // Assume timeout for all other cases.
-        // TODO: Other reasons may fall into this case - need to update later to specify 'TIMEOUT' case and general fallback case.
-        default:
-          hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.message}"`);
+        case NotReadyReason.USER_NOT_READY:
+          hooksLogger.warn(`User was not ready, reason="${res.message}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: false,
+          });
+          res.dataReadyPromise?.then(() => {
+            hooksLogger.info('User became ready later.');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: false,
+            });
+          });
+          break;
+        case NotReadyReason.TIMEOUT:
+          hooksLogger.info(`Client did not become ready before timeout of ${timeout} ms, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: true,
           });
-          // dataReadyPromise? is optional in the OnReadyResult interface in client.ts
           res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready after timeout already elapsed');
             onInitStateChange({
@@ -167,6 +178,9 @@ function subscribeToInitialization(
               didTimeout: true,
             });
           });
+          break;
+        default:
+          hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
       }
     })
     .catch(() => {
