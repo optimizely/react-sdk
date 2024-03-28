@@ -81,6 +81,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       finalUser = DefaultUser;
     }
 
+    // if user is a promise, setUser occurs in the then block above
     if (finalUser) {
       try {
         await optimizely.onReady();

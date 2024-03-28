@@ -30,7 +30,11 @@ type OnUserUpdateHandler = (userInfo: UserInfo) => void;
 
 type OnForcedVariationsUpdateHandler = () => void;
 
-type NotReadyReason = 'TIMEOUT' | 'NO_CLIENT' | 'USER_NOT_READY';
+export enum NotReadyReason {
+  TIMEOUT = 'TIMEOUT',
+  NO_CLIENT = 'NO_CLIENT',
+  USER_NOT_READY = 'USER_NOT_READY',
+}
 
 type ResolveResult = {
   success: boolean;
@@ -192,6 +196,12 @@ export const DEFAULT_ON_READY_TIMEOUT = 5_000;
 class OptimizelyReactSDKClient implements ReactSDKClient {
   private userContext: optimizely.OptimizelyUserContext | null = null;
   private onUserUpdateHandlers: OnUserUpdateHandler[] = [];
+  private userPromiseResolver: (resolveResult: ResolveResult) => void;
+  private isUserPromiseResolved = false;
+  // Its usually true from the beginning when user is provided as an object in the `OptimizelyProvider`
+  // This becomes more significant when a promise is provided instead.
+  private isUserReady = false;
+
   private onForcedVariationsUpdateHandlers: OnForcedVariationsUpdateHandler[] = [];
   private forcedDecisionFlagKeys: Set<string> = new Set<string>();
 
@@ -199,14 +209,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   private isClientReady = false;
 
   // We need to add autoupdate listener to the hooks after the instance became fully ready to avoid redundant updates to hooks
-  private isReadyPromiseFulfilled = false;
+  private clientAndUserReadyPromiseFulfilled = false;
 
   private isUsingSdkKey = false;
 
   private readonly _client: optimizely.Client | null;
 
   // promise keeping track of async requests for initializing client instance
-  private dataReadyPromise: Promise<OnReadyResult>;
+  private clientAndUserReadyPromise: Promise<OnReadyResult>;
 
   public initialConfig: optimizely.Config;
   public user: UserInfo = { ...DefaultUser };
@@ -217,36 +227,45 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    */
   constructor(config: optimizely.Config) {
     this.initialConfig = config;
-
     const configWithClientInfo = {
       ...config,
       clientEngine: REACT_SDK_CLIENT_ENGINE,
       clientVersion: REACT_SDK_CLIENT_VERSION,
     };
 
+    this.userPromiseResolver = () => {};
+    const userReadyPromise = new Promise<OnReadyResult>(resolve => {
+      this.userPromiseResolver = resolve;
+    });
+
     this._client = optimizely.createInstance(configWithClientInfo);
     this.isClientReady = !!configWithClientInfo.datafile;
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
 
     if (this._client) {
-      this.dataReadyPromise = this._client.onReady().then((clientResult: { success: boolean }) => {
-        this.isReadyPromiseFulfilled = true;
-        this.isClientReady = true;
+      const clientReadyPromise = this._client.onReady();
+      this.clientAndUserReadyPromise = Promise.all([userReadyPromise, clientReadyPromise]).then(
+        ([userResult, clientResult]) => {
+          console.log('||| results', userResult, clientResult);
+          this.isClientReady = clientResult.success;
+          this.isUserReady = userResult.success;
 
-        return {
-          success: true,
-          message: clientResult.success
-            ? 'Successfully resolved client datafile.'
-            : 'Client datafile was not not ready.',
-        };
-      });
+          // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
+          this.clientAndUserReadyPromiseFulfilled = true;
+
+          return {
+            success: true, // needs to always be true
+            message: this.isReady() ? 'Client and user are both.' : 'Client or user did not become ready.',
+          };
+        }
+      );
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
-      this.dataReadyPromise = new Promise(resolve => {
+      this.clientAndUserReadyPromise = new Promise(resolve => {
         resolve({
           success: false,
-          reason: 'NO_CLIENT',
+          reason: NotReadyReason.NO_CLIENT,
           message: 'Optimizely client failed to initialize.',
         });
       });
@@ -265,11 +284,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public getIsReadyPromiseFulfilled(): boolean {
-    return this.isReadyPromiseFulfilled;
+    return this.clientAndUserReadyPromiseFulfilled;
   }
 
   public getIsUsingSdkKey(): boolean {
     return this.isUsingSdkKey;
+  }
+
+  private get odpExplicitlyOff() {
+    return this.initialConfig.odpOptions?.disabled;
   }
 
   public onReady(config: { timeout?: number } = {}): Promise<OnReadyResult> {
@@ -278,26 +301,25 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (config && config.timeout !== undefined) {
       timeout = config.timeout;
     }
-
     const timeoutPromise = new Promise<OnReadyResult>(resolve => {
       timeoutId = setTimeout(() => {
         resolve({
           success: false,
-          reason: 'TIMEOUT',
-          message: 'Failed to initialize onReady before timeout, data was not set before the timeout period',
-          dataReadyPromise: this.dataReadyPromise,
+          reason: NotReadyReason.TIMEOUT,
+          message: 'Failed to initialize before timeout',
+          dataReadyPromise: this.clientAndUserReadyPromise,
         });
       }, timeout) as any;
     });
 
-    return Promise.race([this.dataReadyPromise, timeoutPromise]).then(async res => {
+    return Promise.race([this.clientAndUserReadyPromise, timeoutPromise]).then(async res => {
       clearTimeout(timeoutId);
-      if (res.success && !this.initialConfig.odpOptions?.disabled) {
+      if (res.success && !this.odpExplicitlyOff) {
         const isSegmentsFetched = await this.fetchQualifiedSegments();
         if (!isSegmentsFetched) {
           return {
             success: false,
-            reason: 'USER_NOT_READY',
+            reason: NotReadyReason.USER_NOT_READY,
             message: 'Failed to fetch qualified segments',
           };
         }
@@ -328,6 +350,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     if (!this.userContext || (this.userContext && !areUsersEqual(userInfo, this.user))) {
       this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
+      console.log('||| user context now', this.userContext);
     }
   }
 
@@ -343,7 +366,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
-    if (!this.userContext || !this.isReady()) {
+    if (!this.userContext || !this.isReady() || this.odpExplicitlyOff || !this.getIsReadyPromiseFulfilled()) {
       return false;
     }
 
@@ -354,13 +377,19 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this.setCurrentUserContext(userInfo);
 
     this.user = {
-      id: userInfo.id || DefaultUser.id,
+      id: userInfo.id || this.getUserContext()?.getUserId() || DefaultUser.id,
       attributes: userInfo.attributes || DefaultUser.attributes,
     };
 
-    if (this.getIsReadyPromiseFulfilled()) {
-      await this.fetchQualifiedSegments();
-    }
+    // Set user can occur before the client is ready or later if the user is updated.
+    await this.fetchQualifiedSegments();
+
+    this.isUserReady = true;
+
+    if (!this.isUserPromiseResolved) {
+      this.userPromiseResolver({ success: true });
+      this.isUserPromiseResolved = true;
+    } 
 
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
   }
@@ -394,7 +423,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public isReady(): boolean {
-    return this.isClientReady;
+    // React SDK Instance only becomes ready when both JS SDK client and the user info are ready.
+    return this.isUserReady && this.isClientReady;
   }
 
   /**
