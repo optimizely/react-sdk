@@ -244,9 +244,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     if (this._client) {
       const clientReadyPromise = this._client.onReady();
+
       this.clientAndUserReadyPromise = Promise.all([userReadyPromise, clientReadyPromise]).then(
         ([userResult, clientResult]) => {
-          console.log('||| results', userResult, clientResult);
           this.isClientReady = clientResult.success;
           this.isUserReady = userResult.success;
 
@@ -314,16 +314,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     return Promise.race([this.clientAndUserReadyPromise, timeoutPromise]).then(async res => {
       clearTimeout(timeoutId);
-      if (res.success && !this.odpExplicitlyOff) {
-        const isSegmentsFetched = await this.fetchQualifiedSegments();
-        if (!isSegmentsFetched) {
-          return {
-            success: false,
-            reason: NotReadyReason.USER_NOT_READY,
-            message: 'Failed to fetch qualified segments',
-          };
-        }
-      }
       return res;
     });
   }
@@ -350,7 +340,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
     if (!this.userContext || (this.userContext && !areUsersEqual(userInfo, this.user))) {
       this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
-      console.log('||| user context now', this.userContext);
     }
   }
 
@@ -374,22 +363,37 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
-    this.setCurrentUserContext(userInfo);
-
     this.user = {
-      id: userInfo.id || this.getUserContext()?.getUserId() || DefaultUser.id,
+      id: userInfo.id || DefaultUser.id,
       attributes: userInfo.attributes || DefaultUser.attributes,
     };
 
-    // Set user can occur before the client is ready or later if the user is updated.
-    await this.fetchQualifiedSegments();
+    // if user is anonymous...
+    if (userInfo.id === DefaultUser.id) { 
+      // wait for the SDK client to be ready before
+      await this._client?.onReady();
+      // setting the user context
+      this.setCurrentUserContext(userInfo);
 
-    this.isUserReady = true;
+      this.user.id = this.userContext?.getUserId() || DefaultUser.id;
+
+      this.fetchQualifiedSegments();
+    } else { // otherwise if we have the user info, we can...
+      // create the user context
+      this.setCurrentUserContext(userInfo);
+
+      this.user.id = this.userContext?.getUserId() || DefaultUser.id;
+
+      // but we still have to wait for the client SDK to be ready 
+      await this._client?.onReady();
+      // before we can fetch segments
+      this.fetchQualifiedSegments();
+    }
 
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver({ success: true });
       this.isUserPromiseResolved = true;
-    } 
+    }
 
     this.onUserUpdateHandlers.forEach(handler => handler(this.user));
   }
