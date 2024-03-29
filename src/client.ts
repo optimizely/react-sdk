@@ -369,7 +369,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
 
     // if user is anonymous...
-    if (userInfo.id === DefaultUser.id) { 
+    if (userInfo.id === DefaultUser.id) {
       // wait for the SDK client to be ready before
       await this._client?.onReady();
       // setting the user context
@@ -378,16 +378,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
 
       this.fetchQualifiedSegments();
-    } else { // otherwise if we have the user info, we can...
+    } else {
+      // otherwise if we have the user info, we can...
       // create the user context
       this.setCurrentUserContext(userInfo);
 
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
 
-      // but we still have to wait for the client SDK to be ready 
-      await this._client?.onReady();
-      // before we can fetch segments
-      this.fetchQualifiedSegments();
+      // but we still have to wait for the client SDK to be ready
+      this._client?.onReady().then(() => {
+        // before we can fetch segments
+        this.fetchQualifiedSegments();
+      });
     }
 
     if (!this.isUserPromiseResolved) {
