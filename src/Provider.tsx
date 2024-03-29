@@ -43,7 +43,7 @@ interface OptimizelyProviderState {
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
   constructor(props: OptimizelyProviderProps) {
     super(props);
-    
+
     this.setUserInOptimizely();
   }
 
@@ -82,7 +82,6 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     // if user is a promise, setUser occurs in the then block above
     if (finalUser) {
       try {
-        //await optimizely.onReady();
         await optimizely.setUser(finalUser);
       } catch {
         logger.error('Error while trying to set user.');
