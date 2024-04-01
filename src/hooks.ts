@@ -181,6 +181,17 @@ function subscribeToInitialization(
           break;
         default:
           hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: true, // assume timeout
+          });
+          res.dataReadyPromise?.then(() => {
+            hooksLogger.info('Client became ready later');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: true, // assume timeout
+            });
+          });
       }
     })
     .catch(() => {
