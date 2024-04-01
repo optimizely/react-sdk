@@ -254,8 +254,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
           this.clientAndUserReadyPromiseFulfilled = true;
 
           return {
-            success: true, // needs to always be true
-            message: this.isReady() ? 'Client and user are both.' : 'Client or user did not become ready.',
+            success: this.isReady(),
+            message: this.isReady() ? 'Client and user are both ready.' : 'Client or user did not become ready.',
           };
         }
       );
