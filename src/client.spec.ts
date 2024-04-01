@@ -28,7 +28,7 @@ jest.mock('./logger', () => {
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 
-import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+import { createInstance, NotReadyReason, OnReadyResult, ReactSDKClient } from './client';
 import { logger } from './logger';
 
 interface MockedReactSDKClient extends ReactSDKClient {
@@ -51,6 +51,7 @@ describe('ReactSDKClient', () => {
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
       fetchQualifiedSegments: jest.fn(),
+      getUserId: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -164,12 +165,13 @@ describe('ReactSDKClient', () => {
 
     describe('if Optimizely client is null', () => {
       beforeEach(() => {
-        // Mocks dataReadyPromise value instead of _client = null because test initialization of instance causes dataReadyPromise to return { success: true }
+        // Mocks clientAndUserReadyPromise value instead of _client = null because test initialization of 
+        // instance causes clientAndUserReadyPromise to return { success: true }
         // @ts-ignore
-        instance.dataReadyPromise = new Promise((resolve, reject) => {
+        instance.clientAndUserReadyPromise = new Promise((resolve) => {
           resolve({
             success: false,
-            reason: 'NO_CLIENT',
+            reason: NotReadyReason.NO_CLIENT,
             message: 'Optimizely client failed to initialize.',
           });
         });
