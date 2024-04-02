@@ -60,7 +60,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   onReady(opts?: { timeout?: number }): Promise<any>;
   setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
-  isReady(): boolean;
+  isReactClientReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
   getIsUsingSdkKey(): boolean;
 
@@ -249,13 +249,15 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         ([userResult, clientResult]) => {
           this.isClientReady = clientResult.success;
           this.isUserReady = userResult.success;
+          const clientAndUserReady = this.isClientReady && this.isUserReady;
 
-          // Client and user can become ready synchronously and/or asynchronously. This flag specifically indicates that they became ready asynchronously.
           this.clientAndUserReadyPromiseFulfilled = true;
 
           return {
-            success: this.isReady(),
-            message: this.isReady() ? 'Client and user are both ready.' : 'Client or user did not become ready.',
+            success: clientAndUserReady,
+            message: clientAndUserReady
+              ? 'Client and user are both ready.'
+              : 'Client or user did not become ready.',
           };
         }
       );
@@ -344,7 +346,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   private makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
-    if (!this._client || !this.isReady()) {
+    if (!this._client) {
       logger.warn(
         `Unable to create user context for ${userInfo.id}. Optimizely client failed to initialize or not ready.`
       );
@@ -355,7 +357,11 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
-    if (!this.userContext || !this.isReady() || this.odpExplicitlyOff || !this.getIsReadyPromiseFulfilled()) {
+    if (this.odpExplicitlyOff) {
+      return true;
+    }
+
+    if (!this.userContext) {
       return false;
     }
 
@@ -377,7 +383,9 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
 
-      this.fetchQualifiedSegments();
+      if (this.isClientReady) {
+        this.fetchQualifiedSegments();
+      }
     } else {
       // otherwise if we have the user info, we can...
       // create the user context
@@ -428,9 +436,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
-  public isReady(): boolean {
-    // React SDK Instance only becomes ready when both JS SDK client and the user info are ready.
-    return this.isUserReady && this.isClientReady;
+  public isReactClientReady(): boolean {
+    return this.isClientReady;
   }
 
   /**

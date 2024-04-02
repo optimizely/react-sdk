@@ -232,7 +232,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || optimizely.isReactClientReady();
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
     return {
@@ -330,7 +330,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || optimizely.isReactClientReady();
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
     return {
@@ -420,7 +420,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
   });
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || optimizely.isReactClientReady();
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
     const decisionState = isClientReady
       ? getCurrentDecision()
