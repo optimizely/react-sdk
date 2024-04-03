@@ -148,12 +148,14 @@ describe('ReactSDKClient', () => {
     it('fulfills the returned promise with success: true when a user is set', async () => {
       jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
       const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
       await instance.setUser({
         id: 'user12345',
       });
 
       const result = await instance.onReady();
-      
+
       expect(result.success).toBe(true);
     });
 
@@ -194,18 +196,18 @@ describe('ReactSDKClient', () => {
 
       it('waits for the inner client onReady to fulfill with success = false before fulfilling the returned promise', async () => {
         const mockInnerClientOnReady = jest.spyOn(mockInnerClient, 'onReady');
-        let resolveInnerClientOnReady: (result: OnReadyResult) => void;
+        let resolveInnerClientOnReady: (result: OnReadyResult) => void = () => {};
         const mockReadyPromise: Promise<OnReadyResult> = new Promise(res => {
           resolveInnerClientOnReady = res;
         });
         mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
         const userId = 'user999';
         jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+        resolveInnerClientOnReady({ success: true });
 
         await instance.setUser({
           id: userId,
         });
-        resolveInnerClientOnReady!({ success: true });
         const result = await instance.onReady();
 
         expect(result.success).toBe(false);
@@ -285,7 +287,7 @@ describe('ReactSDKClient', () => {
       expect(onUserUpdateListener).toBeCalledTimes(1);
     });
 
-    it('does not call fetchqualifiedsegements on setUser if onready is not called initially', async () => {
+    it('implicitly calls fetchqualifiedsegements', async () => {
       const instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
@@ -293,7 +295,7 @@ describe('ReactSDKClient', () => {
         id: 'xxfueaojfe8&86',
       });
 
-      expect(instance.fetchQualifiedSegments).toBeCalledTimes(0);
+      expect(instance.fetchQualifiedSegments).toBeCalledTimes(1);
     });
 
     it('calls fetchqualifiedsegements internally on each setuser call after onready', async () => {
