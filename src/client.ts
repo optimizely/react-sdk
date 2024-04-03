@@ -338,9 +338,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return;
     }
 
-    if (!this.userContext || (this.userContext && !areUsersEqual(userInfo, this.user))) {
-      this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
-    }
+    this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
   }
 
   private makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
