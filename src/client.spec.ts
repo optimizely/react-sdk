@@ -146,21 +146,27 @@ describe('ReactSDKClient', () => {
     });
 
     it('fulfills the returned promise with success: true when a user is set', async () => {
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      const instance = createInstance(config);
       await instance.setUser({
         id: 'user12345',
       });
+
       const result = await instance.onReady();
+      
       expect(result.success).toBe(true);
     });
 
     it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
 
       await instance.setUser({
         id: 'user12345',
       });
       const result = await instance.onReady();
+
       expect(result.success).toBe(false);
     });
 
@@ -213,6 +219,7 @@ describe('ReactSDKClient', () => {
         resolveInnerClientOnReady = res;
       });
       mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
+      const instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
         id: 'user999',
@@ -280,7 +287,7 @@ describe('ReactSDKClient', () => {
 
     it('does not call fetchqualifiedsegements on setUser if onready is not called initially', async () => {
       const instance = createInstance(config);
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
         id: 'xxfueaojfe8&86',
