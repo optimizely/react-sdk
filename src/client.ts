@@ -60,7 +60,7 @@ export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserConte
   onReady(opts?: { timeout?: number }): Promise<any>;
   setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
-  isReactClientReady(): boolean;
+  isReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
   getIsUsingSdkKey(): boolean;
 
@@ -373,7 +373,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
 
     let fetchQualifedSegmentsSucceed = false;
-    if (userInfo.id === DefaultUser.id) {    // if user is anonymous...
+    if (userInfo.id === DefaultUser.id) {
+      // if user is anonymous...
       // wait for the SDK client to be ready before
       await this._client?.onReady();
       // setting the user context
@@ -427,7 +428,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
   }
 
-  public isReactClientReady(): boolean {
+  public isReady(): boolean {
     return this.isClientReady;
   }
 
