@@ -338,7 +338,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return;
     }
 
-    this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
+    if (!this.userContext) {
+      this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
+      return;
+    }
+
+    const currentUserContextUserInfo: UserInfo = {
+      id: this.userContext.getUserId(),
+      attributes: this.userContext.getAttributes(),
+    };
+    if (!areUsersEqual(userInfo, currentUserContextUserInfo)) {
+      this.userContext = this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
+    }
   }
 
   private makeUserContextInstance(userInfo: UserInfo): optimizely.OptimizelyUserContext | null {
@@ -378,12 +389,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       // setting the user context
       this.setCurrentUserContext(userInfo);
 
+      // (potentially) retrieve the VUID set in JS userContext or noop or to DefaultUser
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
 
       fetchQualifedSegmentsSucceed = await this.fetchQualifiedSegments();
     } else {
       this.setCurrentUserContext(userInfo);
 
+      // ensure the underlying userContext ID matches
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
 
       await this._client?.onReady();

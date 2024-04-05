@@ -53,6 +53,7 @@ describe('ReactSDKClient', () => {
       decideForKeys: jest.fn(),
       fetchQualifiedSegments: jest.fn(),
       getUserId: jest.fn(),
+      getAttributes: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),

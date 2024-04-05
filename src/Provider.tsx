@@ -76,7 +76,10 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
     } else {
-      finalUser = DefaultUser;
+      finalUser = {
+        id: DefaultUser.id,
+        attributes: userAttributes || DefaultUser.attributes,
+      };
     }
 
     // if user is a promise, setUser occurs in the then block above
