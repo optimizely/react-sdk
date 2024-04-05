@@ -381,9 +381,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       attributes: userInfo.attributes || DefaultUser.attributes,
     };
 
-    let fetchQualifedSegmentsSucceed = false;
+    // if user is anonymous...
     if (userInfo.id === DefaultUser.id) {
-      // if user is anonymous...
       // wait for the SDK client to be ready before
       await this._client?.onReady();
       // setting the user context
@@ -391,17 +390,14 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
       // (potentially) retrieve the VUID set in JS userContext or noop or to DefaultUser
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
-
-      fetchQualifedSegmentsSucceed = await this.fetchQualifiedSegments();
     } else {
+      // we can set the underlying user context synchronously
       this.setCurrentUserContext(userInfo);
 
-      // ensure the underlying userContext ID matches
-      this.user.id = this.userContext?.getUserId() || DefaultUser.id;
-
+      // we need to wait for fetch qualified segments
       await this._client?.onReady();
-      fetchQualifedSegmentsSucceed = await this.fetchQualifiedSegments();
     }
+    const fetchQualifedSegmentsSucceed = await this.fetchQualifiedSegments();
 
     if (!this.isUserPromiseResolved) {
       this.userPromiseResolver({ success: fetchQualifedSegmentsSucceed });
