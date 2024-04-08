@@ -19,6 +19,7 @@ import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } fro
 import { notifier } from './notifier';
 import { logger } from './logger';
 import { FeatureVariableValue } from '@optimizely/optimizely-sdk';
+import { ProjectConfig } from '@optimizely/optimizely-sdk/dist/core/project_config';
 
 export type VariableValuesObject = {
   [key: string]: any;
@@ -391,13 +392,13 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       // (potentially) retrieve the VUID set in JS userContext or noop or to DefaultUser
       this.user.id = this.userContext?.getUserId() || DefaultUser.id;
     } else {
-      // synchronous user context setting is required including for server side rendering (SSR) 
+      // synchronous user context setting is required including for server side rendering (SSR)
       this.setCurrentUserContext(userInfo);
 
       // we need to wait for fetch qualified segments success for failure
       await this._client?.onReady();
     }
-    
+
     const fetchQualifedSegmentsSucceed = await this.fetchQualifiedSegments();
 
     if (!this.isUserPromiseResolved) {
@@ -1163,6 +1164,18 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
     return this._client.getOptimizelyConfig();
+  }
+
+  /**
+   * Returns the ProjectConfig object from the underlying SDK
+   * @returns {ProjectConfig | null} optimizely project config
+   */
+  public getProjectConfig(): ProjectConfig | null {
+    if (!this._client) {
+      logger.warn('Unable to get the project configuration because Optimizely client was not initialized.');
+      return null;
+    }
+    return this._client.getProjectConfig();
   }
 
   /**

@@ -78,6 +78,7 @@ describe('ReactSDKClient', () => {
       getFeatureVariableInteger: jest.fn(() => null),
       getFeatureVariableString: jest.fn(() => null),
       getOptimizelyConfig: jest.fn(() => null),
+      getProjectConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
       getVuid: jest.fn(),
