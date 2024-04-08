@@ -55,7 +55,7 @@ export const DefaultUser: UserInfo = {
   attributes: {},
 };
 
-export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext'> {
+export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -1164,18 +1164,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
     return this._client.getOptimizelyConfig();
-  }
-
-  /**
-   * Returns the ProjectConfig object from the underlying SDK
-   * @returns {ProjectConfig | null} optimizely project config
-   */
-  public getProjectConfig(): ProjectConfig | null {
-    if (!this._client) {
-      logger.warn('Unable to get the project configuration because Optimizely client was not initialized.');
-      return null;
-    }
-    return this._client.getProjectConfig();
   }
 
   /**
