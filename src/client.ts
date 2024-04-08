@@ -19,7 +19,6 @@ import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } fro
 import { notifier } from './notifier';
 import { logger } from './logger';
 import { FeatureVariableValue } from '@optimizely/optimizely-sdk';
-import { ProjectConfig } from '@optimizely/optimizely-sdk/dist/core/project_config';
 
 export type VariableValuesObject = {
   [key: string]: any;
