@@ -47,7 +47,7 @@ export interface OnReadyResult extends ResolveResult {
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '3.0.1';
+const REACT_SDK_CLIENT_VERSION = '3.1.0';
 
 export const DefaultUser: UserInfo = {
   id: null,
