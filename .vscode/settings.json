@@ -1,5 +1,4 @@
 {
-  "jest.autoRun": {
-    "onStartup": ["all-tests"]
-  }
+  "jest.runMode": "on-demand",
+  "jest.jestCommandLine": "~/.nvm/nvm-exec yarn test"
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2022-2023, Optimizely
+ * Copyright 2022-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,7 @@ interface OptimizelyProviderState {
 export class OptimizelyProvider extends React.Component<OptimizelyProviderProps, OptimizelyProviderState> {
   constructor(props: OptimizelyProviderProps) {
     super(props);
-  }
 
-  componentDidMount(): void {
     this.setUserInOptimizely();
   }
 
@@ -78,12 +76,15 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
     } else {
-      finalUser = DefaultUser;
+      finalUser = {
+        id: DefaultUser.id,
+        attributes: userAttributes || DefaultUser.attributes,
+      };
     }
 
+    // if user is a promise, setUser occurs in the then block above
     if (finalUser) {
       try {
-        await optimizely.onReady();
         await optimizely.setUser(finalUser);
       } catch {
         logger.error('Error while trying to set user.');

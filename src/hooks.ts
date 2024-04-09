@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2022-2023, Optimizely
+ * Copyright 2018-2019, 2022-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
 
 import { setupAutoUpdateListeners } from './autoUpdate';
-import { ReactSDKClient, VariableValuesObject, OnReadyResult } from './client';
+import { ReactSDKClient, VariableValuesObject, OnReadyResult, NotReadyReason } from './client';
 import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
@@ -66,7 +66,7 @@ interface UseExperiment {
   (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
     ExperimentDecisionValues['variation'],
     ClientReady,
-    DidTimeout,
+    DidTimeout
   ];
 }
 
@@ -75,7 +75,7 @@ interface UseFeature {
     FeatureDecisionValues['isEnabled'],
     FeatureDecisionValues['variables'],
     ClientReady,
-    DidTimeout,
+    DidTimeout
   ];
 }
 
@@ -83,7 +83,7 @@ interface UseDecision {
   (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
     OptimizelyDecision,
     ClientReady,
-    DidTimeout,
+    DidTimeout
   ];
 }
 
@@ -127,7 +127,7 @@ function subscribeToInitialization(
     .onReady({ timeout })
     .then((res: OnReadyResult) => {
       if (res.success) {
-        hooksLogger.info('Client became ready');
+        hooksLogger.info('Client immediately ready');
         onInitStateChange({
           clientReady: true,
           didTimeout: false,
@@ -137,13 +137,13 @@ function subscribeToInitialization(
 
       switch (res.reason) {
         // Optimizely client failed to initialize.
-        case 'NO_CLIENT':
+        case NotReadyReason.NO_CLIENT:
           hooksLogger.warn(`Client not ready, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: false,
           });
-          res.dataReadyPromise!.then(() => {
+          res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready.');
             onInitStateChange({
               clientReady: true,
@@ -151,19 +151,45 @@ function subscribeToInitialization(
             });
           });
           break;
-        // Assume timeout for all other cases.
-        // TODO: Other reasons may fall into this case - need to update later to specify 'TIMEOUT' case and general fallback case.
-        default:
-          hooksLogger.info(`Client did not become ready before timeout of ${timeout}ms, reason="${res.message}"`);
+        case NotReadyReason.USER_NOT_READY:
+          hooksLogger.warn(`User was not ready, reason="${res.message}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: false,
+          });
+          res.dataReadyPromise?.then(() => {
+            hooksLogger.info('User became ready later.');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: false,
+            });
+          });
+          break;
+        case NotReadyReason.TIMEOUT:
+          hooksLogger.info(`Client did not become ready before timeout of ${timeout} ms, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: true,
           });
-          res.dataReadyPromise!.then(() => {
+          res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready after timeout already elapsed');
             onInitStateChange({
               clientReady: true,
               didTimeout: true,
+            });
+          });
+          break;
+        default:
+          hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
+          onInitStateChange({
+            clientReady: false,
+            didTimeout: true, // assume timeout
+          });
+          res.dataReadyPromise?.then(() => {
+            hooksLogger.info('Client became ready later');
+            onInitStateChange({
+              clientReady: true,
+              didTimeout: true, // assume timeout
             });
           });
       }
@@ -192,7 +218,9 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
   if (!optimizely) {
-    hooksLogger.error(`Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    hooksLogger.error(
+      `Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
     return [null, false, false];
   }
 
@@ -259,7 +287,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         }));
       });
     }
-    return (): void => { };
+    return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
   useEffect(
@@ -287,13 +315,10 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
   if (!optimizely) {
-    hooksLogger.error(`Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
-    return [
-      false,
-      {},
-      false,
-      false,
-    ];
+    hooksLogger.error(
+      `Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
+    return [false, {}, false, false];
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
@@ -359,15 +384,10 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         }));
       });
     }
-    return (): void => { };
+    return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
-  return [
-    state.isEnabled,
-    state.variables,
-    state.clientReady,
-    state.didTimeout,
-  ];
+  return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };
 
 /**
@@ -381,7 +401,9 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
   if (!optimizely) {
-    hooksLogger.error(`Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    hooksLogger.error(
+      `Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
     return [
       createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
         id: null,
@@ -389,7 +411,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       }),
       false,
       false,
-    ]
+    ];
   }
 
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
@@ -403,11 +425,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     const decisionState = isClientReady
       ? getCurrentDecision()
       : {
-        decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
-          id: overrides.overrideUserId || null,
-          attributes: overrideAttrs,
-        }),
-      };
+          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+            id: overrides.overrideUserId || null,
+            attributes: overrideAttrs,
+          }),
+        };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -473,12 +495,8 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
         }));
       });
     }
-    return (): void => { };
+    return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
-  return [
-    state.decision,
-    state.clientReady,
-    state.didTimeout,
-  ];
+  return [state.decision, state.clientReady, state.didTimeout];
 };

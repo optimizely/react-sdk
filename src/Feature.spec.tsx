@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023 Optimizely
+ * Copyright 2018-2019, 2023-2024 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import { OptimizelyProvider } from './Provider';
-import { ReactSDKClient, VariableValuesObject } from './client';
+import { NotReadyReason, ReactSDKClient, VariableValuesObject } from './client';
 import { OptimizelyFeature } from './Feature';
 
 describe('<OptimizelyFeature>', () => {
@@ -298,7 +298,7 @@ describe('<OptimizelyFeature>', () => {
 
         // while it's waiting for onReady()
         expect(container.innerHTML).toBe('');
-        resolver.resolve({ success: false, reason: 'fail', dataReadyPromise: Promise.resolve() });
+        resolver.resolve({ success: false, reason: NotReadyReason.TIMEOUT, dataReadyPromise: Promise.resolve() });
 
         // Simulate config update notification firing after datafile fetched
         await optimizelyMock.onReady().then(res => res.dataReadyPromise);

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ * https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,7 +28,7 @@ jest.mock('./logger', () => {
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 
-import { createInstance, OnReadyResult, ReactSDKClient } from './client';
+import { createInstance, DefaultUser, NotReadyReason, OnReadyResult, ReactSDKClient } from './client';
 import { logger } from './logger';
 
 interface MockedReactSDKClient extends ReactSDKClient {
@@ -37,6 +37,7 @@ interface MockedReactSDKClient extends ReactSDKClient {
 }
 
 describe('ReactSDKClient', () => {
+  const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
   const config: optimizely.Config = {
     datafile: {},
   };
@@ -51,6 +52,8 @@ describe('ReactSDKClient', () => {
       decideAll: jest.fn(),
       decideForKeys: jest.fn(),
       fetchQualifiedSegments: jest.fn(),
+      getUserId: jest.fn(),
+      getAttributes: jest.fn(),
       setForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
@@ -75,6 +78,7 @@ describe('ReactSDKClient', () => {
       getFeatureVariableInteger: jest.fn(() => null),
       getFeatureVariableString: jest.fn(() => null),
       getOptimizelyConfig: jest.fn(() => null),
+      getProjectConfig: jest.fn(() => null),
       onReady: jest.fn(() => Promise.resolve({ success: false })),
       close: jest.fn(),
       getVuid: jest.fn(),
@@ -144,32 +148,41 @@ describe('ReactSDKClient', () => {
     });
 
     it('fulfills the returned promise with success: true when a user is set', async () => {
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
       await instance.setUser({
         id: 'user12345',
       });
+
       const result = await instance.onReady();
+
       expect(result.success).toBe(true);
     });
 
     it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      const instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
 
       await instance.setUser({
         id: 'user12345',
       });
       const result = await instance.onReady();
+
       expect(result.success).toBe(false);
     });
 
     describe('if Optimizely client is null', () => {
       beforeEach(() => {
-        // Mocks dataReadyPromise value instead of _client = null because test initialization of instance causes dataReadyPromise to return { success: true }
+        // Mocks clientAndUserReadyPromise value instead of _client = null because test initialization of
+        // instance causes clientAndUserReadyPromise to return { success: true }
         // @ts-ignore
-        instance.dataReadyPromise = new Promise((resolve, reject) => {
+        instance.clientAndUserReadyPromise = new Promise(resolve => {
           resolve({
             success: false,
-            reason: 'NO_CLIENT',
+            reason: NotReadyReason.NO_CLIENT,
             message: 'Optimizely client failed to initialize.',
           });
         });
@@ -185,16 +198,20 @@ describe('ReactSDKClient', () => {
 
       it('waits for the inner client onReady to fulfill with success = false before fulfilling the returned promise', async () => {
         const mockInnerClientOnReady = jest.spyOn(mockInnerClient, 'onReady');
-        let resolveInnerClientOnReady: (result: OnReadyResult) => void;
+        let resolveInnerClientOnReady: (result: OnReadyResult) => void = () => {};
         const mockReadyPromise: Promise<OnReadyResult> = new Promise(res => {
           resolveInnerClientOnReady = res;
         });
         mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
+        const userId = 'user999';
+        jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+        resolveInnerClientOnReady({ success: true });
+
         await instance.setUser({
-          id: 'user999',
+          id: userId,
         });
-        resolveInnerClientOnReady!({ success: true });
         const result = await instance.onReady();
+
         expect(result.success).toBe(false);
       });
     });
@@ -206,6 +223,7 @@ describe('ReactSDKClient', () => {
         resolveInnerClientOnReady = res;
       });
       mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
+      const instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
         id: 'user999',
@@ -217,16 +235,29 @@ describe('ReactSDKClient', () => {
   });
 
   describe('setUser', () => {
+    it('can be called with no/default user set', async () => {
+      const instance = createInstance(config);
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(validVuid);
+
+      await instance.setUser(DefaultUser);
+
+      expect(instance.user.id).toEqual(validVuid);
+    });
+
     it('updates the user object with id and attributes', async () => {
+      const userId = 'xxfueaojfe8&86';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+
       const instance = createInstance(config);
       await instance.setUser({
-        id: 'xxfueaojfe8&86',
+        id: userId,
         attributes: {
           foo: 'bar',
         },
       });
+
       expect(instance.user).toEqual({
-        id: 'xxfueaojfe8&86',
+        id: userId,
         attributes: {
           foo: 'bar',
         },
@@ -234,33 +265,39 @@ describe('ReactSDKClient', () => {
     });
 
     it('adds and removes update handlers', async () => {
+      const userId = 'newUser';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
       const instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
       const dispose = instance.onUserUpdate(onUserUpdateListener);
+
       await instance.setUser({
-        id: 'newUser',
+        id: userId,
       });
+
       expect(onUserUpdateListener).toBeCalledTimes(1);
       expect(onUserUpdateListener).toBeCalledWith({
-        id: 'newUser',
+        id: userId,
         attributes: {},
       });
+
       dispose();
       await instance.setUser({
         id: 'newUser2',
       });
+
       expect(onUserUpdateListener).toBeCalledTimes(1);
     });
 
-    it('does not call fetchqualifiedsegements on setUser if onready is not calleed initially', async () => {
+    it('implicitly calls fetchqualifiedsegements', async () => {
       const instance = createInstance(config);
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
         id: 'xxfueaojfe8&86',
       });
 
-      expect(instance.fetchQualifiedSegments).toBeCalledTimes(0);
+      expect(instance.fetchQualifiedSegments).toBeCalledTimes(1);
     });
 
     it('calls fetchqualifiedsegements internally on each setuser call after onready', async () => {
@@ -286,9 +323,11 @@ describe('ReactSDKClient', () => {
     describe('pre-set user and user overrides', () => {
       let instance: ReactSDKClient;
       beforeEach(async () => {
+        const userId = 'user1';
+        jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
         instance = createInstance(config);
         await instance.setUser({
-          id: 'user1',
+          id: userId,
           attributes: {
             foo: 'bar',
           },
@@ -1067,9 +1106,11 @@ describe('ReactSDKClient', () => {
             }
           }
         );
+        const userId = 'user1123';
+        jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
         const instance = createInstance(config);
         await instance.setUser({
-          id: 'user1123',
+          id: userId,
         });
         const result = instance.getFeatureVariables('feat1');
         expect(result).toEqual({
@@ -1353,9 +1394,11 @@ describe('ReactSDKClient', () => {
   describe('setForcedDecision', () => {
     let instance: ReactSDKClient;
     beforeEach(async () => {
+      const userId = 'user1';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
       instance = createInstance(config);
       await instance.setUser({
-        id: 'user1',
+        id: userId,
         attributes: {
           foo: 'bar',
         },
@@ -1374,7 +1417,6 @@ describe('ReactSDKClient', () => {
           variables: {},
           variationKey: 'varition1',
         });
-
         // @ts-ignore
         instance._client = null;
 
@@ -1462,6 +1504,8 @@ describe('ReactSDKClient', () => {
   describe('removeForcedDecision', () => {
     let instance: ReactSDKClient;
     beforeEach(async () => {
+      const userId = 'user1';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
       instance = createInstance(config);
       await instance.setUser({
         id: 'user1',
@@ -1640,7 +1684,6 @@ describe('ReactSDKClient', () => {
     });
 
     it('should return a valid vuid', async () => {
-      const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
       const mockGetVuid = mockInnerClient.getVuid as jest.Mock;
       mockGetVuid.mockReturnValue(validVuid);
 

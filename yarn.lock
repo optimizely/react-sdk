@@ -655,10 +655,10 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@optimizely/optimizely-sdk@^5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.2.0.tgz#6449336182515dd4cca9d6913e24ca8e814e6278"
-  integrity sha512-JxdhWHU9OiJKrKfyWe9lL+2/e28gBZnPNHQAA+heyWTAtcuxZWdSZ24bIkLwAAuIf26dh89o9LNB2L8aKPmwWw==
+"@optimizely/optimizely-sdk@^5.3.0":
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.3.0.tgz#dd1ca9d19287b31675d2f95c24234e074ade9a8b"
+  integrity sha512-PzfjcApCvcHGir8XWSG3IBaOJXvPADjqpzXypEWTfArrONA3FlmqdnwDAlxF4b557fo/UZI6ZCyj3AWrG8cprg==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
@@ -1624,7 +1624,7 @@ decode-uri-component@^0.2.0:
 
 decompress-response@^4.2.1:
   version "4.2.1"
-  resolved "https://registry.npmjs.org/decompress-response/-/decompress-response-4.2.1.tgz"
+  resolved "https://registry.yarnpkg.com/decompress-response/-/decompress-response-4.2.1.tgz#414023cc7a302da25ce2ec82d0d5238ccafd8986"
   integrity sha512-jOSne2qbyE+/r8G1VU+G/82LBs2Fs4LAsTiLSHOCOMZQl2OKZ6i8i4IyHemTe+/yIXOtTcRQMzPcgyhoFlqPkw==
   dependencies:
     mimic-response "^2.0.0"
@@ -3311,7 +3311,7 @@ json-schema-traverse@^0.4.1:
 
 json-schema@^0.4.0:
   version "0.4.0"
-  resolved "https://registry.npmjs.org/json-schema/-/json-schema-0.4.0.tgz"
+  resolved "https://registry.yarnpkg.com/json-schema/-/json-schema-0.4.0.tgz#f7de4cf6efab838ebaeb3236474cbba5a1930ab5"
   integrity sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==
 
 json-stable-stringify-without-jsonify@^1.0.1:
@@ -3511,7 +3511,7 @@ mimic-fn@^2.1.0:
 
 mimic-response@^2.0.0:
   version "2.1.0"
-  resolved "https://registry.npmjs.org/mimic-response/-/mimic-response-2.1.0.tgz"
+  resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-2.1.0.tgz#d13763d35f613d09ec37ebb30bac0469c0ee8f43"
   integrity sha512-wXqjST+SLt7R009ySCglWBCFpjUygmCIfD790/kVbiGmUgfYGuB14PiTd5DwVxSV4NcYHjzMkoj5LjQZwTQLEA==
 
 min-indent@^1.0.0:
