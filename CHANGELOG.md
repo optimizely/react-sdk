@@ -3,7 +3,9 @@
 ## [3.1.0] - April 9, 2024
 
 ### Bug Fixes
-- For Issues [#235](https://github.com/optimizely/react-sdk/issues/235) & [#236](https://github.com/optimizely/react-sdk/issues/236) ([#255](https://github.com/optimizely/react-sdk/pull/255))
+- Error initializing client. The core client or user promise(s) rejected.
+ ([#255](https://github.com/optimizely/react-sdk/pull/255))
+- Unable to determine if feature "{your-feature-key}" is enabled because User ID is not set([#255](https://github.com/optimizely/react-sdk/pull/255))
 
 ### Changed
 - Bumped Optimizely JS SDK version in use ([#255](https://github.com/optimizely/react-sdk/pull/255))
