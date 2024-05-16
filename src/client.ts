@@ -364,12 +364,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
-    if (this.odpExplicitlyOff || !this._client?.getProjectConfig()?.odpIntegrationConfig?.integrated) {
-      return true;
-    }
-
     if (!this.userContext) {
       return false;
+    }
+
+    if (this.odpExplicitlyOff || !this._client?.getProjectConfig()?.odpIntegrationConfig?.integrated) {
+      return true;
     }
 
     return await this.userContext.fetchQualifiedSegments(options);
