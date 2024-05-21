@@ -54,7 +54,8 @@ export const DefaultUser: UserInfo = {
   attributes: {},
 };
 
-export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig'> {
+export interface ReactSDKClient
+  extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig' | 'isOdpIntegrated'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -368,7 +369,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return false;
     }
 
-    if (this.odpExplicitlyOff || !this._client?.getProjectConfig()?.odpIntegrationConfig?.integrated) {
+    if (this.odpExplicitlyOff || !this._client?.isOdpIntegrated()) {
       return true;
     }
 
