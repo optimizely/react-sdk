@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.1.1] - May 22, 2024
+
+### Bug Fixes
+- ODP integration error. ([#262](https://github.com/optimizely/react-sdk/pull/262))
+
 ## [3.1.0] - April 9, 2024
 
 ### Bug Fixes
