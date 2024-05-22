@@ -656,9 +656,9 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
 "@optimizely/optimizely-sdk@^5.3.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.3.0.tgz#dd1ca9d19287b31675d2f95c24234e074ade9a8b"
-  integrity sha512-PzfjcApCvcHGir8XWSG3IBaOJXvPADjqpzXypEWTfArrONA3FlmqdnwDAlxF4b557fo/UZI6ZCyj3AWrG8cprg==
+  version "5.3.2"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.3.2.tgz#4a4918485c9319b2237f6e32d901c3ff7e998051"
+  integrity sha512-9d3sRusZfkN+CCq7C7DXp0bKam+dx2cDPPdcBQxLfwtTKFulzf6kGwnz4pVTtjwQ89vbJz10iJNMmD9qtSduPw==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"

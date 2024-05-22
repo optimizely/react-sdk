@@ -54,7 +54,8 @@ export const DefaultUser: UserInfo = {
   attributes: {},
 };
 
-export interface ReactSDKClient extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig'> {
+export interface ReactSDKClient
+  extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig' | 'isOdpIntegrated'> {
   user: UserInfo;
 
   onReady(opts?: { timeout?: number }): Promise<any>;
@@ -364,12 +365,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async fetchQualifiedSegments(options?: optimizely.OptimizelySegmentOption[]): Promise<boolean> {
-    if (this.odpExplicitlyOff) {
-      return true;
-    }
-
     if (!this.userContext) {
       return false;
+    }
+
+    if (this.odpExplicitlyOff || !this._client?.isOdpIntegrated()) {
+      return true;
     }
 
     return await this.userContext.fetchQualifiedSegments(options);
