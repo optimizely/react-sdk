@@ -10,7 +10,8 @@ Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feat
 
 Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
 
-Similarly for React native, checkout the [React Native developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-native-sdk) for installation and implementation detail
+For React Native, review the [React Native developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-native-sdk) for installation and implementation detail.
+
 
 ### Features
 
