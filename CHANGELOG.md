@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.1.2] - July 2, 2024
+
+### Changed 
+- JS SDK bump up for react native polyfill support ([#266](https://github.com/optimizely/react-sdk/pull/266))
+
 ## [3.1.1] - May 22, 2024
 
 ### Bug Fixes
