@@ -87,6 +87,8 @@ interface UseDecision {
   ];
 }
 
+type UseTrackEvents = () => [null, false, false] | [ReactSDKClient['track'], ClientReady, DidTimeout];
+
 interface DecisionInputs {
   entityKey: string;
   overrideUserId?: string;
@@ -499,4 +501,45 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
   return [state.decision, state.clientReady, state.didTimeout];
+};
+
+
+export const useTrackEvents: UseTrackEvents = () => {
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+
+  if (!optimizely) {
+    hooksLogger.error(`Unable to track events. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+    return [null, false, false];
+  }
+  const isClientReady = isServerSide || optimizely.isReady();
+
+  const [state, setState] = useState<{
+    track: ReactSDKClient['track'];
+    clientReady: boolean;
+    didTimeout: DidTimeout;
+  }>(() => {
+    return {
+      track: optimizely.track,
+      clientReady: isClientReady,
+      didTimeout: false,
+    };
+  });
+
+  useEffect(() => {
+    // Subscribe to initialization promise only
+    // 1. When client is using Sdk Key, which means the initialization will be asynchronous
+    //    and we need to wait for the promise and update decision.
+    // 2. When client is using datafile only but client is not ready yet which means user
+    //    was provided as a promise and we need to subscribe and wait for user to become available.
+    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+      subscribeToInitialization(optimizely, timeout, initState => {
+        setState({
+          track: optimizely.track,
+          ...initState,
+        });
+      });
+    }
+  }, []);
+
+  return [state.track, state.clientReady, state.didTimeout];
 };
