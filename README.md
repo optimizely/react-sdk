@@ -346,7 +346,7 @@ function SignupButton() {
 }
 ```
 
-Use the `withOptimizely` HoC for tracking.
+Or you can use the `withOptimizely` HoC.
 
 ```jsx
 import { withOptimizely } from '@optimizely/react-sdk';
