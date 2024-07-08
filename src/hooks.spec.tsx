@@ -18,12 +18,12 @@
 
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 
 import { OptimizelyProvider } from './Provider';
 import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
-import { useExperiment, useFeature, useDecision } from './hooks';
+import { useExperiment, useFeature, useDecision, useTrackEvents } from './hooks';
 import { OptimizelyDecision } from './utils';
 
 const defaultDecision: OptimizelyDecision = {
@@ -110,6 +110,7 @@ describe('hooks', () => {
     forcedVariationUpdateCallbacks = [];
     decideMock = jest.fn();
     setForcedDecisionMock = jest.fn();
+    // subscribeToInitialization = jest.fn();
 
     optimizelyMock = ({
       activate: activateMock,
@@ -141,6 +142,7 @@ describe('hooks', () => {
       getForcedVariations: jest.fn().mockReturnValue({}),
       decide: decideMock,
       setForcedDecision: setForcedDecisionMock,
+      track: jest.fn(),
     } as unknown) as ReactSDKClient;
 
     mockLog = jest.fn();
@@ -1046,6 +1048,29 @@ describe('hooks', () => {
 
       await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
+    });
+  });
+  describe('useTrackEvents', () => {
+    it('returns null and false states when optimizely is not provided', () => {
+      const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
+        //@ts-ignore
+        return <OptimizelyProvider>{children}</OptimizelyProvider>;
+      };
+      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      expect(result.current).toEqual([null, false, false]);
+    });
+
+    it('returns track method along with clientReady while optimizely instance is provided', async () => {
+      const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+        <OptimizelyProvider optimizely={optimizelyMock} isServerSide={false} timeout={10000}>
+          {children}
+        </OptimizelyProvider>
+      );
+
+      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+
+      expect(result.current[1]).toBe(true);
+      expect(result.current[2]).toBe(false);
     });
   });
 });
