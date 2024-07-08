@@ -23,7 +23,7 @@ import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
-const hooksLogger = getLogger('ReactSDK');
+export const hooksLogger = getLogger('ReactSDK');
 
 enum HookType {
   EXPERIMENT = 'Experiment',
@@ -87,7 +87,9 @@ interface UseDecision {
   ];
 }
 
-type UseTrackEvents = () => [null, false, false] | [ReactSDKClient['track'], ClientReady, DidTimeout];
+interface UseTrackEvents {
+  (): [(...args: Parameters<ReactSDKClient['track']>) => void, boolean, boolean];
+}
 
 interface DecisionInputs {
   entityKey: string;
@@ -503,23 +505,34 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   return [state.decision, state.clientReady, state.didTimeout];
 };
 
-
 export const useTrackEvents: UseTrackEvents = () => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+  const isClientReady = !!(isServerSide || optimizely?.isReady());
+
+  const track = useCallback(
+    (...rest: Parameters<ReactSDKClient['track']>): void => {
+      if (!optimizely) {
+        hooksLogger.error(`Unable to track events. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+        return;
+      }
+      if (!isClientReady) {
+        hooksLogger.error(`Unable to track events. Optimizely client is not ready yet.`);
+        return;
+      }
+      optimizely.track(...rest);
+    },
+    [optimizely, isClientReady]
+  );
 
   if (!optimizely) {
-    hooksLogger.error(`Unable to track events. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
-    return [null, false, false];
+    return [track, false, false];
   }
-  const isClientReady = isServerSide || optimizely.isReady();
 
   const [state, setState] = useState<{
-    track: ReactSDKClient['track'];
     clientReady: boolean;
     didTimeout: DidTimeout;
   }>(() => {
     return {
-      track: optimizely.track,
       clientReady: isClientReady,
       didTimeout: false,
     };
@@ -533,13 +546,10 @@ export const useTrackEvents: UseTrackEvents = () => {
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
       subscribeToInitialization(optimizely, timeout, initState => {
-        setState({
-          track: optimizely.track,
-          ...initState,
-        });
+        setState(initState);
       });
     }
   }, []);
 
-  return [state.track, state.clientReady, state.didTimeout];
+  return [track, state.clientReady, state.didTimeout];
 };

@@ -23,9 +23,8 @@ import '@testing-library/jest-dom/extend-expect';
 
 import { OptimizelyProvider } from './Provider';
 import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
-import { useExperiment, useFeature, useDecision, useTrackEvents } from './hooks';
+import { useExperiment, useFeature, useDecision, useTrackEvents, hooksLogger } from './hooks';
 import { OptimizelyDecision } from './utils';
-
 const defaultDecision: OptimizelyDecision = {
   enabled: false,
   variables: {},
@@ -80,7 +79,7 @@ describe('hooks', () => {
   let forcedVariationUpdateCallbacks: Array<() => void>;
   let decideMock: jest.Mock<OptimizelyDecision>;
   let setForcedDecisionMock: jest.Mock<void>;
-
+  let hooksLoggerErrorSpy: jest.SpyInstance;
   const REJECTION_REASON = 'A rejection reason you should never see in the test runner';
 
   beforeEach(() => {
@@ -99,7 +98,6 @@ describe('hooks', () => {
           );
         }, timeout || mockDelay);
       });
-
     activateMock = jest.fn();
     isFeatureEnabledMock = jest.fn();
     featureVariables = mockFeatureVariables;
@@ -110,8 +108,7 @@ describe('hooks', () => {
     forcedVariationUpdateCallbacks = [];
     decideMock = jest.fn();
     setForcedDecisionMock = jest.fn();
-    // subscribeToInitialization = jest.fn();
-
+    hooksLoggerErrorSpy = jest.spyOn(hooksLogger, 'error');
     optimizelyMock = ({
       activate: activateMock,
       onReady: jest.fn().mockImplementation(config => getOnReadyPromise(config || {})),
@@ -170,6 +167,7 @@ describe('hooks', () => {
       res => res.dataReadyPromise,
       err => null
     );
+    hooksLoggerErrorSpy.mockReset();
   });
 
   describe('useExperiment', () => {
@@ -1051,16 +1049,18 @@ describe('hooks', () => {
     });
   });
   describe('useTrackEvents', () => {
-    it('returns null and false states when optimizely is not provided', () => {
+    it('returns track method and false states when optimizely is not provided', () => {
       const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
         //@ts-ignore
         return <OptimizelyProvider>{children}</OptimizelyProvider>;
       };
       const { result } = renderHook(() => useTrackEvents(), { wrapper });
-      expect(result.current).toEqual([null, false, false]);
+      expect(result.current[0]).toBeInstanceOf(Function);
+      expect(result.current[1]).toBe(false);
+      expect(result.current[2]).toBe(false);
     });
 
-    it('returns track method along with clientReady while optimizely instance is provided', async () => {
+    it('returns track method along with clientReady and didTimeout state when optimizely instance is provided', () => {
       const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
         <OptimizelyProvider optimizely={optimizelyMock} isServerSide={false} timeout={10000}>
           {children}
@@ -1068,9 +1068,33 @@ describe('hooks', () => {
       );
 
       const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      expect(result.current[0]).toBeInstanceOf(Function);
+      expect(typeof result.current[1]).toBe('boolean');
+      expect(typeof result.current[2]).toBe('boolean');
+    });
 
-      expect(result.current[1]).toBe(true);
-      expect(result.current[2]).toBe(false);
+    it('Log error when track method is called and optimizely instance is not provided', () => {
+      const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
+        //@ts-ignore
+        return <OptimizelyProvider>{children}</OptimizelyProvider>;
+      };
+      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      result.current[0]('eventKey');
+      expect(hooksLogger.error).toHaveBeenCalledTimes(1);
+    });
+
+    it('Log error when track method is called and client is not ready', () => {
+      optimizelyMock.isReady = jest.fn().mockReturnValue(false);
+
+      const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => (
+        <OptimizelyProvider optimizely={optimizelyMock} isServerSide={false} timeout={10000}>
+          {children}
+        </OptimizelyProvider>
+      );
+
+      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      result.current[0]('eventKey');
+      expect(hooksLogger.error).toHaveBeenCalledTimes(1);
     });
   });
 });
