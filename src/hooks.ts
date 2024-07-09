@@ -23,7 +23,7 @@ import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
-const hooksLogger = getLogger('ReactSDK');
+export const hooksLogger = getLogger('ReactSDK');
 
 enum HookType {
   EXPERIMENT = 'Experiment',
@@ -85,6 +85,10 @@ interface UseDecision {
     ClientReady,
     DidTimeout
   ];
+}
+
+interface UseTrackEvent {
+  (): [(...args: Parameters<ReactSDKClient['track']>) => void, boolean, boolean];
 }
 
 interface DecisionInputs {
@@ -499,4 +503,53 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
   return [state.decision, state.clientReady, state.didTimeout];
+};
+
+export const useTrackEvent: UseTrackEvent = () => {
+  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
+  const isClientReady = !!(isServerSide || optimizely?.isReady());
+
+  const track = useCallback(
+    (...rest: Parameters<ReactSDKClient['track']>): void => {
+      if (!optimizely) {
+        hooksLogger.error(`Unable to track events. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+        return;
+      }
+      if (!isClientReady) {
+        hooksLogger.error(`Unable to track events. Optimizely client is not ready yet.`);
+        return;
+      }
+      optimizely.track(...rest);
+    },
+    [optimizely, isClientReady]
+  );
+
+  if (!optimizely) {
+    return [track, false, false];
+  }
+
+  const [state, setState] = useState<{
+    clientReady: boolean;
+    didTimeout: DidTimeout;
+  }>(() => {
+    return {
+      clientReady: isClientReady,
+      didTimeout: false,
+    };
+  });
+
+  useEffect(() => {
+    // Subscribe to initialization promise only
+    // 1. When client is using Sdk Key, which means the initialization will be asynchronous
+    //    and we need to wait for the promise and update decision.
+    // 2. When client is using datafile only but client is not ready yet which means user
+    //    was provided as a promise and we need to subscribe and wait for user to become available.
+    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+      subscribeToInitialization(optimizely, timeout, initState => {
+        setState(initState);
+      });
+    }
+  }, []);
+
+  return [track, state.clientReady, state.didTimeout];
 };

@@ -328,8 +328,27 @@ function MyComponent() {
 ```
 
 ### Tracking
+Use the built-in `useTrackEvent` hook to access the `track` method of optimizely instance
 
-Use the `withOptimizely` HoC for tracking.
+```jsx
+import { useTrackEvent } from '@optimizely/react-sdk';
+
+function SignupButton() {
+  const [track, clientReady, didTimeout] = useTrackEvent()
+
+  const handleClick = () => {
+    if(clientReady) {
+      track('signup-clicked')
+    }
+  }
+
+  return (
+    <button onClick={handleClick}>Signup</button>
+  )
+}
+```
+
+Or you can use the `withOptimizely` HoC.
 
 ```jsx
 import { withOptimizely } from '@optimizely/react-sdk';
