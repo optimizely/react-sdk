@@ -87,7 +87,7 @@ interface UseDecision {
   ];
 }
 
-interface UseTrackEvents {
+interface UseTrackEvent {
   (): [(...args: Parameters<ReactSDKClient['track']>) => void, boolean, boolean];
 }
 
@@ -505,7 +505,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   return [state.decision, state.clientReady, state.didTimeout];
 };
 
-export const useTrackEvents: UseTrackEvents = () => {
+export const useTrackEvent: UseTrackEvent = () => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
   const isClientReady = !!(isServerSide || optimizely?.isReady());
 

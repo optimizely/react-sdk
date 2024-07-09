@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, 2023 Optimizely
+ * Copyright 2022, 2023, 2024 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import '@testing-library/jest-dom/extend-expect';
 
 import { OptimizelyProvider } from './Provider';
 import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
-import { useExperiment, useFeature, useDecision, useTrackEvents, hooksLogger } from './hooks';
+import { useExperiment, useFeature, useDecision, useTrackEvent, hooksLogger } from './hooks';
 import { OptimizelyDecision } from './utils';
 const defaultDecision: OptimizelyDecision = {
   enabled: false,
@@ -1048,13 +1048,13 @@ describe('hooks', () => {
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
     });
   });
-  describe('useTrackEvents', () => {
+  describe('useTrackEvent', () => {
     it('returns track method and false states when optimizely is not provided', () => {
       const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
         //@ts-ignore
         return <OptimizelyProvider>{children}</OptimizelyProvider>;
       };
-      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      const { result } = renderHook(() => useTrackEvent(), { wrapper });
       expect(result.current[0]).toBeInstanceOf(Function);
       expect(result.current[1]).toBe(false);
       expect(result.current[2]).toBe(false);
@@ -1067,7 +1067,7 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      const { result } = renderHook(() => useTrackEvent(), { wrapper });
       expect(result.current[0]).toBeInstanceOf(Function);
       expect(typeof result.current[1]).toBe('boolean');
       expect(typeof result.current[2]).toBe('boolean');
@@ -1078,7 +1078,7 @@ describe('hooks', () => {
         //@ts-ignore
         return <OptimizelyProvider>{children}</OptimizelyProvider>;
       };
-      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      const { result } = renderHook(() => useTrackEvent(), { wrapper });
       result.current[0]('eventKey');
       expect(hooksLogger.error).toHaveBeenCalledTimes(1);
     });
@@ -1092,7 +1092,7 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      const { result } = renderHook(() => useTrackEvents(), { wrapper });
+      const { result } = renderHook(() => useTrackEvent(), { wrapper });
       result.current[0]('eventKey');
       expect(hooksLogger.error).toHaveBeenCalledTimes(1);
     });
