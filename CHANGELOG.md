@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.2.2] - July 10, 2024
+## [3.2.0] - July 10, 2024
 
 ### New Features 
 - The new `useTrackEvent` hook is now available for tracking events within functional components. This hook offers all the existing track event functionalities provided by the SDK. ([#268](https://github.com/optimizely/react-sdk/pull/268))
