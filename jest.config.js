@@ -14,20 +14,11 @@
  * limitations under the License.
  */
 
+/** @type {import('jest').Config} */
 module.exports = {
-  "roots": [
-    "./src"
-  ],
-  "transform": {
-    "^.+\\.tsx?$": "ts-jest"
-  },
-  "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
-  "moduleFileExtensions": [
-    "ts",
-    "tsx",
-    "js",
-    "jsx",
-    "json",
-    "node"
-  ],
-}
+  testEnvironment: 'jsdom',
+  roots: ['./src'],
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  preset: 'ts-jest',
+};
