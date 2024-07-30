@@ -1,4 +1,5 @@
 node_modules/
+.yarn/
 lerna-debug.log
 npm-debug.log
 lib
