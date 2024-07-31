@@ -1,7 +1,7 @@
 {
   "name": "React SDK",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
-  "postCreateCommand": "sudo corepack enable && yarn set version berry && yarn install",
+  "postCreateCommand": "npm i -g yarn@1.22.22 && yarn install",
   "customizations": {
     "vscode": {
       "extensions": [

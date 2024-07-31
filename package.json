@@ -76,6 +76,5 @@
     "ts-jest": "^29.2.3",
     "tslib": "^2.6.3",
     "typescript": "^5.5.4"
-  },
-  "packageManager": "yarn@4.3.1"
+  }
 }

@@ -20,10 +20,6 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
-    - name: Setup yarn
-      run: |
-        corepack enable
-        yarn set version berry
     - name: Install dependencies
       run: yarn install
     - name: Run tests
