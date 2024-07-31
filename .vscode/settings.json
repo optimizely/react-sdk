@@ -1,4 +1,15 @@
 {
   "jest.runMode": "on-demand",
-  "jest.jestCommandLine": "~/.nvm/nvm-exec yarn test"
+  "jest.jestCommandLine": "~/.nvm/nvm-exec yarn test",
+  "eslint.enable": true,
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "prettier.requireConfig": true,
+  // Auto format on save is off for now. Use Alt+Shift+F to format the file.
+  // In future it might be turned on
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never"
+  },
+
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }
