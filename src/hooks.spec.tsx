@@ -87,25 +87,18 @@ describe('hooks', () => {
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
       new Promise((resolve) => {
-        resolve(
-          Object.assign(
-            {
-              success: readySuccess,
-              reason: NotReadyReason.TIMEOUT,
-            },
-            !readySuccess && {
-              dataReadyPromise: new Promise((r) =>
-                setTimeout(
-                  () =>
-                    r({
-                      success: true,
-                    }),
-                  mockDelay
-                )
-              ),
-            }
-          )
-        );
+        setTimeout(function () {
+          resolve(
+            Object.assign(
+              {
+                success: readySuccess,
+              },
+              !readySuccess && {
+                dataReadyPromise: new Promise((r) => setTimeout(r, mockDelay)),
+              }
+            )
+          );
+        }, timeout || mockDelay);
       });
     activateMock = jest.fn();
     isFeatureEnabledMock = jest.fn();
@@ -205,7 +198,7 @@ describe('hooks', () => {
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
     });
 
-    it.only('should respect the timeout option passed', async () => {
+    it('should respect the timeout option passed', async () => {
       activateMock.mockReturnValue(null);
       readySuccess = false;
 
@@ -214,18 +207,15 @@ describe('hooks', () => {
           <MyExperimentComponent options={{ timeout: mockDelay }} />
         </OptimizelyProvider>
       );
+
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false')); // initial render
 
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|true')); // when didTimeout
 
       // Simulate datafile fetch completing after timeout has already passed
       // Activate now returns a variation
-      // readySuccess = true;
-      // activateMock.mockReturnValue('12345');
-      // Wait for completion of dataReadyPromise
-      // await optimizelyMock.onReady().then((res) => res.dataReadyPromise);
-      // await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|true')); // when clientReady
+      activateMock.mockReturnValue('12345');
+      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|true')); // when clientReady
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {

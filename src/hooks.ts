@@ -170,32 +170,31 @@ function subscribeToInitialization(
           });
           break;
         case NotReadyReason.TIMEOUT:
-          console.log('Timeoiut', res.reason)
+          // console.log('Timeout', res.reason)
           hooksLogger.info(`Client did not become ready before timeout of ${timeout} ms, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
             didTimeout: true,
           });
-          res.dataReadyPromise?.then((r) => {
-            console.log('r', r)
+          res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready after timeout already elapsed');
             onInitStateChange({
-              clientReady: r.success, // true
+              clientReady: true,
               didTimeout: true,
             });
           });
           break;
         default:
-          console.log('subscribeToInitialization default case', res)
+          console.log('subscribeToInitialization default case', res);
           hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
           onInitStateChange({
-            clientReady: !!res.success,
+            clientReady: false,
             didTimeout: true, // assume timeout
           });
           res.dataReadyPromise?.then(() => {
             hooksLogger.info('Client became ready later');
             onInitStateChange({
-              clientReady: !!res.success,
+              clientReady: true,
               didTimeout: true, // assume timeout
             });
           });
