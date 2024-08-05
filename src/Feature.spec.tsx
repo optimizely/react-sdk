@@ -19,7 +19,7 @@
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { render, screen, waitFor } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 import { OptimizelyProvider } from './Provider';
 import { NotReadyReason, ReactSDKClient, VariableValuesObject } from './client';

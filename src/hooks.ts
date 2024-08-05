@@ -304,7 +304,6 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       }),
     [getCurrentDecision, optimizely]
   );
-
   return [state.variation, state.clientReady, state.didTimeout];
 };
 

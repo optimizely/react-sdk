@@ -50,6 +50,7 @@ function getPlugins(env, externals) {
     plugins.push(
       replace({
         'process.env.NODE_ENV': JSON.stringify(env),
+        preventAssignment: false,
       })
     );
   }

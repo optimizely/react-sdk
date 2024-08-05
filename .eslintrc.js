@@ -17,11 +17,7 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'prettier/@typescript-eslint',
-
-    // Prettier should always go last so it can trump any rules above
     'plugin:prettier/recommended',
-    'prettier/react',
   ],
   rules: {
     '@typescript-eslint/ban-ts-ignore': 'off',
