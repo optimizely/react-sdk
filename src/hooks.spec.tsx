@@ -22,7 +22,7 @@ import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { OptimizelyProvider } from './Provider';
-import { NotReadyReason, OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
+import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
 import { useExperiment, useFeature, useDecision, useTrackEvent, hooksLogger } from './hooks';
 import { OptimizelyDecision } from './utils';
 const defaultDecision: OptimizelyDecision = {
@@ -46,7 +46,6 @@ const MyFeatureComponent = ({ options = {}, overrides = {} }: any) => {
 
 const MyExperimentComponent = ({ options = {}, overrides = {} }: any) => {
   const [variation, clientReady, didTimeout] = useExperiment('experiment1', { ...options }, { ...overrides });
-  console.log('MyExperimentComponent', [variation, clientReady, didTimeout]);
   return <span data-testid="result">{`${variation}|${clientReady}|${didTimeout}`}</span>;
 };
 

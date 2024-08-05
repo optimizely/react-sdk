@@ -170,7 +170,6 @@ function subscribeToInitialization(
           });
           break;
         case NotReadyReason.TIMEOUT:
-          // console.log('Timeout', res.reason)
           hooksLogger.info(`Client did not become ready before timeout of ${timeout} ms, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
@@ -185,7 +184,6 @@ function subscribeToInitialization(
           });
           break;
         default:
-          console.log('subscribeToInitialization default case', res);
           hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
@@ -306,7 +304,6 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       }),
     [getCurrentDecision, optimizely]
   );
-  console.log('useExperiment', state)
   return [state.variation, state.clientReady, state.didTimeout];
 };
 
