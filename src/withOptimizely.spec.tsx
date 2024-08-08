@@ -50,11 +50,11 @@ const WrapperComponent = withOptimizely(InnerComponent);
 describe('withOptimizely', () => {
   let optimizelyClient: ReactSDKClient;
   beforeEach(() => {
-    optimizelyClient = ({
+    optimizelyClient = {
       setUser: jest.fn(),
       getVuid: jest.fn(),
       onReady: jest.fn(),
-    } as unknown) as ReactSDKClient;
+    } as unknown as ReactSDKClient;
   });
 
   describe('when userId / userAttributes props are provided', () => {
