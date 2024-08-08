@@ -35,7 +35,7 @@ export interface FeatureProps {
   children: ChildrenRenderFunction;
 }
 
-const FeatureComponent: React.FunctionComponent<FeatureProps> = props => {
+const FeatureComponent: React.FunctionComponent<FeatureProps> = (props) => {
   const { feature, timeout, autoUpdate, children, overrideUserId, overrideAttributes } = props;
   const [isEnabled, variables, clientReady, didTimeout] = useFeature(
     feature,

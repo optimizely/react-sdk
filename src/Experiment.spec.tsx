@@ -41,7 +41,7 @@ describe('<OptimizelyExperiment>', () => {
       };
     });
 
-    optimizelyMock = ({
+    optimizelyMock = {
       onReady: jest.fn().mockImplementation(() => onReadyPromise),
       activate: jest.fn().mockImplementation(() => variationKey),
       onUserUpdate: jest.fn().mockImplementation(() => () => {}),
@@ -58,7 +58,7 @@ describe('<OptimizelyExperiment>', () => {
       getIsReadyPromiseFulfilled: () => true,
       getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
-    } as unknown) as ReactSDKClient;
+    } as unknown as ReactSDKClient;
   });
 
   it('does not throw an error when not rendered in the context of an OptimizelyProvider', () => {

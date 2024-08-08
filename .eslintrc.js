@@ -20,9 +20,9 @@ module.exports = {
     'plugin:prettier/recommended',
   ],
   rules: {
-    '@typescript-eslint/ban-ts-ignore': 'off',
+    '@typescript-eslint/ban-ts-comment': 'warn',
     '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/no-empty-function': 'off',
-    'no-shadow': 'error',
+    '@typescript-eslint/no-shadow': 'error',
   },
 };
