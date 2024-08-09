@@ -235,7 +235,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     };
 
     this.userPromiseResolver = () => {};
-    const userReadyPromise = new Promise<OnReadyResult>(resolve => {
+    const userReadyPromise = new Promise<OnReadyResult>((resolve) => {
       this.userPromiseResolver = resolve;
     });
 
@@ -263,7 +263,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     } else {
       logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
 
-      this.clientAndUserReadyPromise = new Promise(resolve => {
+      this.clientAndUserReadyPromise = new Promise((resolve) => {
         resolve({
           success: false,
           reason: NotReadyReason.NO_CLIENT,
@@ -302,7 +302,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (config && config.timeout !== undefined) {
       timeout = config.timeout;
     }
-    const timeoutPromise = new Promise<OnReadyResult>(resolve => {
+    const timeoutPromise = new Promise<OnReadyResult>((resolve) => {
       timeoutId = setTimeout(() => {
         resolve({
           success: false,
@@ -313,7 +313,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       }, timeout) as any;
     });
 
-    return Promise.race([this.clientAndUserReadyPromise, timeoutPromise]).then(async res => {
+    return Promise.race([this.clientAndUserReadyPromise, timeoutPromise]).then(async (res) => {
       clearTimeout(timeoutId);
       return res;
     });
@@ -406,7 +406,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       this.isUserPromiseResolved = true;
     }
 
-    this.onUserUpdateHandlers.forEach(handler => handler(this.user));
+    this.onUserUpdateHandlers.forEach((handler) => handler(this.user));
   }
 
   public onUserUpdate(handler: OnUserUpdateHandler): DisposeFn {
@@ -718,7 +718,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     const isSuccess = this.userContext.removeAllForcedDecisions();
 
     if (isSuccess) {
-      this.forcedDecisionFlagKeys.forEach(flagKey => notifier.notify(flagKey));
+      this.forcedDecisionFlagKeys.forEach((flagKey) => notifier.notify(flagKey));
       this.forcedDecisionFlagKeys.clear();
     }
 
@@ -812,7 +812,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return {};
     }
 
-    Object.keys(feature.variablesMap).forEach(key => {
+    Object.keys(feature.variablesMap).forEach((key) => {
       const variable = feature.variablesMap[key];
       variableObj[variable.key] = this._client!.getFeatureVariable(featureKey, variable.key, userId, userAttributes);
     });
@@ -1150,7 +1150,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     }
 
     const result = this._client.setForcedVariation(experiment, finalUserId, finalVariationKey);
-    this.onForcedVariationsUpdateHandlers.forEach(handler => handler());
+    this.onForcedVariationsUpdateHandlers.forEach((handler) => handler());
     return result;
   }
 

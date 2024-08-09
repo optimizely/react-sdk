@@ -150,7 +150,7 @@ describe('ReactSDKClient', () => {
 
     it('fulfills the returned promise with success: true when a user is set', async () => {
       jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
@@ -164,7 +164,7 @@ describe('ReactSDKClient', () => {
 
     it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
       jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
 
       await instance.setUser({
@@ -179,8 +179,8 @@ describe('ReactSDKClient', () => {
       beforeEach(() => {
         // Mocks clientAndUserReadyPromise value instead of _client = null because test initialization of
         // instance causes clientAndUserReadyPromise to return { success: true }
-        // @ts-ignore
-        instance.clientAndUserReadyPromise = new Promise(resolve => {
+        //@ts-ignore
+        instance.clientAndUserReadyPromise = new Promise((resolve) => {
           resolve({
             success: false,
             reason: NotReadyReason.NO_CLIENT,
@@ -200,7 +200,7 @@ describe('ReactSDKClient', () => {
       it('waits for the inner client onReady to fulfill with success = false before fulfilling the returned promise', async () => {
         const mockInnerClientOnReady = jest.spyOn(mockInnerClient, 'onReady');
         let resolveInnerClientOnReady: (result: OnReadyResult) => void = () => {};
-        const mockReadyPromise: Promise<OnReadyResult> = new Promise(res => {
+        const mockReadyPromise: Promise<OnReadyResult> = new Promise((res) => {
           resolveInnerClientOnReady = res;
         });
         mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
@@ -220,11 +220,11 @@ describe('ReactSDKClient', () => {
     it('waits for the inner client onReady to fulfill with success = true before fulfilling the returned promise', async () => {
       const mockInnerClientOnReady = jest.spyOn(mockInnerClient, 'onReady');
       let resolveInnerClientOnReady: (result: OnReadyResult) => void;
-      const mockReadyPromise: Promise<OnReadyResult> = new Promise(res => {
+      const mockReadyPromise: Promise<OnReadyResult> = new Promise((res) => {
         resolveInnerClientOnReady = res;
       });
       mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
         id: 'user999',
@@ -1652,7 +1652,7 @@ describe('ReactSDKClient', () => {
 
     it('should throw error when action param is falsy', async () => {
       const badValues = ['', '  '];
-      badValues.forEach(item => {
+      badValues.forEach((item) => {
         instance.sendOdpEvent(item);
       });
 

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
@@ -63,28 +65,27 @@ interface FeatureDecisionValues {
 }
 
 interface UseExperiment {
-  (experimentKey: string, options?: HookOptions, overrides?: HookOverrides): [
-    ExperimentDecisionValues['variation'],
-    ClientReady,
-    DidTimeout
-  ];
+  (
+    experimentKey: string,
+    options?: HookOptions,
+    overrides?: HookOverrides
+  ): [ExperimentDecisionValues['variation'], ClientReady, DidTimeout];
 }
 
 interface UseFeature {
-  (featureKey: string, options?: HookOptions, overrides?: HookOverrides): [
-    FeatureDecisionValues['isEnabled'],
-    FeatureDecisionValues['variables'],
-    ClientReady,
-    DidTimeout
-  ];
+  (
+    featureKey: string,
+    options?: HookOptions,
+    overrides?: HookOverrides
+  ): [FeatureDecisionValues['isEnabled'], FeatureDecisionValues['variables'], ClientReady, DidTimeout];
 }
 
 interface UseDecision {
-  (featureKey: string, options?: DecideHooksOptions, overrides?: HookOverrides): [
-    OptimizelyDecision,
-    ClientReady,
-    DidTimeout
-  ];
+  (
+    featureKey: string,
+    options?: DecideHooksOptions,
+    overrides?: HookOverrides
+  ): [OptimizelyDecision, ClientReady, DidTimeout];
 }
 
 interface UseTrackEvent {
@@ -258,7 +259,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       ...getCurrentDecision(),
     }));
@@ -272,7 +273,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if ((optimizely.getIsUsingSdkKey() && !optimizely.getIsReadyPromiseFulfilled()) || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+      subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
           ...initState,
@@ -285,7 +286,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
-        setState(prevState => ({
+        setState((prevState) => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
@@ -297,7 +298,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   useEffect(
     () =>
       optimizely.onForcedVariationsUpdate(() => {
-        setState(prevState => ({
+        setState((prevState) => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
@@ -354,7 +355,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       ...getCurrentDecision(),
     }));
@@ -368,7 +369,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+      subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
           ...initState,
@@ -381,7 +382,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
-        setState(prevState => ({
+        setState((prevState) => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
@@ -451,7 +452,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
-    setState(prevState => ({
+    setState((prevState) => ({
       ...prevState,
       ...getCurrentDecision(),
     }));
@@ -465,7 +466,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, finalReadyTimeout, initState => {
+      subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
           ...initState,
@@ -481,7 +482,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
     // Subscribe to Forced Decision changes.
     return notifier.subscribe(flagKey, () => {
-      setState(prevState => ({
+      setState((prevState) => ({
         ...prevState,
         ...getCurrentDecision(),
       }));
@@ -492,7 +493,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
     if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
-        setState(prevState => ({
+        setState((prevState) => ({
           ...prevState,
           ...getCurrentDecision(),
         }));
@@ -544,7 +545,7 @@ export const useTrackEvent: UseTrackEvent = () => {
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
     if (optimizely.getIsUsingSdkKey() || !isClientReady) {
-      subscribeToInitialization(optimizely, timeout, initState => {
+      subscribeToInitialization(optimizely, timeout, (initState) => {
         setState(initState);
       });
     }

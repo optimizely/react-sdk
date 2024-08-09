@@ -37,7 +37,7 @@ class Notifier implements INotifier {
     this.observers.push({ subscriptionId, key, callback });
 
     return () => {
-      const observerIndex = this.observers.findIndex(observer => observer.subscriptionId === subscriptionId);
+      const observerIndex = this.observers.findIndex((observer) => observer.subscriptionId === subscriptionId);
       if (observerIndex >= 0) {
         this.observers.splice(observerIndex, 1);
       }
@@ -45,7 +45,7 @@ class Notifier implements INotifier {
   }
 
   notify(key: string) {
-    this.observers.filter(observer => observer.key === key).forEach(observer => observer.callback());
+    this.observers.filter((observer) => observer.key === key).forEach((observer) => observer.callback());
   }
 }
 

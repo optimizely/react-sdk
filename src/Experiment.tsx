@@ -36,7 +36,7 @@ export interface ExperimentProps {
   children: React.ReactNode | ChildrenRenderFunction;
 }
 
-const Experiment: React.FunctionComponent<ExperimentProps> = props => {
+const Experiment: React.FunctionComponent<ExperimentProps> = (props) => {
   const { experiment, autoUpdate, timeout, overrideUserId, overrideAttributes, children } = props;
   const [variation, clientReady, didTimeout] = useExperiment(
     experiment,
