@@ -35,8 +35,8 @@
   },
   "lint-staged": {
     "**/*.{js,ts,tsx}": [
-      "eslint --quiet --fix",
-      "jest --silent --findRelatedTests"
+      "yarn run lint",
+      "yarn run test --findRelatedTests"
     ]
   },
   "dependencies": {
