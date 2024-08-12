@@ -43,15 +43,15 @@ describe('<OptimizelyFeature>', () => {
       };
     });
 
-    optimizelyMock = ({
-      onReady: jest.fn().mockImplementation(config => onReadyPromise),
+    optimizelyMock = {
+      onReady: jest.fn().mockImplementation(() => onReadyPromise),
       getFeatureVariables: jest.fn().mockImplementation(() => featureVariables),
       isFeatureEnabled: jest.fn().mockImplementation(() => isEnabledMock),
-      onUserUpdate: jest.fn().mockImplementation(handler => () => {}),
+      onUserUpdate: jest.fn().mockImplementation(() => () => {}),
       getVuid: jest.fn().mockImplementation(() => 'vuid_95bf72cebc774dfd8e8e580a5a1'),
       notificationCenter: {
-        addNotificationListener: jest.fn().mockImplementation((type, handler) => {}),
-        removeNotificationListener: jest.fn().mockImplementation(id => {}),
+        addNotificationListener: jest.fn().mockImplementation(() => {}),
+        removeNotificationListener: jest.fn().mockImplementation(() => {}),
       },
       user: {
         id: 'testuser',
@@ -60,13 +60,12 @@ describe('<OptimizelyFeature>', () => {
       isReady: jest.fn().mockImplementation(() => isReady),
       getIsReadyPromiseFulfilled: () => true,
       getIsUsingSdkKey: () => true,
-    } as unknown) as ReactSDKClient;
+    } as unknown as ReactSDKClient;
   });
 
   it('does not throw an error when not rendered in the context of an OptimizelyProvider', () => {
     expect(() => {
-      // @ts-ignore
-      mount(<OptimizelyFeature feature="feature1">{(isEnabled, variables) => isEnabled}</OptimizelyFeature>);
+      render(<OptimizelyFeature feature="feature1">{(isEnabled, variables) => isEnabled}</OptimizelyFeature>);
     }).toBeDefined();
   });
 
@@ -301,7 +300,7 @@ describe('<OptimizelyFeature>', () => {
         resolver.resolve({ success: false, reason: NotReadyReason.TIMEOUT, dataReadyPromise: Promise.resolve() });
 
         // Simulate config update notification firing after datafile fetched
-        await optimizelyMock.onReady().then(res => res.dataReadyPromise);
+        await optimizelyMock.onReady().then((res) => res.dataReadyPromise);
 
         expect(optimizelyMock.isFeatureEnabled).toHaveBeenCalledWith('feature1', undefined, undefined);
         expect(optimizelyMock.getFeatureVariables).toHaveBeenCalledWith('feature1', undefined, undefined);

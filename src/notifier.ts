@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, Optimizely
+ * Copyright 2022, 2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ class Notifier implements INotifier {
     this.observers.push({ subscriptionId, key, callback });
 
     return () => {
-      const observerIndex = this.observers.findIndex(observer => observer.subscriptionId === subscriptionId);
+      const observerIndex = this.observers.findIndex((observer) => observer.subscriptionId === subscriptionId);
       if (observerIndex >= 0) {
         this.observers.splice(observerIndex, 1);
       }
@@ -45,7 +45,7 @@ class Notifier implements INotifier {
   }
 
   notify(key: string) {
-    this.observers.filter(observer => observer.key === key).forEach(observer => observer.callback());
+    this.observers.filter((observer) => observer.key === key).forEach((observer) => observer.callback());
   }
 }
 

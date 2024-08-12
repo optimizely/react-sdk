@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023, Optimizely
+ * Copyright 2018-2019, 2023-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,11 +50,11 @@ const WrapperComponent = withOptimizely(InnerComponent);
 describe('withOptimizely', () => {
   let optimizelyClient: ReactSDKClient;
   beforeEach(() => {
-    optimizelyClient = ({
+    optimizelyClient = {
       setUser: jest.fn(),
       getVuid: jest.fn(),
       onReady: jest.fn(),
-    } as unknown) as ReactSDKClient;
+    } as unknown as ReactSDKClient;
   });
 
   describe('when userId / userAttributes props are provided', () => {

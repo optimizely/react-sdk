@@ -30,13 +30,13 @@ describe('OptimizelyProvider', () => {
   };
 
   beforeEach(() => {
-    mockReactClient = ({
+    mockReactClient = {
       user: {
         id: 'test-id',
         attributes: {},
       },
       setUser: jest.fn().mockResolvedValue(undefined),
-    } as unknown) as ReactSDKClient;
+    } as unknown as ReactSDKClient;
   });
 
   it('should render successfully with user provided', () => {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023, Optimizely
+ * Copyright 2018-2019, 2023-2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ export interface ExperimentProps {
   children: React.ReactNode | ChildrenRenderFunction;
 }
 
-const Experiment: React.FunctionComponent<ExperimentProps> = props => {
+const Experiment: React.FunctionComponent<ExperimentProps> = (props) => {
   const { experiment, autoUpdate, timeout, overrideUserId, overrideAttributes, children } = props;
   const [variation, clientReady, didTimeout] = useExperiment(
     experiment,

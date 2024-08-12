@@ -1,5 +1,5 @@
 /**
- * Copyright 2019-2022, Optimizely
+ * Copyright 2019-2022, 2024, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ describe('notifier', () => {
 
   describe('Subscribing single key', () => {
     let callback: jest.MockedFunction<() => void>;
-    const key: string = 'key_1';
+    const key = 'key_1';
 
     beforeEach(() => {
       callback = jest.fn();
@@ -60,9 +60,9 @@ describe('notifier', () => {
 
   describe('Subscribing multiple key', () => {
     let callback1: jest.MockedFunction<() => void>;
-    const key1: string = 'key_1';
+    const key1 = 'key_1';
     let callback2: jest.MockedFunction<() => void>;
-    const key2: string = 'key_2';
+    const key2 = 'key_2';
 
     beforeEach(() => {
       callback1 = jest.fn();
@@ -88,9 +88,9 @@ describe('notifier', () => {
 
   describe('Subscribing similar key with multiple instances', () => {
     let callback1: jest.MockedFunction<() => void>;
-    const sameKey1: string = 'key_1';
+    const sameKey1 = 'key_1';
     let callback2: jest.MockedFunction<() => void>;
-    const sameKey2: string = 'key_1';
+    const sameKey2 = 'key_1';
 
     beforeEach(() => {
       callback1 = jest.fn();
@@ -112,7 +112,7 @@ describe('notifier', () => {
 
   describe('unsubscribing the key', () => {
     let callback: jest.MockedFunction<() => void>;
-    const key: string = 'key_1';
+    const key = 'key_1';
 
     beforeEach(() => {
       callback = jest.fn();
