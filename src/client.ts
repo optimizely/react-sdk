@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as optimizely from '@optimizely/optimizely-sdk';
 import { OptimizelyDecision, UserInfo, createFailedDecision, areUsersEqual } from './utils';
 import { notifier } from './notifier';
@@ -214,7 +213,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   private isUsingSdkKey = false;
 
-  private readonly _client: optimizely.Client | null;
+  private _client: optimizely.Client | null;
 
   // promise keeping track of async requests for initializing client instance
   private clientAndUserReadyPromise: Promise<OnReadyResult>;
@@ -227,50 +226,56 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
    * @param {optimizely.Config} [config={}]
    */
   constructor(config: optimizely.Config) {
-    this.initialConfig = config;
-    const configWithClientInfo = {
-      ...config,
-      clientEngine: REACT_SDK_CLIENT_ENGINE,
-      clientVersion: REACT_SDK_CLIENT_VERSION,
-    };
+    const funcy = async () => {
+      this.initialConfig = config;
+      const configWithClientInfo = {
+        ...config,
+        clientEngine: REACT_SDK_CLIENT_ENGINE,
+        clientVersion: REACT_SDK_CLIENT_VERSION,
+      };
 
-    this.userPromiseResolver = () => {};
-    const userReadyPromise = new Promise<OnReadyResult>(resolve => {
-      this.userPromiseResolver = resolve;
-    });
-
-    this._client = optimizely.createInstance(configWithClientInfo);
-    this.isClientReady = !!configWithClientInfo.datafile;
-    this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
-
-    if (this._client) {
-      const clientReadyPromise = this._client.onReady();
-
-      this.clientAndUserReadyPromise = Promise.all([userReadyPromise, clientReadyPromise]).then(
-        ([userResult, clientResult]) => {
-          this.isClientReady = clientResult.success;
-          this.isUserReady = userResult.success;
-          const clientAndUserReady = this.isClientReady && this.isUserReady;
-
-          this.clientAndUserReadyPromiseFulfilled = true;
-
-          return {
-            success: clientAndUserReady,
-            message: clientAndUserReady ? 'Client and user are both ready.' : 'Client or user did not become ready.',
-          };
-        }
-      );
-    } else {
-      logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
-
-      this.clientAndUserReadyPromise = new Promise(resolve => {
-        resolve({
-          success: false,
-          reason: NotReadyReason.NO_CLIENT,
-          message: 'Optimizely client failed to initialize.',
-        });
+      this.userPromiseResolver = () => {};
+      const userReadyPromise = new Promise<OnReadyResult>(resolve => {
+        this.userPromiseResolver = resolve;
       });
-    }
+      const res = await fetch('https://optimizely-staging.s3.amazonaws.com/datafiles/DUpYBFCnkqwdgs4Ley8Py.json');
+      const data = await res.json();
+      this._client = optimizely.createInstance({
+        datafile: JSON.stringify(data),
+      });
+      this.isClientReady = !!configWithClientInfo.datafile;
+      this.isUsingSdkKey = false;
+
+      if (this._client) {
+        const clientReadyPromise = this._client.onReady();
+
+        this.clientAndUserReadyPromise = Promise.all([userReadyPromise, clientReadyPromise]).then(
+          ([userResult, clientResult]) => {
+            this.isClientReady = clientResult.success;
+            this.isUserReady = userResult.success;
+            const clientAndUserReady = this.isClientReady && this.isUserReady;
+
+            this.clientAndUserReadyPromiseFulfilled = true;
+
+            return {
+              success: clientAndUserReady,
+              message: clientAndUserReady ? 'Client and user are both ready.' : 'Client or user did not become ready.',
+            };
+          }
+        );
+      } else {
+        logger.warn('Unable to resolve datafile and user information because Optimizely client failed to initialize.');
+
+        this.clientAndUserReadyPromise = new Promise(resolve => {
+          resolve({
+            success: false,
+            reason: NotReadyReason.NO_CLIENT,
+            message: 'Optimizely client failed to initialize.',
+          });
+        });
+      }
+    };
+    funcy();
   }
 
   protected getUserWithOverrides(overrideUserId?: string, overrideAttributes?: optimizely.UserAttributes): UserInfo {
