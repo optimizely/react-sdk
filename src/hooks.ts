@@ -148,10 +148,18 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: false,
           });
-          res.dataReadyPromise?.then(() => {
-            hooksLogger.info('Client became ready.');
+          res.dataReadyPromise?.then((readyResult?: OnReadyResult) => {
+            if (!readyResult) {
+              return;
+            }
+            const { success, message } = readyResult;
+            if (success) {
+              hooksLogger.info('Client became ready.');
+            } else {
+              hooksLogger.warn(`Client not ready, reason="${message}"`);
+            }
             onInitStateChange({
-              clientReady: true,
+              clientReady: success,
               didTimeout: false,
             });
           });
@@ -162,10 +170,18 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: false,
           });
-          res.dataReadyPromise?.then(() => {
-            hooksLogger.info('User became ready later.');
+          res.dataReadyPromise?.then((readyResult?: OnReadyResult) => {
+            if (!readyResult) {
+              return;
+            }
+            const { success, message } = readyResult;
+            if (success) {
+              hooksLogger.info('User became ready later.');
+            } else {
+              hooksLogger.warn(`Client not ready, reason="${message}"`);
+            }
             onInitStateChange({
-              clientReady: true,
+              clientReady: success,
               didTimeout: false,
             });
           });
@@ -176,10 +192,21 @@ function subscribeToInitialization(
             clientReady: false,
             didTimeout: true,
           });
-          res.dataReadyPromise?.then(() => {
-            hooksLogger.info('Client became ready after timeout already elapsed');
+          res.dataReadyPromise?.then((readyResult?: OnReadyResult) => {
+            if (!readyResult) {
+              return;
+            }
+
+            const { success, message } = readyResult;
+
+            if (success) {
+              hooksLogger.info('Client became ready after timeout already elapsed');
+            } else {
+              hooksLogger.warn(`Client not ready, reason="${message}"`);
+            }
+
             onInitStateChange({
-              clientReady: true,
+              clientReady: success,
               didTimeout: true,
             });
           });
@@ -188,13 +215,23 @@ function subscribeToInitialization(
           hooksLogger.warn(`Other reason client not ready, reason="${res.message}"`);
           onInitStateChange({
             clientReady: false,
-            didTimeout: true, // assume timeout
+            didTimeout: false,
           });
-          res.dataReadyPromise?.then(() => {
-            hooksLogger.info('Client became ready later');
+          res.dataReadyPromise?.then((readyResult?: OnReadyResult) => {
+            if (!readyResult) {
+              return;
+            }
+
+            const { success, message } = readyResult;
+
+            if (success) {
+              hooksLogger.info('Client became ready later');
+            } else {
+              hooksLogger.warn(`Client not ready, reason="${message}"`);
+            }
             onInitStateChange({
-              clientReady: true,
-              didTimeout: true, // assume timeout
+              clientReady: success,
+              didTimeout: false,
             });
           });
       }

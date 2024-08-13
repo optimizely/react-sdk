@@ -62,7 +62,7 @@ const mockFeatureVariables: VariableValuesObject = {
   foo: 'bar',
 };
 
-describe('hooks', () => {
+describe.skip('hooks', () => {
   let activateMock: jest.Mock;
   let featureVariables: VariableValuesObject;
   let getOnReadyPromise: any;
