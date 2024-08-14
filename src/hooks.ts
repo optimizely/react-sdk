@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
@@ -358,24 +357,19 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
  */
 export const useFeature: UseFeature = (featureKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-
-  if (!optimizely) {
-    hooksLogger.error(
-      `Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
-    return [false, {}, false, false];
-  }
-
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+
   const getCurrentDecision: () => FeatureDecisionValues = useCallback(
     () => ({
-      isEnabled: optimizely.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs),
-      variables: optimizely.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs),
+      isEnabled: !!optimizely?.isFeatureEnabled(featureKey, overrides.overrideUserId, overrideAttrs),
+      variables: optimizely?.getFeatureVariables(featureKey, overrides.overrideUserId, overrideAttrs) || {},
     }),
     [optimizely, featureKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || !!optimizely?.isReady();
+  const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
+
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
     return {
@@ -393,7 +387,9 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
     overrideUserId: overrides.overrideUserId,
     overrideAttributes: overrides.overrideAttributes,
   };
+
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
+
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
     setState((prevState) => ({
@@ -403,13 +399,14 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
+
   useEffect(() => {
     // Subscribe to initialzation promise only
     // 1. When client is using Sdk Key, which means the initialization will be asynchronous
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+    if (optimizely && (optimizely.getIsUsingSdkKey() || !isClientReady)) {
       subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
@@ -417,11 +414,12 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
         });
       });
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+    if (optimizely && isReadyPromiseFulfilled && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, featureKey, hooksLogger, () => {
         setState((prevState) => ({
           ...prevState,
@@ -430,7 +428,13 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
       });
     }
     return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
+  }, [isReadyPromiseFulfilled, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
+
+  if (!optimizely) {
+    hooksLogger.error(
+      `Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
+  }
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
 };

@@ -82,7 +82,38 @@ describe('hooks', () => {
   let setForcedDecisionMock: jest.Mock<void>;
   let hooksLoggerErrorSpy: jest.SpyInstance;
   const REJECTION_REASON = 'A rejection reason you should never see in the test runner';
+  const getOnReadyTimeoutPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> => {
+    const timeoutPromise = new Promise<OnReadyResult>((resolve) => {
+      setTimeout(
+        () => {
+          resolve({
+            success: false,
+            reason: NotReadyReason.TIMEOUT,
+            dataReadyPromise: new Promise((r) =>
+              setTimeout(
+                () =>
+                  r({
+                    success: readySuccess,
+                  }),
+                mockDelay
+              )
+            ),
+          });
+        },
+        timeout || mockDelay + 1
+      );
+    });
 
+    const clientAndUserReadyPromise = new Promise<OnReadyResult>((resolve) => {
+      setTimeout(() => {
+        resolve({
+          success: readySuccess,
+        });
+      }, mockDelay);
+    });
+
+    return Promise.race([clientAndUserReadyPromise, timeoutPromise]);
+  };
   beforeEach(() => {
     getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> =>
       new Promise((resolve) => {
@@ -200,39 +231,7 @@ describe('hooks', () => {
       mockDelay = 100;
       readySuccess = false;
       // Todo: getOnReadyPromise might be moved in the top later
-      getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> => {
-        const timeoutPromise = new Promise<OnReadyResult>((resolve) => {
-          setTimeout(
-            () => {
-              resolve({
-                success: false,
-                reason: NotReadyReason.TIMEOUT,
-                dataReadyPromise: new Promise((r) =>
-                  setTimeout(
-                    () =>
-                      r({
-                        success: readySuccess,
-                      }),
-                    mockDelay
-                  )
-                ),
-              });
-            },
-            timeout || mockDelay + 1
-          );
-        });
-
-        const clientAndUserReadyPromise = new Promise<OnReadyResult>((resolve) => {
-          setTimeout(() => {
-            resolve({
-              success: readySuccess,
-            });
-          }, mockDelay);
-        });
-
-        return Promise.race([clientAndUserReadyPromise, timeoutPromise]);
-      };
-
+      getOnReadyPromise = getOnReadyTimeoutPromise;
       render(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyExperimentComponent options={{ timeout: mockDelay - 10 }} />
@@ -445,7 +444,7 @@ describe('hooks', () => {
     });
   });
 
-  describe.skip('useFeature', () => {
+  describe('useFeature', () => {
     it('should render true when the feature is enabled', async () => {
       isFeatureEnabledMock.mockReturnValue(true);
 
@@ -454,7 +453,6 @@ describe('hooks', () => {
           <MyFeatureComponent />
         </OptimizelyProvider>
       );
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('true|{"foo":"bar"}|true|false'));
     });
 
@@ -467,44 +465,33 @@ describe('hooks', () => {
           <MyFeatureComponent />
         </OptimizelyProvider>
       );
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
     });
 
     it('should respect the timeout option passed', async () => {
+      mockDelay = 100;
       isFeatureEnabledMock.mockReturnValue(false);
       featureVariables = {};
       readySuccess = false;
-
+      getOnReadyPromise = getOnReadyTimeoutPromise;
       render(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <MyFeatureComponent options={{ timeout: mockDelay }} />
+          <MyFeatureComponent options={{ timeout: mockDelay - 10 }} />
         </OptimizelyProvider>
       );
 
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false')); // initial render
+      // Initial render
+      expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
 
-      await optimizelyMock.onReady();
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|true')); // when didTimeout
-
-      // Simulate datafile fetch completing after timeout has already passed
-      // isFeatureEnabled now returns true, getFeatureVariables returns variable values
+      readySuccess = true;
       isFeatureEnabledMock.mockReturnValue(true);
       featureVariables = mockFeatureVariables;
-      // Wait for completion of dataReadyPromise
-      await optimizelyMock.onReady().then((res) => res.dataReadyPromise);
 
-      // Simulate datafile fetch completing after timeout has already passed
-      // Activate now returns a variation
-      activateMock.mockReturnValue('12345');
-      // Wait for completion of dataReadyPromise
-      await optimizelyMock.onReady().then((res) => res.dataReadyPromise);
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('true|{"foo":"bar"}|true|true')); // when clientReady
+      // When timeout is reached, but dataReadyPromise is resolved later with the feature enabled
+      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('true|{"foo":"bar"}|true|true'));
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
-      jest.useFakeTimers();
-
       readySuccess = false;
       isFeatureEnabledMock.mockReturnValue(true);
       getOnReadyPromise = (): Promise<void> =>
@@ -516,11 +503,7 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      jest.advanceTimersByTime(mockDelay + 1);
-
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false'));
-
-      jest.useRealTimers();
     });
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
@@ -535,7 +518,6 @@ describe('hooks', () => {
 
       // TODO - Wrap this with async act() once we upgrade to React 16.9
       // See https://github.com/facebook/react/issues/15379
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       isFeatureEnabledMock.mockReturnValue(true);
@@ -559,7 +541,6 @@ describe('hooks', () => {
 
       // TODO - Wrap this with async act() once we upgrade to React 16.9
       // See https://github.com/facebook/react/issues/15379
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       isFeatureEnabledMock.mockReturnValue(true);
