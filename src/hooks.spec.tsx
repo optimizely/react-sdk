@@ -22,7 +22,7 @@ import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import { OptimizelyProvider } from './Provider';
-import { OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
+import { NotReadyReason, OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
 import { useExperiment, useFeature, useDecision, useTrackEvent, hooksLogger } from './hooks';
 import { OptimizelyDecision } from './utils';
 const defaultDecision: OptimizelyDecision = {
@@ -62,7 +62,7 @@ const mockFeatureVariables: VariableValuesObject = {
   foo: 'bar',
 };
 
-describe.skip('hooks', () => {
+describe('hooks', () => {
   let activateMock: jest.Mock;
   let featureVariables: VariableValuesObject;
   let getOnReadyPromise: any;
@@ -176,52 +176,79 @@ describe.skip('hooks', () => {
     it('should return a variation when activate returns a variation', async () => {
       activateMock.mockReturnValue('12345');
 
-      const { container } = render(
+      render(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyExperimentComponent />
         </OptimizelyProvider>
       );
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|false'));
     });
 
     it('should return null when activate returns null', async () => {
       activateMock.mockReturnValue(null);
       featureVariables = {};
-      const { container } = render(
+      render(
         <OptimizelyProvider optimizely={optimizelyMock}>
           <MyExperimentComponent />
         </OptimizelyProvider>
       );
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
     });
 
     it('should respect the timeout option passed', async () => {
       activateMock.mockReturnValue(null);
+      mockDelay = 100;
       readySuccess = false;
+      // Todo: getOnReadyPromise might be moved in the top later
+      getOnReadyPromise = ({ timeout = 0 }: any): Promise<OnReadyResult> => {
+        const timeoutPromise = new Promise<OnReadyResult>((resolve) => {
+          setTimeout(
+            () => {
+              resolve({
+                success: false,
+                reason: NotReadyReason.TIMEOUT,
+                dataReadyPromise: new Promise((r) =>
+                  setTimeout(
+                    () =>
+                      r({
+                        success: readySuccess,
+                      }),
+                    mockDelay
+                  )
+                ),
+              });
+            },
+            timeout || mockDelay + 1
+          );
+        });
+
+        const clientAndUserReadyPromise = new Promise<OnReadyResult>((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: readySuccess,
+            });
+          }, mockDelay);
+        });
+
+        return Promise.race([clientAndUserReadyPromise, timeoutPromise]);
+      };
 
       render(
         <OptimizelyProvider optimizely={optimizelyMock}>
-          <MyExperimentComponent options={{ timeout: mockDelay }} />
+          <MyExperimentComponent options={{ timeout: mockDelay - 10 }} />
         </OptimizelyProvider>
       );
-
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false')); // initial render
-
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|true')); // when didTimeout
-
-      // Simulate datafile fetch completing after timeout has already passed
-      // Activate now returns a variation
+      expect(screen.getByTestId('result')).toHaveTextContent('null|false|false'); // initial render
+      readySuccess = true;
       activateMock.mockReturnValue('12345');
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|true')); // when clientReady
+      // When timeout is reached, but dataReadyPromise is resolved later with the variation
+      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|true'));
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
-      jest.useFakeTimers();
-
       readySuccess = false;
       activateMock.mockReturnValue('12345');
+
       getOnReadyPromise = (): Promise<void> =>
         new Promise((_, rej) => setTimeout(() => rej(REJECTION_REASON), mockDelay));
 
@@ -231,11 +258,7 @@ describe.skip('hooks', () => {
         </OptimizelyProvider>
       );
 
-      jest.advanceTimersByTime(mockDelay + 1);
-
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|false|false'));
-
-      jest.useRealTimers();
     });
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
@@ -249,7 +272,6 @@ describe.skip('hooks', () => {
 
       // TODO - Wrap this with async act() once we upgrade to React 16.9
       // See https://github.com/facebook/react/issues/15379
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
 
       activateMock.mockReturnValue('12345');
@@ -257,8 +279,7 @@ describe.skip('hooks', () => {
       await act(async () => {
         userUpdateCallbacks.forEach((fn) => fn());
       });
-      //   component.update();
-      //   await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|false');
+
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('12345|true|false'));
     });
 
@@ -272,7 +293,6 @@ describe.skip('hooks', () => {
 
       //   // TODO - Wrap this with async act() once we upgrade to React 16.9
       //   // See https://github.com/facebook/react/issues/15379
-      await optimizelyMock.onReady();
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
 
       activateMock.mockReturnValue('12345');
@@ -425,7 +445,7 @@ describe.skip('hooks', () => {
     });
   });
 
-  describe('useFeature', () => {
+  describe.skip('useFeature', () => {
     it('should render true when the feature is enabled', async () => {
       isFeatureEnabledMock.mockReturnValue(true);
 
@@ -676,7 +696,7 @@ describe.skip('hooks', () => {
     });
   });
 
-  describe('useDecision', () => {
+  describe.skip('useDecision', () => {
     it('should render true when the flag is enabled', async () => {
       decideMock.mockReturnValue({
         ...defaultDecision,

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 /**
  * Copyright 2018-2019, 2022-2024, Optimizely
  *
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 
-/* eslint-disable react-hooks/rules-of-hooks */
 import { useCallback, useContext, useEffect, useState, useRef } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
@@ -259,22 +259,18 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
 export const useExperiment: UseExperiment = (experimentKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
-  if (!optimizely) {
-    hooksLogger.error(
-      `Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
-    return [null, false, false];
-  }
-
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
+
   const getCurrentDecision: () => ExperimentDecisionValues = useCallback(
     () => ({
-      variation: optimizely.activate(experimentKey, overrides.overrideUserId, overrideAttrs),
+      variation: optimizely?.activate(experimentKey, overrides.overrideUserId, overrideAttrs) || null,
     }),
     [optimizely, experimentKey, overrides.overrideUserId, overrideAttrs]
   );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const isClientReady = isServerSide || !!optimizely?.isReady();
+  const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
+
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
     const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
     return {
@@ -293,6 +289,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     overrideUserId: overrides.overrideUserId,
     overrideAttributes: overrideAttrs,
   };
+
   const [prevDecisionInputs, setPrevDecisionInputs] = useState<DecisionInputs>(currentDecisionInputs);
   if (!areDecisionInputsEqual(prevDecisionInputs, currentDecisionInputs)) {
     setPrevDecisionInputs(currentDecisionInputs);
@@ -309,7 +306,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if ((optimizely.getIsUsingSdkKey() && !optimizely.getIsReadyPromiseFulfilled()) || !isClientReady) {
+    if (optimizely && ((optimizely.getIsUsingSdkKey() && !isReadyPromiseFulfilled) || !isClientReady)) {
       subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
@@ -317,11 +314,11 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
         });
       });
     }
-  }, []);
+  }, [finalReadyTimeout, getCurrentDecision, isClientReady, isReadyPromiseFulfilled, optimizely]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+    if (optimizely && isReadyPromiseFulfilled && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.EXPERIMENT, experimentKey, hooksLogger, () => {
         setState((prevState) => ({
           ...prevState,
@@ -330,11 +327,11 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       });
     }
     return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
+  }, [isReadyPromiseFulfilled, options.autoUpdate, optimizely, experimentKey, getCurrentDecision]);
 
   useEffect(
     () =>
-      optimizely.onForcedVariationsUpdate(() => {
+      optimizely?.onForcedVariationsUpdate(() => {
         setState((prevState) => ({
           ...prevState,
           ...getCurrentDecision(),
@@ -342,6 +339,13 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
       }),
     [getCurrentDecision, optimizely]
   );
+
+  if (!optimizely) {
+    hooksLogger.error(
+      `Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
+  }
+
   return [state.variation, state.clientReady, state.didTimeout];
 };
 
