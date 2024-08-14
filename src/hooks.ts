@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 /**
  * Copyright 2018-2019, 2022-2024, Optimizely
  *
@@ -14,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useCallback, useContext, useEffect, useState, useRef } from 'react';
+
+import { useCallback, useContext, useEffect, useState, useRef, useMemo } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';
 
@@ -449,35 +449,33 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
-  if (!optimizely) {
-    hooksLogger.error(
-      `Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
-    return [
-      createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
-        id: null,
-        attributes: {},
-      }),
-      false,
-      false,
-    ];
-  }
-
   const overrideAttrs = useCompareAttrsMemoize(overrides.overrideAttributes);
 
-  const getCurrentDecision: () => { decision: OptimizelyDecision } = () => ({
-    decision: optimizely.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs),
-  });
+  const defaultDecision = useMemo(
+    () =>
+      createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
+        id: overrides.overrideUserId || null,
+        attributes: overrideAttrs || {},
+      }),
+    [flagKey, overrideAttrs, overrides.overrideUserId]
+  );
 
-  const isClientReady = isServerSide || optimizely.isReady();
+  const getCurrentDecision: () => { decision: OptimizelyDecision } = useCallback(
+    () => ({
+      decision:
+        optimizely?.decide(flagKey, options.decideOptions, overrides.overrideUserId, overrideAttrs) || defaultDecision,
+    }),
+    [flagKey, defaultDecision, optimizely, options.decideOptions, overrideAttrs, overrides.overrideUserId]
+  );
+
+  const isClientReady = isServerSide || !!optimizely?.isReady();
+  const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
+
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
     const decisionState = isClientReady
       ? getCurrentDecision()
       : {
-          decision: createFailedDecision(flagKey, 'Optimizely SDK not configured properly yet.', {
-            id: overrides.overrideUserId || null,
-            attributes: overrideAttrs,
-          }),
+          decision: defaultDecision,
         };
     return {
       ...decisionState,
@@ -504,13 +502,14 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }
 
   const finalReadyTimeout = options.timeout !== undefined ? options.timeout : timeout;
+
   useEffect(() => {
     // Subscribe to initialzation promise only
     // 1. When client is using Sdk Key, which means the initialization will be asynchronous
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+    if (optimizely && (optimizely.getIsUsingSdkKey() || !isClientReady)) {
       subscribeToInitialization(optimizely, finalReadyTimeout, (initState) => {
         setState({
           ...getCurrentDecision(),
@@ -518,7 +517,8 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
         });
       });
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalReadyTimeout, getCurrentDecision, optimizely]);
 
   useEffect(() => {
     if (overrides.overrideUserId || overrides.overrideAttributes || !options.autoUpdate) {
@@ -532,11 +532,11 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
         ...getCurrentDecision(),
       }));
     });
-  }, [overrides.overrideUserId, overrides.overrideAttributes, options.autoUpdate]);
+  }, [overrides.overrideUserId, overrides.overrideAttributes, options.autoUpdate, flagKey, getCurrentDecision]);
 
   useEffect(() => {
     // Subscribe to update after first datafile is fetched and readyPromise is resolved to avoid redundant rendering.
-    if (optimizely.getIsReadyPromiseFulfilled() && options.autoUpdate) {
+    if (optimizely && isReadyPromiseFulfilled && options.autoUpdate) {
       return setupAutoUpdateListeners(optimizely, HookType.FEATURE, flagKey, hooksLogger, () => {
         setState((prevState) => ({
           ...prevState,
@@ -545,14 +545,20 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
       });
     }
     return (): void => {};
-  }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
+  }, [isReadyPromiseFulfilled, options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
+
+  if (!optimizely) {
+    hooksLogger.error(
+      `Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
+    );
+  }
 
   return [state.decision, state.clientReady, state.didTimeout];
 };
 
 export const useTrackEvent: UseTrackEvent = () => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  const isClientReady = !!(isServerSide || optimizely?.isReady());
+  const isClientReady = isServerSide || !!optimizely?.isReady();
 
   const track = useCallback(
     (...rest: Parameters<ReactSDKClient['track']>): void => {
@@ -568,10 +574,6 @@ export const useTrackEvent: UseTrackEvent = () => {
     },
     [optimizely, isClientReady]
   );
-
-  if (!optimizely) {
-    return [track, false, false];
-  }
 
   const [state, setState] = useState<{
     clientReady: boolean;
@@ -589,12 +591,13 @@ export const useTrackEvent: UseTrackEvent = () => {
     //    and we need to wait for the promise and update decision.
     // 2. When client is using datafile only but client is not ready yet which means user
     //    was provided as a promise and we need to subscribe and wait for user to become available.
-    if (optimizely.getIsUsingSdkKey() || !isClientReady) {
+    if (optimizely && (optimizely.getIsUsingSdkKey() || !isClientReady)) {
       subscribeToInitialization(optimizely, timeout, (initState) => {
         setState(initState);
       });
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optimizely, timeout]);
 
   return [track, state.clientReady, state.didTimeout];
 };
