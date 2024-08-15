@@ -71,7 +71,6 @@ describe('hooks', () => {
   let notificationListenerCallbacks: Array<() => void>;
   let optimizelyMock: ReactSDKClient;
   let readySuccess: boolean;
-  // let reason: NotReadyReason;
   let userUpdateCallbacks: Array<() => void>;
   let UseExperimentLoggingComponent: React.FunctionComponent<any>;
   let UseFeatureLoggingComponent: React.FunctionComponent<any>;
@@ -214,7 +213,7 @@ describe('hooks', () => {
 
     it('should respect the timeout option passed', async () => {
       activateMock.mockReturnValue(null);
-      mockDelay = 100;
+      mockDelay = 20;
       readySuccess = false;
 
       render(
@@ -255,8 +254,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // TODO - Wrap this with async act() once we upgrade to React 16.9
-      // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
 
       activateMock.mockReturnValue('12345');
@@ -276,8 +273,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      //   // TODO - Wrap this with async act() once we upgrade to React 16.9
-      //   // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('null|true|false'));
 
       activateMock.mockReturnValue('12345');
@@ -455,7 +450,7 @@ describe('hooks', () => {
     });
 
     it('should respect the timeout option passed', async () => {
-      mockDelay = 100;
+      mockDelay = 20;
       isFeatureEnabledMock.mockReturnValue(false);
       featureVariables = {};
       readySuccess = false;
@@ -502,8 +497,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // TODO - Wrap this with async act() once we upgrade to React 16.9
-      // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       isFeatureEnabledMock.mockReturnValue(true);
@@ -525,8 +518,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // TODO - Wrap this with async act() once we upgrade to React 16.9
-      // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       isFeatureEnabledMock.mockReturnValue(true);
@@ -535,7 +526,7 @@ describe('hooks', () => {
       act(() => {
         userUpdateCallbacks.forEach((fn) => fn());
       });
-      // component.update();
+
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
     });
 
@@ -697,7 +688,7 @@ describe('hooks', () => {
     it('should respect the timeout option passed', async () => {
       decideMock.mockReturnValue({ ...defaultDecision });
       readySuccess = false;
-      mockDelay = 100;
+      mockDelay = 20;
 
       render(
         <OptimizelyProvider optimizely={optimizelyMock}>
@@ -741,8 +732,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // TODO - Wrap this with async act() once we upgrade to React 16.9
-      // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       decideMock.mockReturnValue({
@@ -765,8 +754,6 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      // TODO - Wrap this with async act() once we upgrade to React 16.9
-      // See https://github.com/facebook/react/issues/15379
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
 
       decideMock.mockReturnValue({
@@ -789,7 +776,7 @@ describe('hooks', () => {
           <UseDecisionLoggingComponent />
         </OptimizelyProvider>
       );
-      // component.update();
+
       expect(mockLog).toHaveBeenCalledTimes(1);
       expect(mockLog).toHaveBeenCalledWith(false);
     });
