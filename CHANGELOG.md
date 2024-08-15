@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.2.1] - Aug 15, 2024
+
+### Bug fixes 
+- `clientReady` is true even though internal client promise returns `success == false` bug fix
+- `useDecision` hook set the update listener on overy render bug fix
+- `setForcedDecision` does not reflect the changes in optmizely instance and `useDecision` hook bug fix
+
+### Changed
+- Performance improvements in both hooks and client instance
+
 ## [3.2.0] - July 10, 2024
 
 ### New Features 
