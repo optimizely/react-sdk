@@ -25,6 +25,7 @@ import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
 
 export const hooksLogger = getLogger('ReactSDK');
+const optimizelyPropError = "The 'optimizely' prop must be supplied via a parent <OptimizelyProvider>";
 
 enum HookType {
   EXPERIMENT = 'Experiment',
@@ -340,9 +341,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
   );
 
   if (!optimizely) {
-    hooksLogger.error(
-      `Unable to use experiment ${experimentKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
+    hooksLogger.error(`Unable to use experiment ${experimentKey}. ${optimizelyPropError}`);
   }
 
   return [state.variation, state.clientReady, state.didTimeout];
@@ -431,9 +430,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
   }, [isReadyPromiseFulfilled, options.autoUpdate, optimizely, featureKey, getCurrentDecision]);
 
   if (!optimizely) {
-    hooksLogger.error(
-      `Unable to properly use feature ${featureKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
+    hooksLogger.error(`Unable to properly use feature ${featureKey}. ${optimizelyPropError}`);
   }
 
   return [state.isEnabled, state.variables, state.clientReady, state.didTimeout];
@@ -548,9 +545,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   }, [isReadyPromiseFulfilled, options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
   if (!optimizely) {
-    hooksLogger.error(
-      `Unable to use decision ${flagKey}. optimizely prop must be supplied via a parent <OptimizelyProvider>`
-    );
+    hooksLogger.error(`Unable to use decision ${flagKey}. ${optimizelyPropError}`);
   }
 
   return [state.decision, state.clientReady, state.didTimeout];
@@ -563,7 +558,7 @@ export const useTrackEvent: UseTrackEvent = () => {
   const track = useCallback(
     (...rest: Parameters<ReactSDKClient['track']>): void => {
       if (!optimizely) {
-        hooksLogger.error(`Unable to track events. optimizely prop must be supplied via a parent <OptimizelyProvider>`);
+        hooksLogger.error(`Unable to track events. ${optimizelyPropError}`);
         return;
       }
       if (!isClientReady) {
