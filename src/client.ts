@@ -361,6 +361,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
 
+    if (this.userContext && areUsersEqual(userInfo, this.user)) {
+      // Important: We need to return the existing user context instance if the user info is the same
+      // new context misses the forced variation set on the existing context
+      return this.userContext;
+    }
+
     return this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
   }
 
