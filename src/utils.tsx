@@ -32,27 +32,18 @@ export function areUsersEqual(user1: UserInfo, user2: UserInfo): boolean {
     return false;
   }
 
-  const user1keys = Object.keys(user1.attributes || {});
-  const user2keys = Object.keys(user2.attributes || {});
-  user1keys.sort();
-  user2keys.sort();
-
   const user1Attributes = user1.attributes || {};
   const user2Attributes = user2.attributes || {};
 
-  const areKeysLenEqual = user1keys.length === user2keys.length;
-  if (!areKeysLenEqual) {
+  const user1Keys = Object.keys(user1Attributes);
+  const user2Keys = Object.keys(user2Attributes);
+
+  if (user1Keys.length !== user2Keys.length) {
     return false;
   }
 
-  for (let i = 0; i < user1keys.length; i++) {
-    const key1 = user1keys[i];
-    const key2 = user2keys[i];
-    if (key1 !== key2) {
-      return false;
-    }
-
-    if (user1Attributes[key1] !== user2Attributes[key2]) {
+  for (const key of user1Keys) {
+    if (user1Attributes[key] !== user2Attributes[key]) {
       return false;
     }
   }
