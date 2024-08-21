@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.2.2] - Aug 21, 2024
+
+### Bug fixes 
+- Multiple instances of the Logger make the log system unconfigurable - bug fix. ([#276](https://github.com/optimizely/react-sdk/pull/276))
+
 ## [3.2.1] - Aug 15, 2024
 
 ### Bug fixes 
