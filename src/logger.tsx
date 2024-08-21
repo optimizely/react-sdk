@@ -16,7 +16,8 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import { sprintf } from './utils';
-const logHandler = optimizely.logging.createLogger({ prefix: '[React-SDK]' });
+
+const logHandler = optimizely.getLogger('ReactSDK');
 
 export const logger = {
   warn: (msg: string, ...splat: any[]) => {
