@@ -16,18 +16,13 @@
 
 /// <reference types="jest" />
 
-//jest.mock('./client');
-
 import React from 'react';
-import { render, act } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { OptimizelyProvider } from './Provider';
-import { DefaultUser, ReactSDKClient, createInstance } from './client';
+import { DefaultUser, ReactSDKClient } from './client';
 
 describe('OptimizelyProvider', () => {
   let mockReactClient: ReactSDKClient;
-  const config = {
-    datafile: {},
-  };
 
   beforeEach(() => {
     mockReactClient = {
@@ -40,9 +35,7 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should render successfully with user provided', () => {
-    act(() => {
-      render(<OptimizelyProvider optimizely={mockReactClient} user={{ id: 'user1' }} />);
-    });
+    render(<OptimizelyProvider optimizely={mockReactClient} user={{ id: 'user1' }} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
       id: 'user1',
@@ -51,9 +44,7 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should render successfully with userId provided', () => {
-    act(() => {
-      render(<OptimizelyProvider optimizely={mockReactClient} userId="user1" />);
-    });
+    render(<OptimizelyProvider optimizely={mockReactClient} userId="user1" />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
       id: 'user1',
@@ -62,19 +53,13 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should render successfully without user or userId provided', () => {
-    act(() => {
-      render(<OptimizelyProvider optimizely={mockReactClient} />);
-    });
+    render(<OptimizelyProvider optimizely={mockReactClient} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith(DefaultUser);
   });
 
   it('should render successfully with user id & attributes provided', () => {
-    act(() => {
-      render(
-        <OptimizelyProvider optimizely={mockReactClient} user={{ id: 'user1', attributes: { attr1: 'value1' } }} />
-      );
-    });
+    render(<OptimizelyProvider optimizely={mockReactClient} user={{ id: 'user1', attributes: { attr1: 'value1' } }} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
       id: 'user1',
@@ -83,9 +68,7 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should succeed just userAttributes provided', () => {
-    act(() => {
-      render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value1' }} />);
-    });
+    render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value1' }} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
       id: DefaultUser.id,
