@@ -444,7 +444,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public isReady(): boolean {
-    return this.isClientReady;
+    return this.isClientReady && this.isUserReady;
   }
 
   /**

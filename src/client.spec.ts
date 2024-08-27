@@ -101,80 +101,48 @@ describe('ReactSDKClient', () => {
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });
+  describe('createInstance', () => {
+    it('provides the initial config object via the initialConfig property', () => {
+      const instance = createInstance(config);
+      expect((instance as MockedReactSDKClient).initialConfig).toEqual(config);
+    });
 
-  it('provides the initial config object via the initialConfig property', () => {
-    const instance = createInstance(config);
-    expect((instance as MockedReactSDKClient).initialConfig).toEqual(config);
-  });
+    it('provides a default user object', () => {
+      const instance = createInstance(config);
+      expect(instance.user).toEqual({
+        id: null,
+        attributes: {},
+      });
+    });
 
-  it('provides a default user object', () => {
-    const instance = createInstance(config);
-    expect(instance.user).toEqual({
-      id: null,
-      attributes: {},
+    it('provides access to the underlying client', () => {
+      const instance = createInstance(config);
+      expect(createInstanceSpy).toHaveBeenCalledTimes(1);
+      expect(createInstanceSpy.mock.results[0].type).toBe('return');
+      expect(createInstanceSpy.mock.results[0].value).toBe((instance as MockedReactSDKClient).client);
+    });
+
+    it('adds react-sdk clientEngine and clientVersion to the config, and passed the config to createInstance', () => {
+      createInstance(config);
+      expect(createInstanceSpy).toHaveBeenCalledTimes(1);
+      expect(createInstanceSpy).toHaveBeenCalledWith({
+        ...config,
+        clientEngine: 'react-sdk',
+        clientVersion: '3.2.2',
+      });
+    });
+
+    it('provides access to the underlying client notificationCenter', () => {
+      const instance = createInstance(config);
+      expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
     });
   });
 
-  it('provides access to the underlying client', () => {
-    const instance = createInstance(config);
-    expect(createInstanceSpy).toHaveBeenCalledTimes(1);
-    expect(createInstanceSpy.mock.results[0].type).toBe('return');
-    expect(createInstanceSpy.mock.results[0].value).toBe((instance as MockedReactSDKClient).client);
-  });
-
-  it('adds react-sdk clientEngine and clientVersion to the config, and passed the config to createInstance', () => {
-    createInstance(config);
-    expect(createInstanceSpy).toHaveBeenCalledTimes(1);
-    expect(createInstanceSpy).toHaveBeenCalledWith({
-      ...config,
-      clientEngine: 'react-sdk',
-      clientVersion: '3.2.2',
-    });
-  });
-
-  it('provides access to the underlying client notificationCenter', () => {
-    const instance = createInstance(config);
-    expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
-  });
-
-  describe('onReady', () => {
+  describe('onReady and isReady', () => {
     let instance: ReactSDKClient;
     beforeEach(() => {
       instance = createInstance(config);
     });
-
-    it('fulfills the returned promise with success: false when the timeout expires, and no user is set', async () => {
-      const result = await instance.onReady({ timeout: 1 });
-      expect(result.success).toBe(false);
-    });
-
-    it('fulfills the returned promise with success: true when a user is set', async () => {
-      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
-      instance = createInstance(config);
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
-
-      await instance.setUser({
-        id: 'user12345',
-      });
-
-      const result = await instance.onReady();
-
-      expect(result.success).toBe(true);
-    });
-
-    it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
-      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
-      instance = createInstance(config);
-      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
-
-      await instance.setUser({
-        id: 'user12345',
-      });
-      const result = await instance.onReady();
-
-      expect(result.success).toBe(false);
-    });
-
     describe('if Optimizely client is null', () => {
       beforeEach(() => {
         // Mocks clientAndUserReadyPromise value instead of _client = null because test initialization of
@@ -195,6 +163,7 @@ describe('ReactSDKClient', () => {
         });
         const result = await instance.onReady();
         expect(result.success).toBe(false);
+        expect(instance.isReady()).toBe(false);
       });
 
       it('waits for the inner client onReady to fulfill with success = false before fulfilling the returned promise', async () => {
@@ -214,7 +183,40 @@ describe('ReactSDKClient', () => {
         const result = await instance.onReady();
 
         expect(result.success).toBe(false);
+        expect(instance.isReady()).toBe(false);
       });
+    });
+
+    it('fulfills the returned promise with success: false when the timeout expires, and no user is set', async () => {
+      const result = await instance.onReady({ timeout: 1 });
+      expect(result.success).toBe(false);
+    });
+
+    it('fulfills the returned promise with success: true when a user is set', async () => {
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
+      await instance.setUser({
+        id: 'user12345',
+      });
+
+      const result = await instance.onReady();
+      expect(result.success).toBe(true);
+      expect(instance.isReady()).toBe(true);
+    });
+
+    it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+      instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
+
+      await instance.setUser({
+        id: 'user12345',
+      });
+      const result = await instance.onReady();
+      expect(result.success).toBe(false);
+      expect(instance.isReady()).toBe(false);
     });
 
     it('waits for the inner client onReady to fulfill with success = true before fulfilling the returned promise', async () => {
@@ -232,6 +234,7 @@ describe('ReactSDKClient', () => {
       resolveInnerClientOnReady({ success: true });
       const result = await instance.onReady();
       expect(result.success).toBe(true);
+      expect(instance.isReady()).toBe(true);
     });
   });
 
@@ -263,31 +266,6 @@ describe('ReactSDKClient', () => {
           foo: 'bar',
         },
       });
-    });
-
-    it('adds and removes update handlers', async () => {
-      const userId = 'newUser';
-      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-      const instance = createInstance(config);
-      const onUserUpdateListener = jest.fn();
-      const dispose = instance.onUserUpdate(onUserUpdateListener);
-
-      await instance.setUser({
-        id: userId,
-      });
-
-      expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
-      expect(onUserUpdateListener).toHaveBeenCalledWith({
-        id: userId,
-        attributes: {},
-      });
-
-      dispose();
-      await instance.setUser({
-        id: 'newUser2',
-      });
-
-      expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
     });
 
     it('implicitly calls fetchqualifiedsegements', async () => {
@@ -1266,6 +1244,33 @@ describe('ReactSDKClient', () => {
         expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledTimes(1);
         expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledWith('feat1', 'user2', { bar: 'baz' });
       });
+    });
+  });
+
+  describe('onUserUpdate', () => {
+    it('adds and removes update handlers', async () => {
+      const userId = 'newUser';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+      const instance = createInstance(config);
+      const onUserUpdateListener = jest.fn();
+      const dispose = instance.onUserUpdate(onUserUpdateListener);
+
+      await instance.setUser({
+        id: userId,
+      });
+
+      expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
+      expect(onUserUpdateListener).toHaveBeenCalledWith({
+        id: userId,
+        attributes: {},
+      });
+
+      dispose();
+      await instance.setUser({
+        id: 'newUser2',
+      });
+
+      expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
     });
   });
 
