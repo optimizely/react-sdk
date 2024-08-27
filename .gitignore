@@ -12,3 +12,4 @@ build/
 
 # test artifacts
 **.tgz
+coverage/
