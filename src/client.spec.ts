@@ -45,6 +45,18 @@ describe('ReactSDKClient', () => {
   let mockInnerClient: optimizely.Client;
   let mockOptimizelyUserContext: optimizely.OptimizelyUserContext;
   let createInstanceSpy: jest.Mock<optimizely.Client, [optimizely.Config]>;
+  let instance: ReactSDKClient;
+  const setUpUserContext = async () => {
+    const userId = 'user1';
+    jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+    instance = createInstance(config);
+    await instance.setUser({
+      id: userId,
+      attributes: {
+        foo: 'bar',
+      },
+    });
+  };
 
   beforeEach(() => {
     mockOptimizelyUserContext = {
@@ -103,12 +115,12 @@ describe('ReactSDKClient', () => {
   });
   describe('createInstance', () => {
     it('provides the initial config object via the initialConfig property', () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       expect((instance as MockedReactSDKClient).initialConfig).toEqual(config);
     });
 
     it('provides a default user object', () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       expect(instance.user).toEqual({
         id: null,
         attributes: {},
@@ -116,7 +128,7 @@ describe('ReactSDKClient', () => {
     });
 
     it('provides access to the underlying client', () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       expect(createInstanceSpy).toHaveBeenCalledTimes(1);
       expect(createInstanceSpy.mock.results[0].type).toBe('return');
       expect(createInstanceSpy.mock.results[0].value).toBe((instance as MockedReactSDKClient).client);
@@ -133,18 +145,17 @@ describe('ReactSDKClient', () => {
     });
 
     it('provides access to the underlying client notificationCenter', () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
     });
 
     it('provides access to the underlying client notificationCenter', () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
     });
   });
 
   describe('onReady and isReady', () => {
-    let instance: ReactSDKClient;
     beforeEach(() => {
       instance = createInstance(config);
     });
@@ -250,7 +261,7 @@ describe('ReactSDKClient', () => {
 
   describe('setUser', () => {
     it('can be called with no/default user set', async () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(validVuid);
 
       await instance.setUser(DefaultUser);
@@ -262,7 +273,7 @@ describe('ReactSDKClient', () => {
       const userId = 'xxfueaojfe8&86';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
 
-      const instance = createInstance(config);
+      instance = createInstance(config);
       await instance.setUser({
         id: userId,
         attributes: {
@@ -279,7 +290,7 @@ describe('ReactSDKClient', () => {
     });
 
     it('implicitly calls fetchqualifiedsegements', async () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
@@ -290,7 +301,7 @@ describe('ReactSDKClient', () => {
     });
 
     it('calls fetchqualifiedsegements internally on each setuser call after onready', async () => {
-      const instance = createInstance(config);
+      instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
 
       await instance.setUser({
@@ -310,17 +321,8 @@ describe('ReactSDKClient', () => {
     });
 
     describe('pre-set user and user overrides', () => {
-      let instance: ReactSDKClient;
       beforeEach(async () => {
-        const userId = 'user1';
-        jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-        instance = createInstance(config);
-        await instance.setUser({
-          id: userId,
-          attributes: {
-            foo: 'bar',
-          },
-        });
+        await setUpUserContext();
         const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
         mockFn.mockReturnValue(['feat1', 'feat2']);
       });
@@ -351,24 +353,10 @@ describe('ReactSDKClient', () => {
           expect(result).toEqual([]);
         });
 
-        it('cannot use pre-set or override user for getVariation', () => {
-          const mockFn = mockInnerClient.getVariation as jest.Mock;
-          mockFn.mockReturnValue('var1');
-          const result = instance.getVariation('exp1');
-          expect(result).toEqual(null);
-        });
-
         it('cannot use pre-set or override user for getFeatureVariableBoolean', () => {
           const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
           mockFn.mockReturnValue(false);
           const result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
-          expect(result).toBe(null);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariableString', () => {
-          const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
-          mockFn.mockReturnValue('varval1');
-          const result = instance.getFeatureVariableString('feat1', 'svar1');
           expect(result).toBe(null);
         });
 
@@ -511,25 +499,6 @@ describe('ReactSDKClient', () => {
         });
       });
 
-      it('can use pre-set and override user for getVariation', () => {
-        const mockFn = mockInnerClient.getVariation as jest.Mock;
-        mockFn.mockReturnValue('var1');
-        let result = instance.getVariation('exp1');
-        expect(result).toEqual('var1');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('exp1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue('var2');
-        result = instance.getVariation('exp1', 'user2', { bar: 'baz' });
-        expect(result).toEqual('var2');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('exp1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
       it('can use pre-set and override user for getFeatureVariableBoolean', () => {
         const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
         mockFn.mockReturnValue(false);
@@ -547,27 +516,6 @@ describe('ReactSDKClient', () => {
         expect(result).toBe(true);
         expect(mockFn).toHaveBeenCalledTimes(1);
         expect(mockFn).toHaveBeenCalledWith('feat1', 'bvar1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getFeatureVariableString', () => {
-        const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
-        mockFn.mockReturnValue('varval1');
-        let result = instance.getFeatureVariableString('feat1', 'svar1');
-        expect(result).toBe('varval1');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'svar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue('varval2');
-        result = instance.getFeatureVariableString('feat1', 'svar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toBe('varval2');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'svar1', 'user2', {
           bar: 'baz',
         });
       });
@@ -940,7 +888,7 @@ describe('ReactSDKClient', () => {
     describe('getFeatureVariables', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
         (mockInnerClient.getFeatureVariable as jest.Mock).mockReturnValue(null);
-        const instance = createInstance(config);
+        instance = createInstance(config);
         const result = instance.getFeatureVariables('feat1');
         expect(result).toEqual({});
       });
@@ -1003,7 +951,7 @@ describe('ReactSDKClient', () => {
               }
             }
           );
-          const instance = createInstance(config);
+          instance = createInstance(config);
           await instance.setUser({
             id: 'user1123',
           });
@@ -1073,7 +1021,7 @@ describe('ReactSDKClient', () => {
         );
         const userId = 'user1123';
         jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-        const instance = createInstance(config);
+        instance = createInstance(config);
         await instance.setUser({
           id: userId,
         });
@@ -1103,7 +1051,7 @@ describe('ReactSDKClient', () => {
               value: 'json value',
             },
           });
-          const instance = createInstance(config);
+          instance = createInstance(config);
           // @ts-ignore
           instance._client = null;
           await instance.setUser({
@@ -1124,7 +1072,7 @@ describe('ReactSDKClient', () => {
               value: 'json value',
             },
           });
-          const instance = createInstance(config);
+          instance = createInstance(config);
           // @ts-ignore
           instance._client = null;
           await instance.setUser({
@@ -1141,7 +1089,7 @@ describe('ReactSDKClient', () => {
       it('returns an empty object when the inner SDK returns no variables', () => {
         const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
         anyClient.mockReturnValue({});
-        const instance = createInstance(config);
+        instance = createInstance(config);
         const result = instance.getAllFeatureVariables('feat1', 'user1');
         expect(result).toEqual({});
       });
@@ -1157,7 +1105,7 @@ describe('ReactSDKClient', () => {
             value: 'json value',
           },
         });
-        const instance = createInstance(config);
+        instance = createInstance(config);
         await instance.setUser({
           id: 'user1123',
         });
@@ -1184,7 +1132,7 @@ describe('ReactSDKClient', () => {
             value: 'json value',
           },
         });
-        const instance = createInstance(config);
+        instance = createInstance(config);
         await instance.setUser({
           id: 'user1',
           attributes: {
@@ -1237,7 +1185,7 @@ describe('ReactSDKClient', () => {
     it('adds and removes update handlers', async () => {
       const userId = 'newUser';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-      const instance = createInstance(config);
+      instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
       const dispose = instance.onUserUpdate(onUserUpdateListener);
 
@@ -1262,7 +1210,7 @@ describe('ReactSDKClient', () => {
 
   describe('getIsUsingSdkKey', () => {
     it('returns true if the SDK key is being used', () => {
-      const instance = createInstance({
+      instance = createInstance({
         ...config,
         sdkKey: 'sdkKey',
       });
@@ -1270,7 +1218,7 @@ describe('ReactSDKClient', () => {
     });
 
     it('returns false if the SDK key is not being used', () => {
-      const instance = createInstance({
+      instance = createInstance({
         datafile: 'datafile',
       });
       expect(instance.getIsUsingSdkKey()).toBe(false);
@@ -1278,17 +1226,8 @@ describe('ReactSDKClient', () => {
   });
 
   describe('activate', () => {
-    let instance: ReactSDKClient;
     beforeEach(async () => {
-      const userId = 'user1';
-      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-      instance = createInstance(config);
-      await instance.setUser({
-        id: userId,
-        attributes: {
-          foo: 'bar',
-        },
-      });
+      await setUpUserContext();
     });
 
     it('If Optimizely client is null, activate returns null', () => {
@@ -1318,9 +1257,76 @@ describe('ReactSDKClient', () => {
       });
     });
   });
+  describe('getVariation', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('If Optimizely client is null, getVariation returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getVariation as jest.Mock;
+      mockFn.mockReturnValue('var1');
+      const result = instance.getVariation('exp1');
+      expect(logger.warn).toHaveBeenCalled();
+      expect(result).toEqual(null);
+    });
+
+    it('getVariation returns correct variation', () => {
+      const mockFn = mockInnerClient.getVariation as jest.Mock;
+      mockFn.mockReturnValue('var1');
+      let result = instance.getVariation('exp1');
+      expect(result).toEqual('var1');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('exp1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue('var2');
+      result = instance.getVariation('exp1', 'user2', { bar: 'baz' });
+      expect(result).toEqual('var2');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('exp1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+  describe('getFeatureVariableString', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('If Optimizely client is null, getFeatureVariableString returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
+      mockFn.mockReturnValue('varval1');
+      const result = instance.getFeatureVariableString('feat1', 'svar1');
+      expect(result).toBe(null);
+    });
+
+    it('can use pre-set and override user for getFeatureVariableString', () => {
+      const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
+      mockFn.mockReturnValue('varval1');
+      let result = instance.getFeatureVariableString('feat1', 'svar1');
+      expect(result).toBe('varval1');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'svar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue('varval2');
+      result = instance.getFeatureVariableString('feat1', 'svar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toBe('varval2');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'svar1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
 
   describe('fetchQualifedSegments', () => {
-    let instance: ReactSDKClient;
     beforeEach(() => {
       instance = createInstance(config);
     });
@@ -1355,7 +1361,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('onForcedVariationsUpdate', () => {
-    let instance: ReactSDKClient;
     beforeEach(async () => {
       instance = createInstance(config);
       await instance.setUser({
@@ -1394,7 +1399,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('removeAllForcedDecisions', () => {
-    let instance: ReactSDKClient;
     beforeEach(() => {
       instance = createInstance(config);
     });
@@ -1443,7 +1447,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('setForcedDecision', () => {
-    let instance: ReactSDKClient;
     beforeEach(async () => {
       const userId = 'user1';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
@@ -1553,7 +1556,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('removeForcedDecision', () => {
-    let instance: ReactSDKClient;
     beforeEach(async () => {
       const userId = 'user1';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
@@ -1695,7 +1697,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('sendOdpEvent', () => {
-    let instance: ReactSDKClient;
     beforeEach(() => {
       instance = createInstance(config);
     });
@@ -1719,7 +1720,6 @@ describe('ReactSDKClient', () => {
 
   describe('getVuid', () => {
     const vuidFormat = /^vuid_[a-f0-9]{27}$/;
-    let instance: ReactSDKClient;
 
     beforeEach(async () => {
       instance = createInstance(config);
@@ -1746,8 +1746,6 @@ describe('ReactSDKClient', () => {
   });
 
   describe('getUserContext', () => {
-    let instance: ReactSDKClient;
-
     beforeEach(async () => {
       instance = createInstance(config);
     });
