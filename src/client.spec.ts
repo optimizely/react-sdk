@@ -136,6 +136,11 @@ describe('ReactSDKClient', () => {
       const instance = createInstance(config);
       expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
     });
+
+    it('provides access to the underlying client notificationCenter', () => {
+      const instance = createInstance(config);
+      expect(instance.notificationCenter).toBe((instance as MockedReactSDKClient).client.notificationCenter);
+    });
   });
 
   describe('onReady and isReady', () => {
@@ -164,6 +169,7 @@ describe('ReactSDKClient', () => {
         const result = await instance.onReady();
         expect(result.success).toBe(false);
         expect(instance.isReady()).toBe(false);
+        expect(instance.getIsReadyPromiseFulfilled()).toBe(true);
       });
 
       it('waits for the inner client onReady to fulfill with success = false before fulfilling the returned promise', async () => {
@@ -184,6 +190,7 @@ describe('ReactSDKClient', () => {
 
         expect(result.success).toBe(false);
         expect(instance.isReady()).toBe(false);
+        expect(instance.getIsReadyPromiseFulfilled()).toBe(true);
       });
     });
 
@@ -204,6 +211,7 @@ describe('ReactSDKClient', () => {
       const result = await instance.onReady();
       expect(result.success).toBe(true);
       expect(instance.isReady()).toBe(true);
+      expect(instance.getIsReadyPromiseFulfilled()).toBe(true);
     });
 
     it('fulfills the returned promise with success: false when fetchqualifiedsegment is false', async () => {
@@ -217,6 +225,7 @@ describe('ReactSDKClient', () => {
       const result = await instance.onReady();
       expect(result.success).toBe(false);
       expect(instance.isReady()).toBe(false);
+      expect(instance.getIsReadyPromiseFulfilled()).toBe(true);
     });
 
     it('waits for the inner client onReady to fulfill with success = true before fulfilling the returned promise', async () => {
@@ -235,6 +244,7 @@ describe('ReactSDKClient', () => {
       const result = await instance.onReady();
       expect(result.success).toBe(true);
       expect(instance.isReady()).toBe(true);
+      expect(instance.getIsReadyPromiseFulfilled()).toBe(true);
     });
   });
 
@@ -1271,6 +1281,23 @@ describe('ReactSDKClient', () => {
       });
 
       expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getIsUsingSdkKey', () => {
+    it('returns true if the SDK key is being used', () => {
+      const instance = createInstance({
+        ...config,
+        sdkKey: 'sdkKey',
+      });
+      expect(instance.getIsUsingSdkKey()).toBe(true);
+    });
+
+    it('returns false if the SDK key is not being used', () => {
+      const instance = createInstance({
+        datafile: 'datafile',
+      });
+      expect(instance.getIsUsingSdkKey()).toBe(false);
     });
   });
 
