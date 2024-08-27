@@ -331,13 +331,6 @@ describe('ReactSDKClient', () => {
           instance._client = null;
         });
 
-        it('cannot use pre-set or override user for activate', () => {
-          const mockFn = mockInnerClient.activate as jest.Mock;
-          mockFn.mockReturnValue('var1');
-          const result = instance.activate('exp1');
-          expect(result).toBe(null);
-        });
-
         it('cannot use pre-set or override user for track', () => {
           const mockFn = mockInnerClient.track as jest.Mock;
           instance.track('evt1');
@@ -453,23 +446,6 @@ describe('ReactSDKClient', () => {
             variables: {},
             variationKey: null,
           });
-        });
-      });
-
-      it('can use pre-set and override user for activate', () => {
-        const mockFn = mockInnerClient.activate as jest.Mock;
-        mockFn.mockReturnValue('var1');
-        let result = instance.activate('exp1');
-        expect(result).toBe('var1');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('exp1', 'user1', { foo: 'bar' });
-        mockFn.mockReset();
-        mockFn.mockReturnValue('var2');
-        result = instance.activate('exp1', 'user2', { bar: 'baz' });
-        expect(result).toBe('var2');
-        expect(mockInnerClient.activate).toHaveBeenCalledTimes(1);
-        expect(mockInnerClient.activate).toHaveBeenCalledWith('exp1', 'user2', {
-          bar: 'baz',
         });
       });
 
@@ -1298,6 +1274,48 @@ describe('ReactSDKClient', () => {
         datafile: 'datafile',
       });
       expect(instance.getIsUsingSdkKey()).toBe(false);
+    });
+  });
+
+  describe('activate', () => {
+    let instance: ReactSDKClient;
+    beforeEach(async () => {
+      const userId = 'user1';
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+      instance = createInstance(config);
+      await instance.setUser({
+        id: userId,
+        attributes: {
+          foo: 'bar',
+        },
+      });
+    });
+
+    it('If Optimizely client is null, activate returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.activate as jest.Mock;
+      mockFn.mockReturnValue('var1');
+      const result = instance.activate('exp1');
+      expect(logger.warn).toHaveBeenCalled();
+      expect(result).toBe(null);
+    });
+
+    it('activate returns the correct variation key', () => {
+      const mockFn = mockInnerClient.activate as jest.Mock;
+      mockFn.mockReturnValue('var1');
+      let result = instance.activate('exp1');
+      expect(result).toBe('var1');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('exp1', 'user1', { foo: 'bar' });
+      mockFn.mockReset();
+      mockFn.mockReturnValue('var2');
+      result = instance.activate('exp1', 'user2', { bar: 'baz' });
+      expect(result).toBe('var2');
+      expect(mockInnerClient.activate).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.activate).toHaveBeenCalledWith('exp1', 'user2', {
+        bar: 'baz',
+      });
     });
   });
 
