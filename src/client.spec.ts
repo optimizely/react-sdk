@@ -666,161 +666,6 @@ describe('ReactSDKClient', () => {
         expect(mockCreateUserContext).toHaveBeenCalledWith('user2', { bar: 'baz' });
       });
     });
-
-    describe('getFeatureVariables', () => {
-      it('returns an empty object when the inner SDK returns no variables', () => {
-        (mockInnerClient.getFeatureVariable as jest.Mock).mockReturnValue(null);
-        instance = createInstance(config);
-        const result = instance.getFeatureVariables('feat1');
-        expect(result).toEqual({});
-      });
-
-      describe('if Optimizely client is null', () => {
-        it('does not return an object with variables of all types returned from the inner sdk ', async () => {
-          (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
-            featuresMap: {
-              feat1: {
-                variablesMap: {
-                  bvar: {
-                    id: '0',
-                    key: 'bvar',
-                    type: 'boolean',
-                    value: 'false',
-                  },
-                  svar: {
-                    id: '1',
-                    key: 'svar',
-                    type: 'string',
-                    value: '',
-                  },
-                  ivar: {
-                    id: '2',
-                    key: 'ivar',
-                    type: 'integer',
-                    value: '0',
-                  },
-                  dvar: {
-                    id: '3',
-                    key: 'dvar',
-                    type: 'double',
-                    value: '0',
-                  },
-                  jvar: {
-                    id: '4',
-                    key: 'jvar',
-                    type: 'json',
-                    value: '{}',
-                  },
-                },
-              },
-            },
-          });
-          (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
-            (featureKey: string, variableKey: string) => {
-              switch (variableKey) {
-                case 'bvar':
-                  return true;
-                case 'svar':
-                  return 'whatsup';
-                case 'ivar':
-                  return 10;
-                case 'dvar':
-                  return -10.5;
-                case 'jvar':
-                  return { value: 'json value' };
-                default:
-                  return null;
-              }
-            }
-          );
-          instance = createInstance(config);
-          await instance.setUser({
-            id: 'user1123',
-          });
-          // @ts-ignore
-          instance._client = null;
-          const result = instance.getFeatureVariables('feat1');
-          expect(result).toEqual({});
-        });
-      });
-
-      it('returns an object with variables of all types returned from the inner sdk ', async () => {
-        (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
-          featuresMap: {
-            feat1: {
-              variablesMap: {
-                bvar: {
-                  id: '0',
-                  key: 'bvar',
-                  type: 'boolean',
-                  value: 'false',
-                },
-                svar: {
-                  id: '1',
-                  key: 'svar',
-                  type: 'string',
-                  value: '',
-                },
-                ivar: {
-                  id: '2',
-                  key: 'ivar',
-                  type: 'integer',
-                  value: '0',
-                },
-                dvar: {
-                  id: '3',
-                  key: 'dvar',
-                  type: 'double',
-                  value: '0',
-                },
-                jvar: {
-                  id: '4',
-                  key: 'jvar',
-                  type: 'json',
-                  value: '{}',
-                },
-              },
-            },
-          },
-        });
-        (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
-          (featureKey: string, variableKey: string) => {
-            switch (variableKey) {
-              case 'bvar':
-                return true;
-              case 'svar':
-                return 'whatsup';
-              case 'ivar':
-                return 10;
-              case 'dvar':
-                return -10.5;
-              case 'jvar':
-                return { value: 'json value' };
-              default:
-                return null;
-            }
-          }
-        );
-        const userId = 'user1123';
-        jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
-        instance = createInstance(config);
-        await instance.setUser({
-          id: userId,
-        });
-        const result = instance.getFeatureVariables('feat1');
-        expect(result).toEqual({
-          bvar: true,
-          svar: 'whatsup',
-          ivar: 10,
-          dvar: -10.5,
-          jvar: {
-            value: 'json value',
-          },
-        });
-      });
-    });
-
-    describe('getAllFeatureVariables', () => {});
   });
 
   describe('onUserUpdate', () => {
@@ -931,6 +776,196 @@ describe('ReactSDKClient', () => {
       expect(mockFn).toHaveBeenCalledWith('exp1', 'user2', {
         bar: 'baz',
       });
+    });
+  });
+
+  describe('getFeatureVariables', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('returns an empty object when the inner SDK returns no variables', () => {
+      (mockInnerClient.getFeatureVariable as jest.Mock).mockReturnValue(null);
+      const result = instance.getFeatureVariables('feat1');
+      expect(result).toEqual({});
+    });
+    it('if Optimizely client is null, does not return an object with variables of all types returned from the inner sdk ', async () => {
+      // @ts-ignore
+      instance._client = null;
+      (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
+        featuresMap: {
+          feat1: {
+            variablesMap: {
+              bvar: {
+                id: '0',
+                key: 'bvar',
+                type: 'boolean',
+                value: 'false',
+              },
+              svar: {
+                id: '1',
+                key: 'svar',
+                type: 'string',
+                value: '',
+              },
+              ivar: {
+                id: '2',
+                key: 'ivar',
+                type: 'integer',
+                value: '0',
+              },
+              dvar: {
+                id: '3',
+                key: 'dvar',
+                type: 'double',
+                value: '0',
+              },
+              jvar: {
+                id: '4',
+                key: 'jvar',
+                type: 'json',
+                value: '{}',
+              },
+            },
+          },
+        },
+      });
+      (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
+        (featureKey: string, variableKey: string) => {
+          switch (variableKey) {
+            case 'bvar':
+              return true;
+            case 'svar':
+              return 'whatsup';
+            case 'ivar':
+              return 10;
+            case 'dvar':
+              return -10.5;
+            case 'jvar':
+              return { value: 'json value' };
+            default:
+              return null;
+          }
+        }
+      );
+      const result = instance.getFeatureVariables('feat1');
+      expect(result).toEqual({});
+    });
+    it('returns an object with variables of all types returned from the inner sdk ', async () => {
+      (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
+        featuresMap: {
+          feat1: {
+            variablesMap: {
+              bvar: {
+                id: '0',
+                key: 'bvar',
+                type: 'boolean',
+                value: 'false',
+              },
+              svar: {
+                id: '1',
+                key: 'svar',
+                type: 'string',
+                value: '',
+              },
+              ivar: {
+                id: '2',
+                key: 'ivar',
+                type: 'integer',
+                value: '0',
+              },
+              dvar: {
+                id: '3',
+                key: 'dvar',
+                type: 'double',
+                value: '0',
+              },
+              jvar: {
+                id: '4',
+                key: 'jvar',
+                type: 'json',
+                value: '{}',
+              },
+            },
+          },
+        },
+      });
+      (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
+        (featureKey: string, variableKey: string) => {
+          switch (variableKey) {
+            case 'bvar':
+              return true;
+            case 'svar':
+              return 'whatsup';
+            case 'ivar':
+              return 10;
+            case 'dvar':
+              return -10.5;
+            case 'jvar':
+              return { value: 'json value' };
+            default:
+              return null;
+          }
+        }
+      );
+      const result = instance.getFeatureVariables('feat1');
+      expect(result).toEqual({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+    });
+  });
+
+  describe('getFeatureVariable', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('if Optimizely client is null, getFeatureVariable returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      const result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+      expect(result).toEqual(null);
+    });
+
+    it('getFeatureVariable returns correct value', () => {
+      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      let result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      result = instance.getFeatureVariable('feat1', 'dvar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
     });
   });
 
@@ -1121,54 +1156,6 @@ describe('ReactSDKClient', () => {
       });
       expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledTimes(1);
       expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
-    });
-  });
-
-  describe('getFeatureVariable', () => {
-    beforeEach(async () => {
-      await setUpUserContext();
-    });
-    it('If Optimizely client is null, getFeatureVariable returns null', () => {
-      // @ts-ignore
-      instance._client = null;
-      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
-      mockFn.mockReturnValue({
-        num_buttons: 0,
-        text: 'default value',
-      });
-      const result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
-      expect(result).toEqual(null);
-    });
-
-    it('getFeatureVariable returns correct value', () => {
-      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
-      mockFn.mockReturnValue({
-        num_buttons: 0,
-        text: 'default value',
-      });
-      let result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
-      expect(result).toEqual({
-        num_buttons: 0,
-        text: 'default value',
-      });
-      expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
-        foo: 'bar',
-      });
-      mockFn.mockReset();
-      mockFn.mockReturnValue({
-        num_buttons: 0,
-        text: 'variable value',
-      });
-      result = instance.getFeatureVariable('feat1', 'dvar1', 'user2', {
-        bar: 'baz',
-      });
-      expect(result).toEqual({
-        num_buttons: 0,
-        text: 'variable value',
-      });
-      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledTimes(1);
-      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
     });
   });
 
