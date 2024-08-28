@@ -339,61 +339,6 @@ describe('ReactSDKClient', () => {
           expect(mockFn).toHaveBeenCalledTimes(0);
         });
 
-        it('cannot use pre-set or override user for isFeatureEnabled', () => {
-          const mockFn = mockInnerClient.isFeatureEnabled as jest.Mock;
-          mockFn.mockReturnValue(true);
-          const result = instance.isFeatureEnabled('feat1');
-          expect(result).toBe(false);
-        });
-
-        it('cannot use pre-set and override user for getEnabledFeatures', () => {
-          const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
-          mockFn.mockReturnValue(['feat1']);
-          const result = instance.getEnabledFeatures();
-          expect(result).toEqual([]);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariableBoolean', () => {
-          const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
-          mockFn.mockReturnValue(false);
-          const result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
-          expect(result).toBe(null);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariableInteger', () => {
-          const mockFn = mockInnerClient.getFeatureVariableInteger as jest.Mock;
-          mockFn.mockReturnValue(15);
-          const result = instance.getFeatureVariableInteger('feat1', 'ivar1');
-          expect(result).toBe(null);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariableDouble', () => {
-          const mockFn = mockInnerClient.getFeatureVariableDouble as jest.Mock;
-          mockFn.mockReturnValue(15.5);
-          const result = instance.getFeatureVariableDouble('feat1', 'dvar1');
-          expect(result).toBe(null);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariableJSON', () => {
-          const mockFn = mockInnerClient.getFeatureVariableJSON as jest.Mock;
-          mockFn.mockReturnValue({
-            num_buttons: 0,
-            text: 'default value',
-          });
-          const result = instance.getFeatureVariableJSON('feat1', 'dvar1');
-          expect(result).toEqual(null);
-        });
-
-        it('cannot use pre-set or override user for getFeatureVariable', () => {
-          const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
-          mockFn.mockReturnValue({
-            num_buttons: 0,
-            text: 'default value',
-          });
-          const result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
-          expect(result).toEqual(null);
-        });
-
         it('cannot use pre-set or override user for setForcedVariation', () => {
           const mockFn = mockInnerClient.setForcedVariation as jest.Mock;
           mockFn.mockReturnValue(true);
@@ -459,169 +404,6 @@ describe('ReactSDKClient', () => {
         instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
         expect(mockFn).toHaveBeenCalledTimes(1);
         expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
-      });
-
-      it('can use pre-set and override user for isFeatureEnabled', () => {
-        const mockFn = mockInnerClient.isFeatureEnabled as jest.Mock;
-        mockFn.mockReturnValue(true);
-        let result = instance.isFeatureEnabled('feat1');
-        expect(result).toBe(true);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue(false);
-        result = instance.isFeatureEnabled('feat1', 'user2', { bar: 'baz' });
-        expect(result).toBe(false);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getEnabledFeatures', () => {
-        const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
-        mockFn.mockReturnValue(['feat1']);
-        let result = instance.getEnabledFeatures();
-        expect(result).toEqual(['feat1']);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue(['feat1', 'feat2']);
-        result = instance.getEnabledFeatures('user2', { bar: 'baz' });
-        expect(result).toEqual(['feat1', 'feat2']);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getFeatureVariableBoolean', () => {
-        const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
-        mockFn.mockReturnValue(false);
-        let result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
-        expect(result).toBe(false);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'bvar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue(true);
-        result = instance.getFeatureVariableBoolean('feat1', 'bvar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toBe(true);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'bvar1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getFeatureVariableInteger', () => {
-        const mockFn = mockInnerClient.getFeatureVariableInteger as jest.Mock;
-        mockFn.mockReturnValue(15);
-        let result = instance.getFeatureVariableInteger('feat1', 'ivar1');
-        expect(result).toBe(15);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'ivar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue(-20);
-        result = instance.getFeatureVariableInteger('feat1', 'ivar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toBe(-20);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'ivar1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getFeatureVariableDouble', () => {
-        const mockFn = mockInnerClient.getFeatureVariableDouble as jest.Mock;
-        mockFn.mockReturnValue(15.5);
-        let result = instance.getFeatureVariableDouble('feat1', 'dvar1');
-        expect(result).toBe(15.5);
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue(-20.2);
-        result = instance.getFeatureVariableDouble('feat1', 'dvar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toBe(-20.2);
-        expect(mockInnerClient.getFeatureVariableDouble).toHaveBeenCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariableDouble).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', {
-          bar: 'baz',
-        });
-      });
-
-      it('can use pre-set and override user for getFeatureVariableJSON', () => {
-        const mockFn = mockInnerClient.getFeatureVariableJSON as jest.Mock;
-        mockFn.mockReturnValue({
-          num_buttons: 0,
-          text: 'default value',
-        });
-        let result = instance.getFeatureVariableJSON('feat1', 'dvar1');
-        expect(result).toEqual({
-          num_buttons: 0,
-          text: 'default value',
-        });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue({
-          num_buttons: 0,
-          text: 'variable value',
-        });
-        result = instance.getFeatureVariableJSON('feat1', 'dvar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toEqual({
-          num_buttons: 0,
-          text: 'variable value',
-        });
-        expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
-      });
-
-      it('can use pre-set and override user for getFeatureVariable', () => {
-        const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
-        mockFn.mockReturnValue({
-          num_buttons: 0,
-          text: 'default value',
-        });
-        let result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
-        expect(result).toEqual({
-          num_buttons: 0,
-          text: 'default value',
-        });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue({
-          num_buttons: 0,
-          text: 'variable value',
-        });
-        result = instance.getFeatureVariable('feat1', 'dvar1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toEqual({
-          num_buttons: 0,
-          text: 'variable value',
-        });
-        expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledTimes(1);
-        expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
       });
 
       it('can use pre-set and override user for setForcedVariation', () => {
@@ -1038,147 +820,7 @@ describe('ReactSDKClient', () => {
       });
     });
 
-    describe('getAllFeatureVariables', () => {
-      describe('if Optimizely client is null', () => {
-        it('does not return an object with variables of all types returned from the inner sdk ', async () => {
-          const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
-          anyClient.mockReturnValue({
-            bvar: true,
-            svar: 'whatsup',
-            ivar: 10,
-            dvar: -10.5,
-            jvar: {
-              value: 'json value',
-            },
-          });
-          instance = createInstance(config);
-          // @ts-ignore
-          instance._client = null;
-          await instance.setUser({
-            id: 'user1123',
-          });
-          const result = instance.getAllFeatureVariables('feat1', 'user1');
-          expect(result).toEqual({});
-        });
-
-        it('cannot use pre-set and override user for getAllFeatureVariables', async () => {
-          const mockFn = mockInnerClient.getAllFeatureVariables as jest.Mock;
-          mockFn.mockReturnValue({
-            bvar: true,
-            svar: 'whatsup',
-            ivar: 10,
-            dvar: -10.5,
-            jvar: {
-              value: 'json value',
-            },
-          });
-          instance = createInstance(config);
-          // @ts-ignore
-          instance._client = null;
-          await instance.setUser({
-            id: 'user1',
-            attributes: {
-              foo: 'bar',
-            },
-          });
-          const result = instance.getAllFeatureVariables('feat1', 'user1');
-          expect(result).toEqual({});
-        });
-      });
-
-      it('returns an empty object when the inner SDK returns no variables', () => {
-        const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
-        anyClient.mockReturnValue({});
-        instance = createInstance(config);
-        const result = instance.getAllFeatureVariables('feat1', 'user1');
-        expect(result).toEqual({});
-      });
-
-      it('returns an object with variables of all types returned from the inner sdk ', async () => {
-        const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
-        anyClient.mockReturnValue({
-          bvar: true,
-          svar: 'whatsup',
-          ivar: 10,
-          dvar: -10.5,
-          jvar: {
-            value: 'json value',
-          },
-        });
-        instance = createInstance(config);
-        await instance.setUser({
-          id: 'user1123',
-        });
-        const result = instance.getAllFeatureVariables('feat1', 'user1');
-        expect(result).toEqual({
-          bvar: true,
-          svar: 'whatsup',
-          ivar: 10,
-          dvar: -10.5,
-          jvar: {
-            value: 'json value',
-          },
-        });
-      });
-
-      it('can use pre-set and override user for getAllFeatureVariables', async () => {
-        const mockFn = mockInnerClient.getAllFeatureVariables as jest.Mock;
-        mockFn.mockReturnValue({
-          bvar: true,
-          svar: 'whatsup',
-          ivar: 10,
-          dvar: -10.5,
-          jvar: {
-            value: 'json value',
-          },
-        });
-        instance = createInstance(config);
-        await instance.setUser({
-          id: 'user1',
-          attributes: {
-            foo: 'bar',
-          },
-        });
-        let result = instance.getAllFeatureVariables('feat1', 'user1');
-        expect(result).toEqual({
-          bvar: true,
-          svar: 'whatsup',
-          ivar: 10,
-          dvar: -10.5,
-          jvar: {
-            value: 'json value',
-          },
-        });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('feat1', 'user1', {
-          foo: 'bar',
-        });
-        mockFn.mockReset();
-        mockFn.mockReturnValue({
-          bvar: false,
-          svar: 'another var',
-          ivar: 11,
-          dvar: -11.5,
-          jvar: {
-            value: 'json another value',
-          },
-        });
-        result = instance.getAllFeatureVariables('feat1', 'user2', {
-          bar: 'baz',
-        });
-        expect(result).toEqual({
-          bvar: false,
-          svar: 'another var',
-          ivar: 11,
-          dvar: -11.5,
-          jvar: {
-            value: 'json another value',
-          },
-        });
-        expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledTimes(1);
-        expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledWith('feat1', 'user2', { bar: 'baz' });
-      });
-    });
+    describe('getAllFeatureVariables', () => {});
   });
 
   describe('onUserUpdate', () => {
@@ -1257,6 +899,7 @@ describe('ReactSDKClient', () => {
       });
     });
   });
+
   describe('getVariation', () => {
     beforeEach(async () => {
       await setUpUserContext();
@@ -1290,6 +933,7 @@ describe('ReactSDKClient', () => {
       });
     });
   });
+
   describe('getFeatureVariableString', () => {
     beforeEach(async () => {
       await setUpUserContext();
@@ -1304,7 +948,7 @@ describe('ReactSDKClient', () => {
       expect(result).toBe(null);
     });
 
-    it('can use pre-set and override user for getFeatureVariableString', () => {
+    it('getFeatureVariableString returns correct string variable', () => {
       const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
       mockFn.mockReturnValue('varval1');
       let result = instance.getFeatureVariableString('feat1', 'svar1');
@@ -1321,6 +965,380 @@ describe('ReactSDKClient', () => {
       expect(result).toBe('varval2');
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('feat1', 'svar1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+
+  describe('getFeatureVariableInteger', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('If Optimizely client is null, getFeatureVariableInteger returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariableInteger as jest.Mock;
+      mockFn.mockReturnValue(15);
+      const result = instance.getFeatureVariableInteger('feat1', 'ivar1');
+      expect(result).toBe(null);
+    });
+
+    it('getFeatureVariableInteger returns correct integer variable', () => {
+      const mockFn = mockInnerClient.getFeatureVariableInteger as jest.Mock;
+      mockFn.mockReturnValue(15);
+      let result = instance.getFeatureVariableInteger('feat1', 'ivar1');
+      expect(result).toBe(15);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'ivar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue(-20);
+      result = instance.getFeatureVariableInteger('feat1', 'ivar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toBe(-20);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'ivar1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+
+  describe('getFeatureVariableBoolean', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('If Optimizely client is null, getFeatureVariableBoolean returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
+      mockFn.mockReturnValue(false);
+      const result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
+      expect(result).toBe(null);
+    });
+
+    it('getFeatureVariableBoolean returns correct boolean variable', () => {
+      const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
+      mockFn.mockReturnValue(false);
+      let result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
+      expect(result).toBe(false);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'bvar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue(true);
+      result = instance.getFeatureVariableBoolean('feat1', 'bvar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toBe(true);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'bvar1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+
+  describe('getFeatureVariableDouble', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('If Optimizely client is null, getFeatureVariableDouble returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariableDouble as jest.Mock;
+      mockFn.mockReturnValue(15.5);
+      const result = instance.getFeatureVariableDouble('feat1', 'dvar1');
+      expect(result).toBe(null);
+    });
+
+    it('getFeatureVariableDouble returns correct double variable', () => {
+      const mockFn = mockInnerClient.getFeatureVariableDouble as jest.Mock;
+      mockFn.mockReturnValue(15.5);
+      let result = instance.getFeatureVariableDouble('feat1', 'dvar1');
+      expect(result).toBe(15.5);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue(-20.2);
+      result = instance.getFeatureVariableDouble('feat1', 'dvar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toBe(-20.2);
+      expect(mockInnerClient.getFeatureVariableDouble).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.getFeatureVariableDouble).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+
+  describe('getFeatureVariableJSON', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('If Optimizely client is null, getFeatureVariableJSON returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariableJSON as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      const result = instance.getFeatureVariableJSON('feat1', 'dvar1');
+      expect(result).toEqual(null);
+    });
+
+    it('getFeatureVariableJSON returns correct JSON', () => {
+      const mockFn = mockInnerClient.getFeatureVariableJSON as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      let result = instance.getFeatureVariableJSON('feat1', 'dvar1');
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      result = instance.getFeatureVariableJSON('feat1', 'dvar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.getFeatureVariableJSON).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+    });
+  });
+
+  describe('getFeatureVariable', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('If Optimizely client is null, getFeatureVariable returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      const result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+      expect(result).toEqual(null);
+    });
+
+    it('getFeatureVariable returns correct value', () => {
+      const mockFn = mockInnerClient.getFeatureVariable as jest.Mock;
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      let result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'default value',
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'dvar1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      result = instance.getFeatureVariable('feat1', 'dvar1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toEqual({
+        num_buttons: 0,
+        text: 'variable value',
+      });
+      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.getFeatureVariable).toHaveBeenCalledWith('feat1', 'dvar1', 'user2', { bar: 'baz' });
+    });
+  });
+
+  describe('getAllFeatureVariables', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('If Optimizely client is null, does not return an object with variables of all types returned from the inner sdk ', async () => {
+      // @ts-ignore
+      instance._client = null;
+      const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
+      anyClient.mockReturnValue({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+      const result = instance.getAllFeatureVariables('feat1', 'user1');
+      expect(result).toEqual({});
+    });
+
+    it('returns an empty object when the inner SDK returns no variables', () => {
+      const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
+      anyClient.mockReturnValue({});
+      instance = createInstance(config);
+      const result = instance.getAllFeatureVariables('feat1', 'user1');
+      expect(result).toEqual({});
+    });
+
+    it('returns an object with variables of all types returned from the inner sdk ', async () => {
+      const anyClient = mockInnerClient.getAllFeatureVariables as jest.Mock;
+      anyClient.mockReturnValue({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+      const result = instance.getAllFeatureVariables('feat1', 'user1');
+      expect(result).toEqual({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+    });
+
+    it('getAllFeatureVariables with overrides returns correct value', async () => {
+      const mockFn = mockInnerClient.getAllFeatureVariables as jest.Mock;
+      mockFn.mockReturnValue({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+
+      let result = instance.getAllFeatureVariables('feat1', 'user1');
+      expect(result).toEqual({
+        bvar: true,
+        svar: 'whatsup',
+        ivar: 10,
+        dvar: -10.5,
+        jvar: {
+          value: 'json value',
+        },
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue({
+        bvar: false,
+        svar: 'another var',
+        ivar: 11,
+        dvar: -11.5,
+        jvar: {
+          value: 'json another value',
+        },
+      });
+      result = instance.getAllFeatureVariables('feat1', 'user2', {
+        bar: 'baz',
+      });
+      expect(result).toEqual({
+        bvar: false,
+        svar: 'another var',
+        ivar: 11,
+        dvar: -11.5,
+        jvar: {
+          value: 'json another value',
+        },
+      });
+      expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledTimes(1);
+      expect(mockInnerClient.getAllFeatureVariables).toHaveBeenCalledWith('feat1', 'user2', { bar: 'baz' });
+    });
+  });
+
+  describe('isFeatureEnabled', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('If Optimizely client is null, isFeatureEnabled returns false', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.isFeatureEnabled as jest.Mock;
+      mockFn.mockReturnValue(true);
+      const result = instance.isFeatureEnabled('feat1');
+      expect(result).toBe(false);
+    });
+
+    it('can use pre-set and override user for isFeatureEnabled', () => {
+      const mockFn = mockInnerClient.isFeatureEnabled as jest.Mock;
+      mockFn.mockReturnValue(true);
+      let result = instance.isFeatureEnabled('feat1');
+      expect(result).toBe(true);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue(false);
+      result = instance.isFeatureEnabled('feat1', 'user2', { bar: 'baz' });
+      expect(result).toBe(false);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('feat1', 'user2', {
+        bar: 'baz',
+      });
+    });
+  });
+
+  describe('getEnabledFeatures', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+    it('cannot use pre-set and override user for getEnabledFeatures', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
+      mockFn.mockReturnValue(['feat1']);
+      const result = instance.getEnabledFeatures();
+      expect(result).toEqual([]);
+    });
+    it('can use pre-set and override user for getEnabledFeatures', () => {
+      const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
+      mockFn.mockReturnValue(['feat1']);
+      let result = instance.getEnabledFeatures();
+      expect(result).toEqual(['feat1']);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('user1', {
+        foo: 'bar',
+      });
+      mockFn.mockReset();
+      mockFn.mockReturnValue(['feat1', 'feat2']);
+      result = instance.getEnabledFeatures('user2', { bar: 'baz' });
+      expect(result).toEqual(['feat1', 'feat2']);
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('user2', {
         bar: 'baz',
       });
     });
