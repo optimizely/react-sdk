@@ -333,12 +333,6 @@ describe('ReactSDKClient', () => {
           instance._client = null;
         });
 
-        it('cannot use pre-set or override user for track', () => {
-          const mockFn = mockInnerClient.track as jest.Mock;
-          instance.track('evt1');
-          expect(mockFn).toHaveBeenCalledTimes(0);
-        });
-
         it('cannot use pre-set or override user for setForcedVariation', () => {
           const mockFn = mockInnerClient.setForcedVariation as jest.Mock;
           mockFn.mockReturnValue(true);
@@ -380,30 +374,6 @@ describe('ReactSDKClient', () => {
             variationKey: null,
           });
         });
-      });
-
-      it('can use pre-set and override user for track', () => {
-        const mockFn = mockInnerClient.track as jest.Mock;
-        instance.track('evt1');
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, undefined);
-        mockFn.mockReset();
-
-        instance.track('evt1', 'user2', { bar: 'baz' });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('evt1', 'user2', { bar: 'baz' }, undefined);
-        mockFn.mockReset();
-
-        // Use pre-set user with event tags
-        instance.track('evt1', { tagKey: 'tagVal' });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, { tagKey: 'tagVal' });
-        mockFn.mockReset();
-
-        // Use overrides with event tags
-        instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
       });
 
       it('can use pre-set and override user for setForcedVariation', () => {
@@ -1328,6 +1298,44 @@ describe('ReactSDKClient', () => {
       expect(mockFn).toHaveBeenCalledWith('user2', {
         bar: 'baz',
       });
+    });
+  });
+
+  describe('track', () => {
+    beforeEach(async () => {
+      await setUpUserContext();
+    });
+
+    it('cannot use pre-set or override user for track', () => {
+      // @ts-ignore
+      instance._client = null;
+      const mockFn = mockInnerClient.track as jest.Mock;
+      instance.track('evt1');
+      expect(mockFn).toHaveBeenCalledTimes(0);
+    });
+
+    it('can use pre-set and override user for track', () => {
+      const mockFn = mockInnerClient.track as jest.Mock;
+      instance.track('evt1');
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, undefined);
+      mockFn.mockReset();
+
+      instance.track('evt1', 'user2', { bar: 'baz' });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('evt1', 'user2', { bar: 'baz' }, undefined);
+      mockFn.mockReset();
+
+      // Use pre-set user with event tags
+      instance.track('evt1', { tagKey: 'tagVal' });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, { tagKey: 'tagVal' });
+      mockFn.mockReset();
+
+      // Use overrides with event tags
+      instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
     });
   });
 
