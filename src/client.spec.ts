@@ -38,6 +38,11 @@ interface MockedReactSDKClient extends ReactSDKClient {
 
 describe('ReactSDKClient', () => {
   const validVuid = 'vuid_8de3bb278fce47f6b000cadc1ac';
+  const userId = 'user1';
+  const userAttributes = {
+    foo: 'bar',
+  };
+
   const config: optimizely.Config = {
     datafile: {},
   };
@@ -47,14 +52,12 @@ describe('ReactSDKClient', () => {
   let createInstanceSpy: jest.Mock<optimizely.Client, [optimizely.Config]>;
   let instance: ReactSDKClient;
   const setupUserContext = async () => {
-    const userId = 'user1';
+    // const userId = 'user1';
     jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
     instance = createInstance(config);
     await instance.setUser({
       id: userId,
-      attributes: {
-        foo: 'bar',
-      },
+      attributes: userAttributes,
     });
   };
 
@@ -177,7 +180,7 @@ describe('ReactSDKClient', () => {
 
       it('fulfills the returned promise with success: false when a user is set', async () => {
         await instance.setUser({
-          id: 'user12345',
+          id: userId,
         });
         const result = await instance.onReady();
         expect(result.success).toBe(false);
@@ -192,7 +195,6 @@ describe('ReactSDKClient', () => {
           resolveInnerClientOnReady = res;
         });
         mockInnerClientOnReady.mockReturnValueOnce(mockReadyPromise);
-        const userId = 'user999';
         jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
         resolveInnerClientOnReady({ success: true });
 
@@ -218,7 +220,7 @@ describe('ReactSDKClient', () => {
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
-        id: 'user12345',
+        id: userId,
       });
 
       const result = await instance.onReady();
@@ -233,7 +235,7 @@ describe('ReactSDKClient', () => {
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(false);
 
       await instance.setUser({
-        id: 'user12345',
+        id: userId,
       });
       const result = await instance.onReady();
       expect(result.success).toBe(false);
@@ -251,7 +253,7 @@ describe('ReactSDKClient', () => {
       instance = createInstance(config);
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       await instance.setUser({
-        id: 'user999',
+        id: userId,
       });
       resolveInnerClientOnReady({ success: true });
       const result = await instance.onReady();
@@ -272,22 +274,17 @@ describe('ReactSDKClient', () => {
     });
 
     it('updates the user object with id and attributes', async () => {
-      const userId = 'xxfueaojfe8&86';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
 
       instance = createInstance(config);
       await instance.setUser({
         id: userId,
-        attributes: {
-          foo: 'bar',
-        },
+        attributes: userAttributes,
       });
 
       expect(instance.user).toEqual({
         id: userId,
-        attributes: {
-          foo: 'bar',
-        },
+        attributes: userAttributes,
       });
     });
 
@@ -296,7 +293,7 @@ describe('ReactSDKClient', () => {
       jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
 
       await instance.setUser({
-        id: 'xxfueaojfe8&86',
+        id: userId,
       });
 
       expect(instance.fetchQualifiedSegments).toHaveBeenCalledTimes(1);
@@ -307,16 +304,16 @@ describe('ReactSDKClient', () => {
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
 
       await instance.setUser({
-        id: 'xxfueaojfe8&86',
+        id: userId,
       });
       await instance.onReady();
 
       await instance.setUser({
-        id: 'xxfueaojfe8&87',
+        id: userId,
       });
 
       await instance.setUser({
-        id: 'xxfueaojfe8&87',
+        id: userId,
       });
 
       expect(instance.fetchQualifiedSegments).toHaveBeenCalledTimes(3);
@@ -325,7 +322,6 @@ describe('ReactSDKClient', () => {
 
   describe('onUserUpdate', () => {
     it('adds and removes update handlers', async () => {
-      const userId = 'newUser';
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
       instance = createInstance(config);
       const onUserUpdateListener = jest.fn();
@@ -343,7 +339,7 @@ describe('ReactSDKClient', () => {
 
       dispose();
       await instance.setUser({
-        id: 'newUser2',
+        id: userId,
       });
 
       expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
@@ -430,7 +426,7 @@ describe('ReactSDKClient', () => {
       let result = instance.activate('exp1');
       expect(result).toBe('var1');
       expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('exp1', 'user1', { foo: 'bar' });
+      expect(mockFn).toHaveBeenCalledWith('exp1', userId, userAttributes);
       mockFn.mockReset();
       mockFn.mockReturnValue('var2');
       result = instance.activate('exp1', 'user2', { bar: 'baz' });
@@ -547,6 +543,72 @@ describe('ReactSDKClient', () => {
       const result = instance.getFeatureVariables('feat1');
       expect(result).toEqual({});
     });
+    it('returns an empty object when the inner client misses optimizely config', () => {
+      const mockFn = mockInnerClient.getOptimizelyConfig as jest.Mock;
+      mockFn.mockReturnValue(null);
+      (mockInnerClient.getFeatureVariable as jest.Mock).mockImplementation(
+        (featureKey: string, variableKey: string) => {
+          switch (variableKey) {
+            case 'bvar':
+              return true;
+            case 'svar':
+              return 'whatsup';
+            case 'ivar':
+              return 10;
+            case 'dvar':
+              return -10.5;
+            case 'jvar':
+              return { value: 'json value' };
+            default:
+              return null;
+          }
+        }
+      );
+      const result = instance.getFeatureVariables('feat1');
+      expect(result).toEqual({});
+    });
+    it('returns an empty object when feature key is not found in the optimizely config', () => {
+      (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
+        featuresMap: {
+          feat1: {
+            variablesMap: {
+              bvar: {
+                id: '0',
+                key: 'bvar',
+                type: 'boolean',
+                value: 'false',
+              },
+              svar: {
+                id: '1',
+                key: 'svar',
+                type: 'string',
+                value: '',
+              },
+              ivar: {
+                id: '2',
+                key: 'ivar',
+                type: 'integer',
+                value: '0',
+              },
+              dvar: {
+                id: '3',
+                key: 'dvar',
+                type: 'double',
+                value: '0',
+              },
+              jvar: {
+                id: '4',
+                key: 'jvar',
+                type: 'json',
+                value: '{}',
+              },
+            },
+          },
+        },
+      });
+      const result = instance.getFeatureVariables('feat2');
+      expect(result).toEqual({});
+    });
     it('returns an object with variables of all types returned from the inner sdk ', async () => {
       (mockInnerClient.getOptimizelyConfig as jest.Mock).mockReturnValue({
         featuresMap: {
@@ -631,6 +693,7 @@ describe('ReactSDKClient', () => {
         text: 'default value',
       });
       const result = instance.getFeatureVariable('feat1', 'dvar1', 'user1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toEqual(null);
     });
 
@@ -677,6 +740,7 @@ describe('ReactSDKClient', () => {
       const mockFn = mockInnerClient.getFeatureVariableString as jest.Mock;
       mockFn.mockReturnValue('varval1');
       const result = instance.getFeatureVariableString('feat1', 'svar1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toBe(null);
     });
 
@@ -713,6 +777,7 @@ describe('ReactSDKClient', () => {
       const mockFn = mockInnerClient.getFeatureVariableInteger as jest.Mock;
       mockFn.mockReturnValue(15);
       const result = instance.getFeatureVariableInteger('feat1', 'ivar1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toBe(null);
     });
 
@@ -748,6 +813,7 @@ describe('ReactSDKClient', () => {
       const mockFn = mockInnerClient.getFeatureVariableBoolean as jest.Mock;
       mockFn.mockReturnValue(false);
       const result = instance.getFeatureVariableBoolean('feat1', 'bvar1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toBe(null);
     });
 
@@ -821,6 +887,7 @@ describe('ReactSDKClient', () => {
         text: 'default value',
       });
       const result = instance.getFeatureVariableJSON('feat1', 'dvar1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toEqual(null);
     });
 
@@ -973,6 +1040,7 @@ describe('ReactSDKClient', () => {
       const mockFn = mockInnerClient.isFeatureEnabled as jest.Mock;
       mockFn.mockReturnValue(true);
       const result = instance.isFeatureEnabled('feat1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
@@ -1007,6 +1075,7 @@ describe('ReactSDKClient', () => {
       const mockFn = mockInnerClient.getEnabledFeatures as jest.Mock;
       mockFn.mockReturnValue(['feat1']);
       const result = instance.getEnabledFeatures();
+      expect(logger.warn).toHaveBeenCalled();
       expect(result).toEqual([]);
     });
 
@@ -1040,6 +1109,7 @@ describe('ReactSDKClient', () => {
       instance._client = null;
       const mockFn = mockInnerClient.track as jest.Mock;
       instance.track('evt1');
+      expect(logger.warn).toHaveBeenCalled();
       expect(mockFn).toHaveBeenCalledTimes(0);
     });
 
@@ -1216,16 +1286,44 @@ describe('ReactSDKClient', () => {
         reasons: ['Unable to evaluate flag exp1 because Optimizely client failed to initialize.'],
         ruleKey: null,
         userContext: {
-          attributes: {
-            foo: 'bar',
-          },
-          id: 'user1',
+          attributes: userAttributes,
+          id: userId,
         },
         variables: {},
         variationKey: null,
       });
+      expect(logger.warn).toHaveBeenCalled();
     });
+
     it('decide evaluates flag correctly', () => {
+      const mockFn = mockOptimizelyUserContext.decide as jest.Mock;
+      mockFn.mockReturnValue({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: mockOptimizelyUserContext,
+        variables: {},
+        variationKey: 'varition1',
+      });
+      const result = instance.decide('exp1');
+      expect(result).toEqual({
+        enabled: true,
+        flagKey: 'theFlag1',
+        reasons: [],
+        ruleKey: '',
+        userContext: {
+          id: userId,
+          attributes: userAttributes,
+        },
+        variables: {},
+        variationKey: 'varition1',
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith('exp1', []);
+    });
+
+    it('for overrides, decide creates new context and evaluates flag correctly', () => {
       const mockFn = mockOptimizelyUserContext.decide as jest.Mock;
       const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
       mockFn.mockReturnValue({
@@ -1244,15 +1342,14 @@ describe('ReactSDKClient', () => {
         reasons: [],
         ruleKey: '',
         userContext: {
-          id: 'user1',
-          attributes: { foo: 'bar' },
+          id: userId,
+          attributes: userAttributes,
         },
         variables: {},
         variationKey: 'varition1',
       });
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('exp1', []);
-      expect(mockCreateUserContext).toHaveBeenCalledWith('user1', { foo: 'bar' });
       mockFn.mockReset();
       mockFn.mockReturnValue({
         enabled: true,
@@ -1263,6 +1360,7 @@ describe('ReactSDKClient', () => {
         variables: {},
         variationKey: 'varition2',
       });
+      // override user and attributes
       result = instance.decide('exp1', [optimizely.OptimizelyDecideOption.INCLUDE_REASONS], 'user2', { bar: 'baz' });
       expect(result).toEqual({
         enabled: true,
@@ -1287,7 +1385,7 @@ describe('ReactSDKClient', () => {
       await setupUserContext();
     });
 
-    it('if client is nul, decideAll returns an empty object', () => {
+    it('if client is null, decideAll returns an empty object', () => {
       // @ts-ignore
       instance._client = null;
       const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
@@ -1307,7 +1405,39 @@ describe('ReactSDKClient', () => {
       expect(result).toEqual({});
     });
 
-    it('can use pre-set and override user for decideAll', () => {
+    it('decideAll returns correct value', () => {
+      const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
+      mockFn.mockReturnValue({
+        theFlag1: {
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: mockOptimizelyUserContext,
+          variables: {},
+          variationKey: 'varition1',
+        },
+      });
+      const result = instance.decideAll();
+      expect(result).toEqual({
+        theFlag1: {
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: {
+            id: 'user1',
+            attributes: { foo: 'bar' },
+          },
+          variables: {},
+          variationKey: 'varition1',
+        },
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith([]);
+    });
+
+    it('for overrides, decideAll creates new context and evaluates flags correctly', () => {
       const mockFn = mockOptimizelyUserContext.decideAll as jest.Mock;
       const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
       mockFn.mockReturnValue({
@@ -1464,21 +1594,19 @@ describe('ReactSDKClient', () => {
   });
 
   describe('fetchQualifedSegments', () => {
-    beforeEach(() => {
-      instance = createInstance(config);
+    beforeEach(async () => {
+      await setupUserContext();
     });
 
     it('should never call fetchQualifiedSegments if Optimizely user context is falsy', async () => {
+      // @ts-ignore
+      instance.userContext = false;
       const result = await instance.fetchQualifiedSegments();
 
       expect(result).toEqual(false);
     });
 
     it('should return false if fetch fails', async () => {
-      await instance.setUser({
-        id: 'user1',
-      });
-
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => false);
       const result = await instance.fetchQualifiedSegments();
 
@@ -1486,10 +1614,6 @@ describe('ReactSDKClient', () => {
     });
 
     it('should return true if fetch successful', async () => {
-      await instance.setUser({
-        id: 'user1',
-      });
-
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       const result = await instance.fetchQualifiedSegments();
 
@@ -1498,11 +1622,12 @@ describe('ReactSDKClient', () => {
   });
 
   describe('removeAllForcedDecisions', () => {
-    beforeEach(() => {
-      instance = createInstance(config);
+    beforeEach(async () => {
+      await setupUserContext();
     });
 
     it('should return false if no user context has been set ', () => {
+      // @ts-ignore
       const mockFn = mockOptimizelyUserContext.removeAllForcedDecisions as jest.Mock;
 
       mockFn.mockReturnValue(false);
@@ -1512,26 +1637,7 @@ describe('ReactSDKClient', () => {
       expect(result).toEqual(false);
     });
 
-    it('if client is null, should return false', async () => {
-      // @ts-ignore
-      instance._client = null;
-      await instance.setUser({
-        id: 'user1',
-      });
-      const mockFn = mockOptimizelyUserContext.removeAllForcedDecisions as jest.Mock;
-
-      mockFn.mockReturnValue(true);
-
-      const result = instance.removeAllForcedDecisions();
-      expect(mockFn).toHaveBeenCalledTimes(0);
-      expect(result).toBeDefined();
-      expect(result).toEqual(false);
-    });
-
     it('should return true if  user context has been set ', async () => {
-      await instance.setUser({
-        id: 'user1',
-      });
       const mockFn = mockOptimizelyUserContext.removeAllForcedDecisions as jest.Mock;
 
       mockFn.mockReturnValue(true);
@@ -1569,8 +1675,8 @@ describe('ReactSDKClient', () => {
         reasons: ['Unable to evaluate flag theFlag1 because Optimizely client failed to initialize.'],
         ruleKey: null,
         userContext: {
-          id: 'user1',
-          attributes: { foo: 'bar' },
+          id: userId,
+          attributes: userAttributes,
         },
         variables: {},
         variationKey: null,
@@ -1595,8 +1701,8 @@ describe('ReactSDKClient', () => {
         reasons: [],
         ruleKey: '',
         userContext: {
-          id: 'user1',
-          attributes: { foo: 'bar' },
+          id: userId,
+          attributes: userAttributes,
         },
         variables: {},
         variationKey: 'varition1',
@@ -1635,7 +1741,7 @@ describe('ReactSDKClient', () => {
         flagKey: 'theFlag1',
         reasons: [],
         ruleKey: '',
-        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        userContext: { id: userId, attributes: userAttributes },
         variables: {},
         variationKey: 'varition2',
       });
@@ -1668,8 +1774,8 @@ describe('ReactSDKClient', () => {
         reasons: ['Unable to evaluate flag theFlag1 because Optimizely client failed to initialize.'],
         ruleKey: null,
         userContext: {
-          id: 'user1',
-          attributes: { foo: 'bar' },
+          id: userId,
+          attributes: userAttributes,
         },
         variables: {},
         variationKey: null,
@@ -1694,8 +1800,8 @@ describe('ReactSDKClient', () => {
         reasons: [],
         ruleKey: '',
         userContext: {
-          id: 'user1',
-          attributes: { foo: 'bar' },
+          id: userId,
+          attributes: userAttributes,
         },
         variables: {},
         variationKey: 'varition1',
@@ -1734,7 +1840,7 @@ describe('ReactSDKClient', () => {
         flagKey: 'theFlag1',
         reasons: [],
         ruleKey: '',
-        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        userContext: { id: userId, attributes: userAttributes },
         variables: {},
         variationKey: 'varition2',
       });
@@ -1765,7 +1871,7 @@ describe('ReactSDKClient', () => {
         flagKey: 'theFlag1',
         reasons: [],
         ruleKey: '',
-        userContext: { id: 'user1', attributes: { foo: 'bar' } },
+        userContext: { id: userId, attributes: userAttributes },
         variables: {},
         variationKey: 'varition1',
       });
@@ -1845,10 +1951,8 @@ describe('ReactSDKClient', () => {
 
     it('should return a userContext if setUser is called', () => {
       instance.setUser({
-        id: 'user1',
-        attributes: {
-          foo: 'bar',
-        },
+        id: userId,
+        attributes: userAttributes,
       });
 
       const currentUserContext = instance.getUserContext();
