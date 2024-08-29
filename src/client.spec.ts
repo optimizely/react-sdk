@@ -67,6 +67,7 @@ describe('ReactSDKClient', () => {
       getUserId: jest.fn(),
       getAttributes: jest.fn(),
       setForcedDecision: jest.fn(),
+      getForcedDecision: jest.fn(),
       removeForcedDecision: jest.fn(),
       removeAllForcedDecisions: jest.fn(),
     } as any;
@@ -113,6 +114,7 @@ describe('ReactSDKClient', () => {
     jest.resetAllMocks();
     jest.restoreAllMocks();
   });
+
   describe('createInstance', () => {
     it('provides the initial config object via the initialConfig property', () => {
       instance = createInstance(config);
@@ -320,6 +322,7 @@ describe('ReactSDKClient', () => {
       expect(instance.fetchQualifiedSegments).toHaveBeenCalledTimes(3);
     });
   });
+
   describe('onUserUpdate', () => {
     it('adds and removes update handlers', async () => {
       const userId = 'newUser';
@@ -344,6 +347,48 @@ describe('ReactSDKClient', () => {
       });
 
       expect(onUserUpdateListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('getOptimizelyConfig', () => {
+    beforeEach(async () => {
+      await setupUserContext();
+      const mockFn = mockInnerClient.getOptimizelyConfig as jest.Mock;
+      mockFn.mockReturnValue({
+        attributes: [],
+        audiences: [],
+        datafile: 'datafile',
+        environmentKey: 'development',
+        events: [],
+        experimentsMap: {},
+        featuresMap: {},
+        revision: 1,
+        sdkKey: 'sdkKey',
+      });
+    });
+
+    it('if client is null, returns null', () => {
+      // @ts-ignore
+      instance._client = null;
+      const result = instance.getOptimizelyConfig();
+      console.log(result);
+      expect(result).toBe(null);
+      expect(logger.warn).toHaveBeenCalled();
+    });
+
+    it('returns the config object from the inner SDK', () => {
+      const result = instance.getOptimizelyConfig();
+      expect(result).toEqual({
+        attributes: [],
+        audiences: [],
+        datafile: 'datafile',
+        environmentKey: 'development',
+        events: [],
+        experimentsMap: {},
+        featuresMap: {},
+        revision: 1,
+        sdkKey: 'sdkKey',
+      });
     });
   });
 
@@ -1037,7 +1082,7 @@ describe('ReactSDKClient', () => {
       expect(result).toBe(false);
     });
 
-    it('setForcedVariation returns correct value', () => {
+    it('setForcedVariation works as expected', () => {
       const mockFn = mockInnerClient.setForcedVariation as jest.Mock;
       mockFn.mockReturnValue(true);
       let result = instance.setForcedVariation('exp1', 'var1');
@@ -1051,6 +1096,38 @@ describe('ReactSDKClient', () => {
       expect(result).toBe(false);
       expect(mockFn).toHaveBeenCalledTimes(1);
       expect(mockFn).toHaveBeenCalledWith('exp1', 'user2', 'var1');
+    });
+  });
+
+  describe('getForcedDecision', () => {
+    beforeEach(async () => {
+      await setupUserContext();
+    });
+
+    it('if user context is not set, getForcedDecision returns null', () => {
+      // @ts-ignore
+      instance.userContext = null;
+      const result = instance.getForcedDecision({
+        flagKey: 'exp1',
+      });
+      expect(logger.warn).toHaveBeenCalled();
+      expect(result).toBe(null);
+    });
+
+    it('getForcedDecision returns correct variation', () => {
+      const mockFn = mockOptimizelyUserContext.getForcedDecision as jest.Mock;
+
+      mockFn.mockReturnValue({
+        variationKey: 'var1',
+      });
+
+      const result = instance.getForcedDecision({
+        flagKey: 'exp1',
+      });
+
+      expect(result).toEqual({
+        variationKey: 'var1',
+      });
     });
   });
 
@@ -1294,6 +1371,7 @@ describe('ReactSDKClient', () => {
       expect(mockCreateUserContext).toHaveBeenCalledWith('user2', { bar: 'baz' });
     });
   });
+
   describe('decideForKeys', () => {
     beforeEach(async () => {
       await setupUserContext();
@@ -1384,6 +1462,7 @@ describe('ReactSDKClient', () => {
       expect(mockCreateUserContext).toHaveBeenCalledWith('user2', { bar: 'baz' });
     });
   });
+
   describe('fetchQualifedSegments', () => {
     beforeEach(() => {
       instance = createInstance(config);
