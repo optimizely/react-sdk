@@ -1528,6 +1528,41 @@ describe('ReactSDKClient', () => {
 
     it('decideForKeys returns correct value', () => {
       const mockFn = mockOptimizelyUserContext.decideForKeys as jest.Mock;
+
+      mockFn.mockReturnValue({
+        theFlag1: {
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: mockOptimizelyUserContext,
+          variables: {},
+          variationKey: 'varition1',
+        },
+      });
+
+      const result = instance.decideForKeys(['theFlag1']);
+
+      expect(result).toEqual({
+        theFlag1: {
+          enabled: true,
+          flagKey: 'theFlag1',
+          reasons: [],
+          ruleKey: '',
+          userContext: {
+            id: userId,
+            attributes: userAttributes,
+          },
+          variables: {},
+          variationKey: 'varition1',
+        },
+      });
+      expect(mockFn).toHaveBeenCalledTimes(1);
+      expect(mockFn).toHaveBeenCalledWith(['theFlag1'], []);
+    });
+
+    it('for overrides, decideForKeys creates new context and evaluates flags correctly', () => {
+      const mockFn = mockOptimizelyUserContext.decideForKeys as jest.Mock;
       const mockCreateUserContext = mockInnerClient.createUserContext as jest.Mock;
       mockFn.mockReturnValue({
         theFlag1: {
@@ -1540,7 +1575,9 @@ describe('ReactSDKClient', () => {
           variationKey: 'varition1',
         },
       });
+
       let result = instance.decideForKeys(['theFlag1']);
+
       expect(result).toEqual({
         theFlag1: {
           enabled: true,
@@ -1548,8 +1585,8 @@ describe('ReactSDKClient', () => {
           reasons: [],
           ruleKey: '',
           userContext: {
-            id: 'user1',
-            attributes: { foo: 'bar' },
+            id: userId,
+            attributes: userAttributes,
           },
           variables: {},
           variationKey: 'varition1',
@@ -1617,6 +1654,29 @@ describe('ReactSDKClient', () => {
       jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => true);
       const result = await instance.fetchQualifiedSegments();
 
+      expect(result).toEqual(true);
+    });
+
+    it('if odp is explicitly off, it should return true', async () => {
+      instance = createInstance({
+        ...config,
+        odpOptions: {
+          disabled: true,
+        },
+      });
+
+      await instance.setUser({
+        id: userId,
+        attributes: userAttributes,
+      });
+
+      const result = await instance.fetchQualifiedSegments();
+      expect(result).toEqual(true);
+    });
+
+    it('if odp is not integrated, it should return true', async () => {
+      (mockInnerClient.isOdpIntegrated as jest.Mock).mockReturnValue(false);
+      const result = await instance.fetchQualifiedSegments();
       expect(result).toEqual(true);
     });
   });
