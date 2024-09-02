@@ -52,7 +52,6 @@ describe('ReactSDKClient', () => {
   let createInstanceSpy: jest.Mock<optimizely.Client, [optimizely.Config]>;
   let instance: ReactSDKClient;
   const setupUserContext = async () => {
-    // const userId = 'user1';
     jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
     instance = createInstance(config);
     await instance.setUser({
