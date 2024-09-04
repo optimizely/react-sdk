@@ -57,7 +57,7 @@ export const DefaultUser: UserInfo = {
 export interface ReactSDKClient
   extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig' | 'isOdpIntegrated'> {
   user: UserInfo;
-
+  client: optimizely.Client | null;
   onReady(opts?: { timeout?: number }): Promise<any>;
   setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
@@ -444,7 +444,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public isReady(): boolean {
-    return this.isClientReady;
+    return this.isClientReady && this.isUserReady;
   }
 
   /**
