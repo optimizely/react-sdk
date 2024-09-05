@@ -143,7 +143,7 @@ describe('<OptimizelyExperiment>', () => {
       // while it's waiting for onReady()
       expect(container.innerHTML).toBe('');
 
-      //   Simulate client becoming ready; oReady resolving, firing config update notification
+      //   Simulate client becoming ready; onReady resolving, firing config update notification
       resolver.resolve({ success: true });
 
       await waitFor(() => expect(optimizelyMock.activate).toHaveBeenCalledWith('experiment1', undefined, undefined));
