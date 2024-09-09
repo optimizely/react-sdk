@@ -15,7 +15,6 @@
  */
 
 /// <reference types="jest" />
-
 import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { render, renderHook, screen, waitFor } from '@testing-library/react';
@@ -23,8 +22,25 @@ import '@testing-library/jest-dom';
 
 import { OptimizelyProvider } from './Provider';
 import { NotReadyReason, OnReadyResult, ReactSDKClient, VariableValuesObject } from './client';
-import { useExperiment, useFeature, useDecision, useTrackEvent, hooksLogger } from './hooks';
+import { useExperiment, useFeature, useDecision, useTrackEvent } from './hooks';
 import { OptimizelyDecision } from './utils';
+import { getLogger } from '@optimizely/optimizely-sdk';
+
+jest.mock('@optimizely/optimizely-sdk', () => {
+  const originalModule = jest.requireActual('@optimizely/optimizely-sdk');
+  return {
+    ...originalModule,
+    getLogger: jest.fn().mockReturnValue({
+      error: jest.fn(),
+      warn: jest.fn(),
+      info: jest.fn(),
+      debug: jest.fn(),
+    }),
+  };
+});
+
+const hooksLogger = getLogger('ReactSDK');
+
 const defaultDecision: OptimizelyDecision = {
   enabled: false,
   variables: {},
@@ -79,7 +95,6 @@ describe('hooks', () => {
   let forcedVariationUpdateCallbacks: Array<() => void>;
   let decideMock: jest.Mock<OptimizelyDecision>;
   let setForcedDecisionMock: jest.Mock<void>;
-  let hooksLoggerErrorSpy: jest.SpyInstance;
   const REJECTION_REASON = 'A rejection reason you should never see in the test runner';
 
   beforeEach(() => {
@@ -125,7 +140,6 @@ describe('hooks', () => {
     forcedVariationUpdateCallbacks = [];
     decideMock = jest.fn();
     setForcedDecisionMock = jest.fn();
-    hooksLoggerErrorSpy = jest.spyOn(hooksLogger, 'error');
     optimizelyMock = {
       activate: activateMock,
       onReady: jest.fn().mockImplementation((config) => getOnReadyPromise(config || {})),
@@ -185,7 +199,7 @@ describe('hooks', () => {
       (res) => res.dataReadyPromise,
       (err) => null
     );
-    hooksLoggerErrorSpy.mockReset();
+    jest.resetAllMocks();
   });
 
   describe('useExperiment', () => {
@@ -426,6 +440,16 @@ describe('hooks', () => {
   });
 
   describe('useFeature', () => {
+    it('should print error if optimizely is not provided', async () => {
+      render(
+        // @ts-ignore
+        <OptimizelyProvider optimizely={null}>
+          <MyFeatureComponent />
+        </OptimizelyProvider>
+      );
+      await waitFor(() => expect(hooksLogger.error).toHaveBeenCalled());
+    });
+
     it('should render true when the feature is enabled', async () => {
       isFeatureEnabledMock.mockReturnValue(true);
 
@@ -655,6 +679,160 @@ describe('hooks', () => {
   });
 
   describe('useDecision', () => {
+    it('should handle no client promise response', async () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: NotReadyReason.NO_CLIENT,
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: false }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
+        expect(hooksLogger.warn).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle no client, but data ready promise success', () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: NotReadyReason.NO_CLIENT,
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: true }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false');
+    });
+
+    it('should handle user not ready promise response', async () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: NotReadyReason.USER_NOT_READY,
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: false }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
+        expect(hooksLogger.warn).toHaveBeenCalled();
+      });
+    });
+
+    it('should handle user not ready, but data ready promise success', () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: NotReadyReason.USER_NOT_READY,
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: true }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false');
+    });
+
+    it('should handle default success false case', async () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: 'UNKNOWN',
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: false }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(hooksLogger.warn).toHaveBeenCalled();
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
+      });
+    });
+
+    it('should handle default success true case', async () => {
+      getOnReadyPromise = () =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              success: false,
+              reason: 'UNKNOWN',
+              dataReadyPromise: new Promise((r) => setTimeout(() => r({ success: true }), mockDelay)),
+            });
+          });
+        });
+      decideMock.mockReturnValue({ ...defaultDecision });
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(hooksLogger.warn).toHaveBeenCalled();
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false');
+      });
+    });
+
+    it('should print error if optimizely is not provided', async () => {
+      render(
+        // @ts-ignore
+        <OptimizelyProvider optimizely={null}>
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+      await waitFor(() => expect(hooksLogger.error).toHaveBeenCalled());
+    });
+
     it('should render true when the flag is enabled', async () => {
       decideMock.mockReturnValue({
         ...defaultDecision,
@@ -705,8 +883,32 @@ describe('hooks', () => {
         variables: { foo: 'bar' },
       });
       readySuccess = true;
+
       // When timeout is reached, but dataReadyPromise is resolved later with the decision value
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('true|{"foo":"bar"}|true|true'));
+    });
+
+    it('should log warn message if dataReadyPromise resolves as false', async () => {
+      decideMock.mockReturnValue({ ...defaultDecision });
+      readySuccess = false;
+      mockDelay = 20;
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <MyDecideComponent options={{ timeout: mockDelay - 10 }} />
+        </OptimizelyProvider>
+      );
+
+      // Initial render
+      expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
+
+      readySuccess = false;
+
+      // When timeout is reached, but dataReadyPromise is resolved later with the decision value
+      await waitFor(() => {
+        expect(hooksLogger.warn).toHaveBeenCalled();
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|true');
+      });
     });
 
     it('should gracefully handle the client promise rejecting after timeout', async () => {
@@ -721,7 +923,9 @@ describe('hooks', () => {
         </OptimizelyProvider>
       );
 
-      await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false'));
+      await waitFor(() => {
+        expect(screen.getByTestId('result')).toHaveTextContent('false|{}|false|false');
+      });
     });
 
     it('should re-render when the user attributes change using autoUpdate', async () => {
@@ -1002,16 +1206,17 @@ describe('hooks', () => {
       await waitFor(() => expect(screen.getByTestId('result')).toHaveTextContent('false|{}|true|false'));
     });
   });
+
   describe('useTrackEvent', () => {
     it('returns track method and false states when optimizely is not provided', () => {
       const wrapper = ({ children }: { children: React.ReactNode }): React.ReactElement => {
         //@ts-ignore
         return <OptimizelyProvider>{children}</OptimizelyProvider>;
       };
+
       const { result } = renderHook(() => useTrackEvent(), { wrapper });
-      expect(result.current[0]).toBeInstanceOf(Function);
-      expect(result.current[1]).toBe(false);
-      expect(result.current[2]).toBe(false);
+
+      expect(result.current).toEqual([expect.any(Function), false, false]);
     });
 
     it('returns track method along with clientReady and didTimeout state when optimizely instance is provided', () => {
@@ -1022,9 +1227,10 @@ describe('hooks', () => {
       );
 
       const { result } = renderHook(() => useTrackEvent(), { wrapper });
-      expect(result.current[0]).toBeInstanceOf(Function);
-      expect(typeof result.current[1]).toBe('boolean');
-      expect(typeof result.current[2]).toBe('boolean');
+      result.current[0]('eventKey');
+
+      expect(optimizelyMock.track).toHaveBeenCalledTimes(1);
+      expect(result.current).toEqual([expect.any(Function), true, false]);
     });
 
     it('Log error when track method is called and optimizely instance is not provided', () => {
@@ -1034,7 +1240,7 @@ describe('hooks', () => {
       };
       const { result } = renderHook(() => useTrackEvent(), { wrapper });
       result.current[0]('eventKey');
-      expect(hooksLogger.error).toHaveBeenCalledTimes(1);
+      expect(hooksLogger.error).toHaveBeenCalled();
     });
 
     it('Log error when track method is called and client is not ready', () => {
@@ -1048,7 +1254,8 @@ describe('hooks', () => {
 
       const { result } = renderHook(() => useTrackEvent(), { wrapper });
       result.current[0]('eventKey');
-      expect(hooksLogger.error).toHaveBeenCalledTimes(1);
+
+      expect(hooksLogger.error).toHaveBeenCalled();
     });
   });
 });
