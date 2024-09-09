@@ -25,28 +25,33 @@ describe('utils', () => {
 
     it('returns true if users are equal', () => {
       const user2 = JSON.parse(JSON.stringify(user));
+      const areUsersEqual = utils.areUsersEqual(user, user2);
 
-      expect(utils.areUsersEqual(user, user2)).toBe(true);
+      expect(areUsersEqual).toBe(true);
     });
 
     it('returns false if users are not equal', () => {
       const user2 = { id: '2', attributes: { name: 'user2' } };
+      const areUsersEqual = utils.areUsersEqual(user, user2);
 
-      expect(utils.areUsersEqual(user, user2)).toBe(false);
+      expect(areUsersEqual).toBe(false);
     });
 
     it('returns false if key lengths are not equal', () => {
       const user2 = { id: '1', attributes: { name: 'user1', age: 30 } };
+      const areUsersEqual = utils.areUsersEqual(user, user2);
 
-      expect(utils.areUsersEqual(user, user2)).toBe(false);
+      expect(areUsersEqual).toBe(false);
     });
 
     it('returns false if one of the key value pairs are not equal', () => {
       const user2 = { id: '1', attributes: { name: 'user2' } };
+      const areUsersEqual = utils.areUsersEqual(user, user2);
 
-      expect(utils.areUsersEqual(user, user2)).toBe(false);
+      expect(areUsersEqual).toBe(false);
     });
   });
+
   describe('hoistStaticsAndForwardRefs', () => {
     class TestComponent extends React.Component<{ forwardedRef?: React.Ref<HTMLDivElement> }> {
       static testStaticMethod = () => 'static method result';
@@ -89,50 +94,57 @@ describe('utils', () => {
     it('should return true for equal attributes', () => {
       const attrs1 = { a: 1, b: 2 };
       const attrs2 = { a: 1, b: 2 };
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(true);
+      expect(areAttributesEqual).toBe(true);
     });
 
     it('should return false for different attribute keys', () => {
       const attrs1 = { a: 1, b: 2 };
       const attrs2 = { a: 1, c: 2 };
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(false);
+      expect(areAttributesEqual).toBe(false);
     });
 
     it('should return false for different attribute values', () => {
       const attrs1 = { a: 1, b: 2 };
       const attrs2 = { a: 1, b: 3 };
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(false);
+      expect(areAttributesEqual).toBe(false);
     });
 
     it('should return false if the number of attributes differs', () => {
       const attrs1 = { a: 1, b: 2 };
       const attrs2 = { a: 1 };
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(false);
+      expect(areAttributesEqual).toBe(false);
     });
 
     it('should handle undefined or null attributes as empty objects', () => {
       const attrs1 = null;
       const attrs2 = undefined;
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(true);
+      expect(areAttributesEqual).toBe(true);
     });
 
     it('should return false when one attribute is an object and another is not', () => {
       const attrs1 = { a: 1 };
       const attrs2 = 'not an object';
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(false);
+      expect(areAttributesEqual).toBe(false);
     });
 
     it('should handle different types of attribute values correctly', () => {
       const attrs1 = { a: '1', b: true };
       const attrs2 = { a: '1', b: true };
+      const areAttributesEqual = utils.areAttributesEqual(attrs1, attrs2);
 
-      expect(utils.areAttributesEqual(attrs1, attrs2)).toBe(true);
+      expect(areAttributesEqual).toBe(true);
     });
   });
 
