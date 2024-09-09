@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, 2023 Optimizely
+ * Copyright 2019, 2023-2024 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 
 import * as optimizely from '@optimizely/optimizely-sdk';
-import { getLogger } from '@optimizely/optimizely-sdk';
 
-const logger = getLogger('ReactSDK');
-
+const logger = optimizely.getLogger('ReactSDK');
 /**
  * logOnlyEventDispatcher only logs a message at the debug level, and does not
  * send any requests to the Optimizely results backend. Use this to disable
