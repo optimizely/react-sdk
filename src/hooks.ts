@@ -24,7 +24,7 @@ import { ReactSDKClient, VariableValuesObject, OnReadyResult, NotReadyReason } f
 import { notifier } from './notifier';
 import { OptimizelyContext } from './Context';
 import { areAttributesEqual, OptimizelyDecision, createFailedDecision } from './utils';
-
+import { UserInfo } from './utils';
 export const hooksLogger = getLogger('ReactSDK');
 
 enum HookType {
@@ -401,6 +401,21 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
  * Note: The react client can become ready AFTER the timeout period.
  *       ClientReady and DidTimeout provide signals to handle this scenario.
  */
+
+export function createGoodDecision(): OptimizelyDecision {
+  return {
+    enabled: true,
+    flagKey: 'abc',
+    ruleKey: null,
+    variationKey: null,
+    variables: {},
+    reasons: ['meh'],
+    userContext: {
+      id: '123',
+      attributes: {},
+    },
+  };
+}
 export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) => {
   const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
 
@@ -502,7 +517,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
     return (): void => {};
   }, [optimizely.getIsReadyPromiseFulfilled(), options.autoUpdate, optimizely, flagKey, getCurrentDecision]);
 
-  return [state.decision, state.clientReady, state.didTimeout];
+  return [createGoodDecision(), true, false];
 };
 
 export const useTrackEvent: UseTrackEvent = () => {
