@@ -47,7 +47,7 @@ export interface OnReadyResult extends ResolveResult {
 }
 
 const REACT_SDK_CLIENT_ENGINE = 'react-sdk';
-const REACT_SDK_CLIENT_VERSION = '3.2.0';
+const REACT_SDK_CLIENT_VERSION = '3.2.2';
 
 export const DefaultUser: UserInfo = {
   id: null,
@@ -57,7 +57,7 @@ export const DefaultUser: UserInfo = {
 export interface ReactSDKClient
   extends Omit<optimizely.Client, 'createUserContext' | 'getProjectConfig' | 'isOdpIntegrated'> {
   user: UserInfo;
-
+  client: optimizely.Client | null;
   onReady(opts?: { timeout?: number }): Promise<any>;
   setUser(userInfo: UserInfo): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
@@ -361,6 +361,12 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
       return null;
     }
 
+    if (this.userContext && areUsersEqual(userInfo, this.user)) {
+      // Important: We need to return the existing user context instance if the user info is the same
+      // new context misses the forced variation set on the existing context
+      return this.userContext;
+    }
+
     return this._client.createUserContext(userInfo.id || undefined, userInfo.attributes);
   }
 
@@ -438,7 +444,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public isReady(): boolean {
-    return this.isClientReady;
+    return this.isClientReady && this.isUserReady;
   }
 
   /**

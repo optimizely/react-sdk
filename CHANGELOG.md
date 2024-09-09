@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.2.2] - Aug 21, 2024
+
+### Bug fixes 
+- Multiple instances of the Logger make the log system unconfigurable - bug fix. ([#276](https://github.com/optimizely/react-sdk/pull/276))
+
+## [3.2.1] - Aug 15, 2024
+
+### Bug fixes 
+- `clientReady` is true even though internal client promise returns `success == false` bug fix([#273](https://github.com/optimizely/react-sdk/pull/273))
+- `useDecision` hook set the update listener on overy render bug fix([#273](https://github.com/optimizely/react-sdk/pull/273))
+- `setForcedDecision` does not reflect the changes in optmizely instance and `useDecision` hook bug fix([#274](https://github.com/optimizely/react-sdk/pull/274))
+
+### Changed
+- Performance improvements in both hooks and client instance([#273](https://github.com/optimizely/react-sdk/pull/273), [#274](https://github.com/optimizely/react-sdk/pull/274))
+
 ## [3.2.0] - July 10, 2024
 
 ### New Features 

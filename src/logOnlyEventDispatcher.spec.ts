@@ -24,10 +24,32 @@ import { getLogger } from '@optimizely/optimizely-sdk';
 const logger = getLogger('ReactSDK');
 
 describe('logOnlyEventDispatcher', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('logs a message', () => {
     const callback = jest.fn();
-    logOnlyEventDispatcher.dispatchEvent({ url: 'https://localhost:8080', httpVerb: 'POST', params: {} }, callback);
+    const mockEvent = { url: 'https://localhost:8080', httpVerb: 'POST' as const, params: {} };
+    logOnlyEventDispatcher.dispatchEvent(mockEvent, callback);
+    const secondArgFunction = (logger.debug as jest.Mock).mock.calls[0][1];
+    const result = secondArgFunction();
+
     expect(callback).toHaveBeenCalled();
     expect(logger.debug).toHaveBeenCalled();
+    expect(result).toBe(JSON.stringify(mockEvent));
+  });
+
+  it('debugger log print error stringifying event', () => {
+    const callback = jest.fn();
+    // circular reference to force JSON.stringify to throw an error
+    const circularReference: any = {};
+    circularReference.self = circularReference;
+    logOnlyEventDispatcher.dispatchEvent(circularReference, callback);
+    const secondArgFunction = (logger.debug as jest.Mock).mock.calls[0][1];
+    const result = secondArgFunction();
+
+    expect(typeof secondArgFunction).toBe('function');
+    expect(result).toBe('error stringifying event');
   });
 });

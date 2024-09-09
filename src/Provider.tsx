@@ -17,8 +17,6 @@
 import * as React from 'react';
 import { UserAttributes } from '@optimizely/optimizely-sdk';
 import { getLogger } from '@optimizely/optimizely-sdk';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OptimizelyContextProvider } from './Context';
 import { ReactSDKClient, DefaultUser } from './client';
 import { areUsersEqual, UserInfo } from './utils';

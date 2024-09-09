@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, Optimizely
+ * Copyright 2022,2024 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 import * as optimizely from '@optimizely/optimizely-sdk';
 import { sprintf } from './utils';
-const logHandler = optimizely.logging.createLogger({ prefix: '[React-SDK]' });
+
+const logHandler = optimizely.getLogger('ReactSDK');
 
 export const logger = {
   warn: (msg: string, ...splat: any[]) => {
