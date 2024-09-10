@@ -27,6 +27,7 @@
     "build:win": "(if exist dist rd /s/q dist) && node ./scripts/winbuild.js",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "test": "jest --silent",
+    "test-coverage": "jest --coverage --coverageReporters=\"text-summary\" --silent",
     "prepublishOnly": "npm run test && npm run build",
     "prepare": "npm run build && husky install"
   },
