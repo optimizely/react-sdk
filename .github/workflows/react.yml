@@ -26,12 +26,13 @@ jobs:
       run: yarn test
   
   coverage:
+    name: Jest Coverage Report
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - uses: ArtiomTr/jest-coverage-report-action@v2
       with:
-        custom-title: 'Code Coverage Report'
+        custom-title: 'Jest Coverage Report'
 
   integration_tests:    
     name: Run integration tests
