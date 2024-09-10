@@ -24,6 +24,14 @@ jobs:
       run: yarn install
     - name: Run tests
       run: yarn test
+  
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ArtiomTr/jest-coverage-report-action@v2
+      with:
+        custom-title: 'Code Coverage Report'
 
   integration_tests:    
     name: Run integration tests
