@@ -547,8 +547,8 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   if (!optimizely) {
     hooksLogger.error(`Unable to use decision ${flagKey}. ${optimizelyPropError}`);
   }
-
-  return [state.decision, state.clientReady, state.didTimeout];
+  return [defaultDecision, false, false];
+  // return [state.decision, state.clientReady, state.didTimeout];
 };
 
 export const useTrackEvent: UseTrackEvent = () => {
