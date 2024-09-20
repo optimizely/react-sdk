@@ -582,5 +582,3 @@ First-party code subject to copyrights held by Optimizely, Inc. and its contribu
 - Ruby - https://github.com/optimizely/ruby-sdk
 
 - Swift - https://github.com/optimizely/swift-sdk
-
-Test 5

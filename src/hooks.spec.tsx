@@ -678,7 +678,7 @@ describe('hooks', () => {
     });
   });
 
-  describe.skip('useDecision', () => {
+  describe('useDecision', () => {
     it('should handle no client promise response', async () => {
       getOnReadyPromise = () =>
         new Promise((resolve) => {
