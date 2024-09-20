@@ -7,12 +7,6 @@ on:
     branches: [ master ]
 
 jobs:
-  integration_tests:    
-    name: Run integration tests
-    uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
-    secrets:
-      CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
-      TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}       
   unitTests:    
     name: Run Unit Tests (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
@@ -30,6 +24,13 @@ jobs:
       run: yarn install
     - name: Run tests
       run: yarn test
+  integration_tests:    
+    name: Run integration tests
+    needs: [ unitTests ]
+    uses: optimizely/react-sdk/.github/workflows/integration_test.yml@master
+    secrets:
+      CI_USER_TOKEN: ${{ secrets.CI_USER_TOKEN }}
+      TRAVIS_COM_TOKEN: ${{ secrets.TRAVIS_COM_TOKEN }}       
   coverage:
     name: Jest Coverage Report
     runs-on: ubuntu-latest
