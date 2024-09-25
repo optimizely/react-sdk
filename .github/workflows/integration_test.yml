@@ -19,14 +19,18 @@ jobs:
         path: 'home/runner/travisci-tools'
         ref: 'master'
     - name: Set SDK branch if PR
+      env: 
+        HEAD_REF: ${{ github.head_ref }}
       if: ${{ github.event_name == 'pull_request' }}
       run: |
-        echo "SDK_BRANCH=${{ github.head_ref }}" >> $GITHUB_ENV
+        echo "SDK_BRANCH=$HEAD_REF" >> $GITHUB_ENV
     - name: Set SDK branch if not pull request
+      env:
+        REF_NAME: ${{ github.ref_name }}
       if: ${{ github.event_name != 'pull_request' }}
       run: |
-        echo "SDK_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
-        echo "TRAVIS_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+        echo "SDK_BRANCH=$REF_NAME" >> $GITHUB_ENV
+        echo "TRAVIS_BRANCH=$REF_NAME" >> $GITHUB_ENV
     - name: Trigger build
       env:
         SDK: react
