@@ -240,7 +240,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     });
 
     this._client = optimizely.createInstance(configWithClientInfo);
-    this.isClientReady = !!configWithClientInfo.datafile;
+    this.isClientReady = !!this.getOptimizelyConfig();
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
 
     if (this._client) {
@@ -250,8 +250,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         ([userResult, clientResult]) => {
           this.isClientReady = clientResult.success;
           this.isUserReady = userResult.success;
-          const clientAndUserReady = this.isClientReady && this.isUserReady;
-
+          const clientAndUserReady = this.isReady();
           this.clientAndUserReadyPromiseFulfilled = true;
 
           return {
