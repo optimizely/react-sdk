@@ -1430,6 +1430,14 @@ describe('ReactSDKClient', () => {
         expect(mockFn).toHaveBeenCalledTimes(1);
         expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { bla: 'bla' }, { tagKey: 'tagVal' });
       });
+
+      it('track with event key, userId undefined, attributes undefined, and event tags, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1', undefined, undefined, { tagKey: 'tagVal' });
+
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, { tagKey: 'tagVal' });
+      });
     });
   });
 
