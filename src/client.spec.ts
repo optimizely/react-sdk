@@ -1423,7 +1423,7 @@ describe('ReactSDKClient', () => {
         expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
       });
 
-      it.only('track with event key, tags, and overrided attributes, calls inner client with valid arguments', () => {
+      it('track with event key, tags, and overrided attributes, calls inner client with valid arguments', () => {
         const mockFn = mockInnerClient.track as jest.Mock;
         instance.track('evt1', { tagKey: 'tagVal' }, { bla: 'bla' });
 
