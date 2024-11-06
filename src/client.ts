@@ -635,7 +635,6 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     if (typeof overrideUserId !== 'undefined' && typeof overrideUserId !== 'string') {
       eventTags = overrideUserId;
       overrideUserId = undefined;
-      overrideAttributes = undefined;
     }
 
     const user = this.getUserWithOverrides(overrideUserId, overrideAttributes);

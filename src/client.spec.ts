@@ -1390,36 +1390,46 @@ describe('ReactSDKClient', () => {
       expect(mockFn).toHaveBeenCalledTimes(0);
     });
 
-    it('track works as expected', () => {
-      const mockFn = mockInnerClient.track as jest.Mock;
+    describe('track with different parameters', () => {
+      it('track with only event key, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1');
 
-      instance.track('evt1');
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, undefined);
+      });
 
-      expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, undefined);
+      it('track with event key and overrided user id and attributes, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1', 'user2', { bar: 'baz' });
 
-      mockFn.mockReset();
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user2', { bar: 'baz' }, undefined);
+      });
 
-      instance.track('evt1', 'user2', { bar: 'baz' });
+      it('track with event key and event tags, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1', { tagKey: 'tagVal' });
 
-      expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('evt1', 'user2', { bar: 'baz' }, undefined);
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, { tagKey: 'tagVal' });
+      });
 
-      mockFn.mockReset();
+      it('track with event key, overrided user id and attributes and event tags, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
 
-      // Use pre-set user with event tags
-      instance.track('evt1', { tagKey: 'tagVal' });
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
+      });
 
-      expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { foo: 'bar' }, { tagKey: 'tagVal' });
+      it.only('track with event key, tags, and overrided attributes, calls inner client with valid arguments', () => {
+        const mockFn = mockInnerClient.track as jest.Mock;
+        instance.track('evt1', { tagKey: 'tagVal' }, { bla: 'bla' });
 
-      mockFn.mockReset();
-
-      // Use overrides with event tags
-      instance.track('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
-
-      expect(mockFn).toHaveBeenCalledTimes(1);
-      expect(mockFn).toHaveBeenCalledWith('evt1', 'user3', { bla: 'bla' }, { tagKey: 'tagVal' });
+        expect(mockFn).toHaveBeenCalledTimes(1);
+        expect(mockFn).toHaveBeenCalledWith('evt1', 'user1', { bla: 'bla' }, { tagKey: 'tagVal' });
+      });
     });
   });
 
