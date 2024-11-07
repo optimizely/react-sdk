@@ -83,6 +83,8 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should render successfully without user or userId provided', () => {
+    // @ts-ignore
+    mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith(DefaultUser);
@@ -95,11 +97,28 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should succeed just userAttributes provided', () => {
+    // @ts-ignore
+    mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value1' }} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
       id: DefaultUser.id,
       attributes: { attr1: 'value1' },
+    });
+  });
+
+  it('should succeed with the initial user available in client', () => {
+    render(<OptimizelyProvider optimizely={mockReactClient} />);
+
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1);
+  });
+
+  it('should succeed with the initial user id and newly passed attributes', () => {
+    render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value2' }} />);
+
+    expect(mockReactClient.setUser).toHaveBeenCalledWith({
+      id: user1.id,
+      attributes: { attr1: 'value2' },
     });
   });
 
