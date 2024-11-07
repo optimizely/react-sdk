@@ -8,7 +8,6 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
-    "importHelpers": false,
     "strictNullChecks": true,
     "noLib": false,
     "emitDecoratorMetadata": true,
