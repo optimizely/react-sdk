@@ -74,9 +74,10 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
       // deprecation warning
       logger.warn('Passing userId and userAttributes as props is deprecated, please switch to using `user` prop');
     } else if (optimizely.user) {
+      const { id, attributes } = optimizely.user;
       finalUser = {
-        id: optimizely.user.id,
-        attributes: optimizely.user.attributes || userAttributes || {},
+        id,
+        attributes: userAttributes || attributes || {},
       };
     } else {
       finalUser = {
