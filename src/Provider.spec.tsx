@@ -83,6 +83,8 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should render successfully without user or userId provided', () => {
+    // @ts-ignore
+    mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith(DefaultUser);
@@ -95,6 +97,8 @@ describe('OptimizelyProvider', () => {
   });
 
   it('should succeed just userAttributes provided', () => {
+    // @ts-ignore
+    mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value1' }} />);
 
     expect(mockReactClient.setUser).toHaveBeenCalledWith({
