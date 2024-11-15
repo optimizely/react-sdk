@@ -525,10 +525,6 @@ Copyright &copy; 2014 Taylor Hakes
 Copyright &copy; 2014 Forbes Lindesay
 License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICENSE)
 
-[**prop-types**](https://github.com/facebook/prop-types)
-Copyright &copy; 2013-present, Facebook, Inc.
-License: [MIT](https://github.com/facebook/prop-types/blob/master/LICENSE)
-
 [**react-is**](https://github.com/facebook/react)
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
