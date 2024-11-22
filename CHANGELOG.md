@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.2.3] - Nov 22, 2024
+
+### Bug fixes
+- `isClientReady` logic adjustment.([#285](https://github.com/optimizely/react-sdk/pull/285))
+- `track` method overrideAttribute bug fix.([#287](https://github.com/optimizely/react-sdk/pull/287)) 
+- "`OptimizelyProvider` resets previously set user" bug fix.([#292](https://github.com/optimizely/react-sdk/pull/292)) 
+ 
+
 ## [3.2.2] - Aug 21, 2024
 
 ### Bug fixes 
