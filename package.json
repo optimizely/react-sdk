@@ -42,8 +42,7 @@
   },
   "dependencies": {
     "@optimizely/optimizely-sdk": "^5.3.4",
-    "hoist-non-react-statics": "^3.3.2",
-    "utility-types": "^2.1.0 || ^3.0.0"
+    "hoist-non-react-statics": "^3.3.2"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
