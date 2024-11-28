@@ -537,10 +537,6 @@ License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
 Copyright &copy; Facebook, Inc. and its affiliates.
 License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
 
-[**utility-types**](https://github.com/piotrwitek/utility-types)
-Copyright &copy; 2016 Piotr Witek <piotrek.witek@gmail.com>
-License: [MIT](https://github.com/piotrwitek/utility-types/blob/master/LICENSE)
-
 [**node-uuid**](https://github.com/kelektiv/node-uuid)
 Copyright &copy; 2010-2016 Robert Kieffer and other contributors
 License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)

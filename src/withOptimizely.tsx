@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import * as React from 'react';
-import { Subtract } from 'utility-types';
 
 import { OptimizelyContextConsumer, OptimizelyContextInterface } from './Context';
 import { ReactSDKClient } from './client';
@@ -26,7 +25,7 @@ export interface WithOptimizelyProps {
   isServerSide: boolean;
 }
 
-export type WithoutOptimizelyProps<P extends WithOptimizelyProps> = Subtract<P, WithOptimizelyProps>;
+export type WithoutOptimizelyProps<P extends WithOptimizelyProps> = Omit<P, keyof WithOptimizelyProps>;
 
 export function withOptimizely<P extends WithOptimizelyProps, R>(
   Component: React.ComponentType<P>
