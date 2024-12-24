@@ -242,7 +242,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     this._client = optimizely.createInstance(configWithClientInfo);
     this.isClientReady = !!this.getOptimizelyConfig();
     this.isUsingSdkKey = !!configWithClientInfo.sdkKey;
-
+    console.log('I am in the constructor', this.isClientReady, this.isUsingSdkKey);
     if (this._client) {
       const clientReadyPromise = this._client.onReady();
 
@@ -250,6 +250,8 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
         ([userResult, clientResult]) => {
           this.isClientReady = clientResult.success;
           this.isUserReady = userResult.success;
+          console.log('isClientReady', this.isClientReady);
+          console.log('isUserReady', this.isUserReady);
           const clientAndUserReady = this.isReady();
           this.clientAndUserReadyPromiseFulfilled = true;
 
@@ -382,6 +384,10 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
   }
 
   public async setUser(userInfo: UserInfo): Promise<void> {
+    // If user id is not present and ODP is explicitly off, user promise will be pending
+    if (userInfo?.id === null && this.odpExplicitlyOff) {
+      return;
+    }
     this.user = {
       id: userInfo.id || DefaultUser.id,
       attributes: userInfo.attributes || DefaultUser.attributes,
