@@ -383,7 +383,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
 
   public async setUser(userInfo: UserInfo): Promise<void> {
     // If user id is not present and ODP is explicitly off, user promise will be pending until setUser is called again with proper user id
-    if (userInfo?.id === null && this.odpExplicitlyOff) {
+    if (userInfo.id === null && this.odpExplicitlyOff) {
       return;
     }
     this.user = {
