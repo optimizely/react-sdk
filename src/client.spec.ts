@@ -315,6 +315,25 @@ describe('ReactSDKClient', () => {
       expect(instance.getUserContext()).toBe(null);
     });
 
+    it('if user id is not present, and ODP is explicitly off, user promise will be pending', async () => {
+      jest.spyOn(mockInnerClient, 'onReady').mockResolvedValue({ success: true });
+
+      instance = createInstance({
+        ...config,
+        odpOptions: {
+          disabled: true,
+        },
+      });
+
+      await instance.setUser(DefaultUser);
+      expect(instance.isReady()).toBe(false);
+
+      await instance.setUser({ id: 'user123' });
+      await instance.onReady();
+
+      expect(instance.isReady()).toBe(true);
+    });
+
     it('can be called with no/default user set', async () => {
       jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(validVuid);
 
