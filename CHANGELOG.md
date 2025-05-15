@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.2.4] - May 15, 2025
+### Bug fixes
+- `client.onReady()` always returns false when ODP is off and user id is null bug fix.([#302](https://github.com/optimizely/react-sdk/pull/285))
+
 ## [3.2.3] - Nov 22, 2024
 
 ### Bug fixes
