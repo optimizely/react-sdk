@@ -614,10 +614,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@optimizely/optimizely-sdk@^5.3.4":
-  version "5.3.4"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.3.4.tgz#3d5cb2848fba1783439b1ff25c74013c78d17364"
-  integrity sha512-N9BVFBoWY//cgrZu4dnUCXbbvFtx8bJURvsvQurCqdKn0pqAawDbWpm4mDTl8H3W5J4fXC5s+8xlDywiGHCY6Q==
+"@optimizely/optimizely-sdk@^5.4.0":
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.4.0.tgz#6acfb5011faff881b519b9c5147ac733a52cdbfe"
+  integrity sha512-hqGGgBxYkHIgiiH6RAMU0pbbj1NXYYne3vAUMtyai8godTu9w+OLZcsIGZX8FjB2UnESOE3TLL4+szLkQzZ8yg==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
