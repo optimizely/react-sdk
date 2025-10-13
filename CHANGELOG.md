@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.3.0] - Oct 13, 2025 
+
+### New Features
+- Added `customHeaders` option to `datafileOptions` for passing custom HTTP headers in datafile requests.
+
+### Bug Fixes
+- Fix the EventTags type to allow event properties.
+- Fix typo in event.experimentIds field in project config.
+
 ## [3.2.4] - May 15, 2025
 ### Bug fixes
 - `client.onReady()` always returns false when ODP is off and user id is null bug fix.([#302](https://github.com/optimizely/react-sdk/pull/285))
