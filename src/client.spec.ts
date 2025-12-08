@@ -178,7 +178,7 @@ describe('ReactSDKClient', () => {
       expect(createInstanceSpy).toHaveBeenCalledWith({
         ...config,
         clientEngine: 'react-sdk',
-        clientVersion: '3.3.0',
+        clientVersion: '3.3.1',
       });
     });
 
