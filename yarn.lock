@@ -614,10 +614,10 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@optimizely/optimizely-sdk@^5.4.0":
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.4.0.tgz#6acfb5011faff881b519b9c5147ac733a52cdbfe"
-  integrity sha512-hqGGgBxYkHIgiiH6RAMU0pbbj1NXYYne3vAUMtyai8godTu9w+OLZcsIGZX8FjB2UnESOE3TLL4+szLkQzZ8yg==
+"@optimizely/optimizely-sdk@^5.4.1":
+  version "5.4.1"
+  resolved "https://registry.yarnpkg.com/@optimizely/optimizely-sdk/-/optimizely-sdk-5.4.1.tgz#6a575eb84db132006563799d5964fa7b27e4db5d"
+  integrity sha512-xYjZ9aJbMZvLe2ejJaYNWNp2v0xluXtSMafcFjZliBE0bTKyiBPVwCyrckw/KBD/E7Aj43OsD7nj8letCtq4uA==
   dependencies:
     decompress-response "^4.2.1"
     json-schema "^0.4.0"
@@ -4748,9 +4748,9 @@ typescript@^5.5.4:
   integrity sha512-Mtq29sKDAEYP7aljRgtPOpTvOfbwRWlS6dPRzwjdE+C0R4brX/GUyhHSecbHMFLNBLcJIPt9nl9yG5TZ1weH+Q==
 
 ua-parser-js@^1.0.37:
-  version "1.0.38"
-  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.38.tgz#66bb0c4c0e322fe48edfe6d446df6042e62f25e2"
-  integrity sha512-Aq5ppTOfvrCMgAPneW1HfWj66Xi7XL+/mIy996R1/CLS/rcyJQm6QZdsKrUeivDFQ+Oc9Wyuwor8Ze8peEoUoQ==
+  version "1.0.41"
+  resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-1.0.41.tgz#bd04dc9ec830fcf9e4fad35cf22dcedd2e3b4e9c"
+  integrity sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==
 
 unbox-primitive@^1.0.2:
   version "1.0.2"

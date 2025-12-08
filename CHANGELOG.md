@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.3.1] - Dec 8, 2025 
+
+### Changed
+- Widen React Native peer dependency version ranges.
+- Improve notification center type definitions with strongly-typed listener payloads.
+
 ## [3.3.0] - Oct 13, 2025 
 
 ### New Features
