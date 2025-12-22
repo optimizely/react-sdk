@@ -29,7 +29,7 @@
     "test": "jest --silent",
     "test-coverage": "jest --coverage --coverageReporters=\"text-summary\" --silent",
     "prepublishOnly": "npm run test && npm run build",
-    "prepare": "npm run build && husky install"
+    "prepare": "npm run build && husky"
   },
   "publishConfig": {
     "access": "public"
