@@ -64,7 +64,9 @@ export function hoistStaticsAndForwardRefs<R, P extends AcceptsForwardedRef<R>>(
   // From the React docs:
   //   https://reactjs.org/docs/higher-order-components.html#static-methods-must-be-copied-over
   //   https://reactjs.org/docs/forwarding-refs.html#forwarding-refs-in-higher-order-components
-  const forwardRef: React.ForwardRefRenderFunction<R, P> = (props, ref) => <Target {...props} forwardedRef={ref} />;
+  const forwardRef: React.ForwardRefRenderFunction<R, React.PropsWithoutRef<P>> = (props, ref) => (
+    <Target {...(props as P)} forwardedRef={ref} />
+  );
   forwardRef.displayName = `${displayName}(${Source.displayName || Source.name})`;
   return hoistNonReactStatics<
     React.ForwardRefExoticComponent<React.PropsWithoutRef<P> & React.RefAttributes<R>>,
