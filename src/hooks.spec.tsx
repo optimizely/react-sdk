@@ -189,7 +189,7 @@ describe('hooks', () => {
 
     UseDecisionLoggingComponent = ({ options = {}, overrides = {} }: any) => {
       const [decision] = useDecision('feature1', { ...options }, { ...overrides });
-      decision && mockLog(decision.enabled);
+      if (decision) mockLog(decision.enabled);
       return <div>{decision && decision.enabled}</div>;
     };
   });
