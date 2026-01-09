@@ -43,9 +43,9 @@
     "access": "public"
   },
   "lint-staged": {
-    "**/*.{js,ts,tsx}": [
+    "src/**/*.{js,ts,tsx}": [
       "npm run lint",
-      "npm run test --findRelatedTests"
+      "npm run test -- --findRelatedTests --passWithNoTests"
     ]
   },
   "dependencies": {
