@@ -1,22 +1,21 @@
 {
   "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "lib": ["ES6", "DOM"],
     "declaration": true,
-    "target": "es5",
-    "lib": ["es2015", "dom"],
-    "jsx": "react",
-    "moduleResolution": "node",
-    "noImplicitReturns": true,
+    "strict": true,
     "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "noLib": false,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "sourceMap": true,
+    "noImplicitReturns": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
     "declarationDir": "./dist",
-    "outDir": "./lib",
-    "esModuleInterop": true
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "jsx": "react"
   },
-  "include": ["./src"],
-  "exclude": ["./node_modules", "./src/**/*.spec.tsx", "./src/**/*.spec.ts"]
- }
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"],
+  "exclude": ["./dist", "./node_modules", "**/*.spec.ts", "**/*.spec.tsx"]
+}

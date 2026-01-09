@@ -61,6 +61,7 @@ const Experiment: React.FunctionComponent<ExperimentProps> = (props) => {
   // We use React.Children.forEach instead of React.Children.toArray().find()
   // here because toArray adds keys to all child elements and we do not want
   // to trigger an unmount/remount
+  // @ts-ignore
   React.Children.forEach(children, (child: React.ReactElement<VariationProps>) => {
     if (!React.isValidElement(child)) {
       return;
