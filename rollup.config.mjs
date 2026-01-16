@@ -14,81 +14,20 @@
  * limitations under the License.
  */
 
-import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
 import pkg from './package.json' with { type: 'json' };
 
 const { dependencies, peerDependencies } = pkg;
 const external = [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {}), 'crypto'];
 
-const cjsBundle = (minify = true) => ({
+export default {
   input: '.build/index.js',
   external,
-  plugins: [resolve({ browser: true }), commonjs(), minify && terser()].filter(Boolean),
+  plugins: [resolve({ browser: true }), terser()],
   output: {
-    file: `dist/react-sdk${minify ? '.min' : ''}.js`,
-    format: 'cjs',
-    exports: 'named',
-    sourcemap: true,
-    globals: { react: 'React' },
-  },
-});
-
-const esmBundle = (minify = true) => ({
-  input: '.build/index.js',
-  external,
-  plugins: [resolve({ browser: true }), commonjs(), minify && terser()].filter(Boolean),
-  output: {
-    file: `dist/react-sdk.es${minify ? '.min' : ''}.js`,
+    file: 'dist/react-sdk.es.min.js',
     format: 'es',
     sourcemap: true,
   },
-});
-
-const umdBundle = (minify = true) => ({
-  input: '.build/index.js',
-  external: ['react'],
-  plugins: [
-    resolve({ browser: true }),
-    commonjs(),
-    replace({
-      'process.env.NODE_ENV': JSON.stringify('production'),
-      preventAssignment: true,
-    }),
-    minify && terser(),
-  ].filter(Boolean),
-  output: {
-    file: `dist/react-sdk.umd${minify ? '.min' : ''}.js`,
-    format: 'umd',
-    name: 'optimizelyReactSdk',
-    exports: 'named',
-    sourcemap: true,
-    globals: { react: 'React' },
-  },
-});
-
-const bundles = {
-  'cjs-min': cjsBundle(true),
-  cjs: cjsBundle(false),
-  'esm-min': esmBundle(true),
-  esm: esmBundle(false),
-  'umd-min': umdBundle(true),
-  umd: umdBundle(false),
-};
-
-export default (args) => {
-  const patterns = Object.keys(args)
-    .filter((arg) => arg.startsWith('config-'))
-    .map((arg) => arg.replace(/config-/, ''));
-
-  if (!patterns.length) {
-    // Default: build minified versions only
-    return [bundles['cjs-min'], bundles['esm-min'], bundles['umd-min']];
-  }
-
-  return Object.entries(bundles)
-    .filter(([name]) => patterns.some((pattern) => name.match(pattern)))
-    .map(([, config]) => config);
 };

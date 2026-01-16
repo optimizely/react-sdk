@@ -5,16 +5,13 @@
   "homepage": "https://github.com/optimizely/react-sdk",
   "repository": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
-  "main": "./dist/react-sdk.min.js",
-  "module": "./dist/react-sdk.es.min.js",
-  "browser": "./dist/react-sdk.es.min.js",
+  "main": "./dist/react-sdk.es.min.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/react-sdk.es.min.js",
-      "require": "./dist/react-sdk.min.js",
-      "default": "./dist/react-sdk.min.js"
+      "default": "./dist/react-sdk.es.min.js"
     }
   },
   "files": [
@@ -32,7 +29,6 @@
     "prebuild": "npm run clean",
     "build": "tsc && rollup -c",
     "build:win": "npm run clean:win && tsc && rollup -c",
-    "build-umd": "rollup -c --config-umd",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --fix",
     "test": "jest --silent",
     "test-coverage": "jest --coverage --coverageReporters=\"text-summary\" --silent",
@@ -57,9 +53,7 @@
     "react": ">=16.8.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-replace": "^6.0.3",
     "@rollup/plugin-terser": "^0.4.4",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^14.3.0",
