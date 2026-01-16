@@ -4,18 +4,19 @@
     "module": "ESNext",
     "lib": ["ES6", "DOM"],
     "declaration": true,
+    "importHelpers": true,
     "strict": true,
     "noImplicitThis": true,
     "noImplicitReturns": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "outDir": "./dist",
+    "outDir": "./.build",
     "declarationDir": "./dist",
     "sourceMap": true,
     "skipLibCheck": true,
     "jsx": "react"
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx"],
-  "exclude": ["./dist", "./node_modules", "**/*.spec.ts", "**/*.spec.tsx"]
+  "exclude": ["./dist", "./.build", "./node_modules", "**/*.spec.ts", "**/*.spec.tsx"]
 }

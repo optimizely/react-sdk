@@ -18,23 +18,15 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
-import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json' with { type: 'json' };
 
 const { dependencies, peerDependencies } = pkg;
 const external = [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {}), 'crypto'];
 
-const typescriptPluginOptions = {
-  exclude: ['./dist', '**/*.spec.ts', '**/*.spec.tsx'],
-  include: ['./src/**/*.ts', './src/**/*.tsx'],
-};
-
 const cjsBundle = (minify = true) => ({
-  input: 'src/index.ts',
+  input: '.build/index.js',
   external,
-  plugins: [resolve({ browser: true }), commonjs(), typescript(typescriptPluginOptions), minify && terser()].filter(
-    Boolean
-  ),
+  plugins: [resolve({ browser: true }), commonjs(), minify && terser()].filter(Boolean),
   output: {
     file: `dist/react-sdk${minify ? '.min' : ''}.js`,
     format: 'cjs',
@@ -45,11 +37,9 @@ const cjsBundle = (minify = true) => ({
 });
 
 const esmBundle = (minify = true) => ({
-  input: 'src/index.ts',
+  input: '.build/index.js',
   external,
-  plugins: [resolve({ browser: true }), commonjs(), typescript(typescriptPluginOptions), minify && terser()].filter(
-    Boolean
-  ),
+  plugins: [resolve({ browser: true }), commonjs(), minify && terser()].filter(Boolean),
   output: {
     file: `dist/react-sdk.es${minify ? '.min' : ''}.js`,
     format: 'es',
@@ -58,7 +48,7 @@ const esmBundle = (minify = true) => ({
 });
 
 const umdBundle = (minify = true) => ({
-  input: 'src/index.ts',
+  input: '.build/index.js',
   external: ['react'],
   plugins: [
     resolve({ browser: true }),
@@ -67,7 +57,6 @@ const umdBundle = (minify = true) => ({
       'process.env.NODE_ENV': JSON.stringify('production'),
       preventAssignment: true,
     }),
-    typescript(typescriptPluginOptions),
     minify && terser(),
   ].filter(Boolean),
   output: {
