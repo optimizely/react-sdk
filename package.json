@@ -5,12 +5,14 @@
   "homepage": "https://github.com/optimizely/react-sdk",
   "repository": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
-  "module": "dist/react-sdk.es.js",
-  "types": "dist/index.d.ts",
-  "main": "dist/react-sdk.js",
-  "browser": "dist/react-sdk.js",
-  "directories": {
-    "lib": "lib"
+  "main": "./dist/react-sdk.es.min.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/react-sdk.es.min.mjs",
+      "default": "./dist/react-sdk.es.min.mjs"
+    }
   },
   "files": [
     "dist",
@@ -22,9 +24,11 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "tsc": "rm -rf lib/ && tsc",
-    "build": "rm -rf dist/ && node ./scripts/build.js",
-    "build:win": "(if exist dist rd /s/q dist) && node ./scripts/winbuild.js",
+    "clean": "rm -rf dist .build",
+    "clean:win": "(if exist dist rd /s/q dist) && (if exist .build rd /s/q .build)",
+    "prebuild": "npm run clean",
+    "build": "tsc && rollup -c",
+    "build:win": "npm run clean:win && tsc && rollup -c",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --fix",
     "test": "jest --silent",
     "test-coverage": "jest --coverage --coverageReporters=\"text-summary\" --silent",
@@ -35,23 +39,22 @@
     "access": "public"
   },
   "lint-staged": {
-    "**/*.{js,ts,tsx}": [
+    "src/**/*.{js,ts,tsx}": [
       "npm run lint",
-      "npm run test --findRelatedTests"
+      "npm run test -- --findRelatedTests --passWithNoTests"
     ]
   },
   "dependencies": {
     "@optimizely/optimizely-sdk": "^5.4.1",
-    "hoist-non-react-statics": "^3.3.2"
+    "hoist-non-react-statics": "^3.3.2",
+    "tslib": "^2.8.1"
   },
   "peerDependencies": {
     "react": ">=16.8.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^26.0.1",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "@rollup/plugin-replace": "^5.0.7",
-    "@rollup/plugin-terser": "0.4.2",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^14.3.0",
     "@types/hoist-non-react-statics": "^3.3.5",
@@ -72,9 +75,8 @@
     "prettier": "^3.3.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
-    "rollup": "^3.29.4",
-    "rollup-plugin-typescript2": "^0.36.0",
+    "rollup": "^4.55.1",
     "ts-jest": "^29.2.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.9.3"
   }
 }
