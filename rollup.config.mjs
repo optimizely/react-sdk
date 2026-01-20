@@ -26,7 +26,7 @@ export default {
   external,
   plugins: [resolve({ browser: true }), terser()],
   output: {
-    file: 'dist/react-sdk.es.min.js',
+    file: 'dist/react-sdk.es.min.mjs',
     format: 'es',
     sourcemap: true,
   },

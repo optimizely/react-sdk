@@ -5,13 +5,13 @@
   "homepage": "https://github.com/optimizely/react-sdk",
   "repository": "https://github.com/optimizely/react-sdk",
   "license": "Apache-2.0",
-  "main": "./dist/react-sdk.es.min.js",
+  "main": "./dist/react-sdk.es.min.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/react-sdk.es.min.js",
-      "default": "./dist/react-sdk.es.min.js"
+      "import": "./dist/react-sdk.es.min.mjs",
+      "default": "./dist/react-sdk.es.min.mjs"
     }
   },
   "files": [
