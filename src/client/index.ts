@@ -1,0 +1,50 @@
+/**
+ * Copyright 2026, Optimizely
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+export { createInstance } from './createInstance';
+
+export type { ReactClientConfig } from './createInstance';
+
+export type {
+  OpaqueConfigManager,
+  OpaqueEventProcessor,
+  OpaqueOdpManager,
+  OpaqueVuidManager,
+  OpaqueLogger,
+  OpaqueErrorNotifier,
+  UserProfileService,
+  PollingConfigManagerConfig,
+  StaticConfigManagerConfig,
+  BatchEventProcessorOptions,
+  OdpManagerOptions,
+  VuidManagerOptions,
+  LoggerConfig,
+  Client as OptimizelyClient,
+  OptimizelyUserContext,
+  OptimizelyDecision,
+  OptimizelyDecideOption,
+} from '@optimizely/optimizely-sdk';
+
+export {
+  createPollingProjectConfigManager,
+  createStaticProjectConfigManager,
+  createBatchEventProcessor,
+  createForwardingEventProcessor,
+  createOdpManager,
+  createVuidManager,
+  createErrorNotifier,
+  createLogger, // This will be removed later with a wrapper from react-end
+} from '@optimizely/optimizely-sdk';
