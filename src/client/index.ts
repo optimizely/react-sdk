@@ -15,7 +15,6 @@
  */
 
 export { createInstance } from './createInstance';
-export type { ReactClientConfig } from './createInstance';
 
 export type * from '@optimizely/optimizely-sdk';
 
@@ -27,5 +26,5 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-  createLogger, // This will be removed later with a wrapper from react-end
+  createLogger, // This will be removed later with logger implementation changes
 } from '@optimizely/optimizely-sdk';

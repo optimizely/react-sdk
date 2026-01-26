@@ -21,19 +21,12 @@ const CLIENT_ENGINE = 'react-sdk';
 const CLIENT_VERSION = '4.0.0';
 
 /**
- * Configuration for creating a React Optimizely client.
- * Extends JS SDK Config but excludes clientEngine and clientVersion
- * which are set internally by the React SDK.
- */
-export type ReactClientConfig = Omit<Config, 'clientEngine' | 'clientVersion'>;
-
-/**
  * Creates an Optimizely client instance for use with React SDK.
  *
  * @param config - Configuration object for the Optimizely client
  * @returns An OptimizelyClient instance
  */
-export function createInstance(config: ReactClientConfig): Client {
+export function createInstance(config: Config): Client {
   return jsCreateInstance({
     ...config,
     clientEngine: CLIENT_ENGINE,
