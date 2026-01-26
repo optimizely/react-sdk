@@ -14,46 +14,29 @@
  * limitations under the License.
  */
 
-import { createInstance as jsCreateInstance, CacheWithRemove } from '@optimizely/optimizely-sdk';
+import { createInstance as jsCreateInstance } from '@optimizely/optimizely-sdk';
+import type { Config, Client } from '@optimizely/optimizely-sdk';
 
-import type {
-  OpaqueConfigManager,
-  OpaqueEventProcessor,
-  OpaqueOdpManager,
-  OpaqueVuidManager,
-  OpaqueLogger,
-  OpaqueErrorNotifier,
-  UserProfileService,
-  Client as OptimizelyClient,
-  OptimizelyDecideOption,
-} from '@optimizely/optimizely-sdk';
+const CLIENT_ENGINE = 'react-sdk';
+const CLIENT_VERSION = '4.0.0';
 
-export interface ReactClientConfig {
-  projectConfigManager: OpaqueConfigManager;
-  eventProcessor?: OpaqueEventProcessor;
-  odpManager?: OpaqueOdpManager;
-  vuidManager?: OpaqueVuidManager;
-  logger?: OpaqueLogger;
-  errorNotifier?: OpaqueErrorNotifier;
-  userProfileService?: UserProfileService;
-  defaultDecideOptions?: OptimizelyDecideOption[];
-  jsonSchemaValidator?: { validate(jsonObject: unknown): boolean };
-  disposable?: boolean;
-  cmab?: {
-    cacheSize?: number;
-    cacheTtl?: number;
-    cache?: CacheWithRemove<string>;
-    predictionEndpointTemplate?: string;
-  };
-}
+/**
+ * Configuration for creating a React Optimizely client.
+ * Extends JS SDK Config but excludes clientEngine and clientVersion
+ * which are set internally by the React SDK.
+ */
+export type ReactClientConfig = Omit<Config, 'clientEngine' | 'clientVersion'>;
 
 /**
  * Creates an Optimizely client instance for use with React SDK.
- * This is a lightweight wrapper around the JS SDK v6 createInstance.
  *
  * @param config - Configuration object for the Optimizely client
  * @returns An OptimizelyClient instance
  */
-export function createInstance(config: ReactClientConfig): OptimizelyClient {
-  return jsCreateInstance(config);
+export function createInstance(config: ReactClientConfig): Client {
+  return jsCreateInstance({
+    ...config,
+    clientEngine: CLIENT_ENGINE,
+    clientVersion: CLIENT_VERSION,
+  });
 }

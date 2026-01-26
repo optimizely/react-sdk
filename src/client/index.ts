@@ -15,28 +15,9 @@
  */
 
 export { createInstance } from './createInstance';
-
 export type { ReactClientConfig } from './createInstance';
 
-export type {
-  OpaqueConfigManager,
-  OpaqueEventProcessor,
-  OpaqueOdpManager,
-  OpaqueVuidManager,
-  OpaqueLogger,
-  OpaqueErrorNotifier,
-  UserProfileService,
-  PollingConfigManagerConfig,
-  StaticConfigManagerConfig,
-  BatchEventProcessorOptions,
-  OdpManagerOptions,
-  VuidManagerOptions,
-  LoggerConfig,
-  Client as OptimizelyClient,
-  OptimizelyUserContext,
-  OptimizelyDecision,
-  OptimizelyDecideOption,
-} from '@optimizely/optimizely-sdk';
+export type * from '@optimizely/optimizely-sdk';
 
 export {
   createPollingProjectConfigManager,
