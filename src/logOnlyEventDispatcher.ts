@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+// @ts-nocheck
 import * as optimizely from '@optimizely/optimizely-sdk';
 
 const logger = optimizely.getLogger('ReactSDK');

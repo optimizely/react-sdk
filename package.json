@@ -30,8 +30,10 @@
     "build": "tsc && rollup -c",
     "build:win": "npm run clean:win && tsc && rollup -c",
     "lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --fix",
-    "test": "jest --silent",
-    "test-coverage": "jest --coverage --coverageReporters=\"text-summary\" --silent",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:legacy": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
     "prepare": "npm run build && husky"
   },
@@ -60,11 +62,13 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.35.0",
     "eslint-plugin-react-hooks": "^4.6.2",
+    "happy-dom": "^20.4.0",
     "husky": "^9.0.0",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
@@ -74,6 +78,7 @@
     "react-dom": "^18.3.0",
     "rollup": "^4.55.1",
     "ts-jest": "^29.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

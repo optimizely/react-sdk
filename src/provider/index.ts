@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023, 2024, 2026 Optimizely
+ * Copyright 2026, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-// Client - re-export everything
-export * from './client';
+// Types
+export type { UserInfo, OptimizelyProviderProps, ProviderState, OptimizelyContextValue } from './types';
 
-// Provider
-export { OptimizelyProvider } from './provider/index';
-export type { UserInfo, OptimizelyProviderProps } from './provider/index';
+// Store
+export { ProviderStateStore } from './ProviderStateStore';
+export type { StateListener } from './ProviderStateStore';
+
+// Provider and Context
+export { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
