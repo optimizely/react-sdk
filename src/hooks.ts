@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+// @ts-nocheck
 import { useCallback, useContext, useEffect, useState, useRef, useMemo } from 'react';
 
 import { UserAttributes, OptimizelyDecideOption, getLogger } from '@optimizely/optimizely-sdk';

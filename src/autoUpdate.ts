@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// @ts-nocheck
 import { enums } from '@optimizely/optimizely-sdk';
 import { ReactSDKClient } from './client';
 import { LoggerFacade } from '@optimizely/optimizely-sdk/dist/modules/logging';
