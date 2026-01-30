@@ -64,7 +64,7 @@ export interface OptimizelyProviderProps {
  */
 export interface ProviderState {
   /**
-   * Whether the Optimizely client is ready.
+   * Whether js onReady() is resolved.
    */
   isClientReady: boolean;
 
