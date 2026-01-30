@@ -17,8 +17,8 @@
 import { createInstance as jsCreateInstance } from '@optimizely/optimizely-sdk';
 import type { Config, Client } from '@optimizely/optimizely-sdk';
 
-const CLIENT_ENGINE = 'react-sdk';
-const CLIENT_VERSION = '4.0.0';
+export const CLIENT_ENGINE = 'react-sdk';
+export const CLIENT_VERSION = '4.0.0';
 
 /**
  * Creates an Optimizely client instance for use with React SDK.
