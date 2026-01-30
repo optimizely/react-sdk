@@ -18,15 +18,7 @@
 module.exports = {
   testEnvironment: 'jsdom',
   roots: ['./src'],
+  testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   preset: 'ts-jest',
-
-  // Temporarily run only these directories during rewrite
-  // Add new paths as migration progresses
-  // TODO: Revert to testRegex after migration: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$'
-  testMatch: [
-    '<rootDir>/src/provider/**/*.spec.{ts,tsx}',
-    '<rootDir>/src/client/**/*.spec.{ts,tsx}',
-    // '<rootDir>/src/hooks/**/*.spec.{ts,tsx}',
-  ],
 };
