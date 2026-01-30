@@ -22,7 +22,7 @@ import { ProviderStateStore } from './ProviderStateStore';
  * User information passed to the Provider or hooks for user override.
  */
 export interface UserInfo {
-  id: string;
+  id?: string;
   attributes?: UserAttributes;
 }
 
@@ -64,7 +64,7 @@ export interface OptimizelyProviderProps {
  */
 export interface ProviderState {
   /**
-   * Whether the Optimizely client is ready (datafile loaded).
+   * Whether the Optimizely client is ready.
    */
   isClientReady: boolean;
 

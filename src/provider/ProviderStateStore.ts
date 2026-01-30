@@ -37,7 +37,7 @@ const initialState: ProviderState = {
  * The store follows a simple observable pattern:
  * - Hooks subscribe via `subscribe()` and receive state updates
  * - Provider updates state via setter methods
- * - State is immutable - each update creates a new state object
+ * - Listeners are notified on state changes via callbacks
  */
 export class ProviderStateStore {
   private state: ProviderState;
@@ -80,10 +80,7 @@ export class ProviderStateStore {
       return;
     }
 
-    this.state = {
-      ...this.state,
-      isClientReady: ready,
-    };
+    this.state.isClientReady = ready;
     this.notifyListeners();
   }
 
@@ -94,10 +91,7 @@ export class ProviderStateStore {
   setUserContext(ctx: OptimizelyUserContext | null): void {
     // Always update userContext even if same reference -
     // user attributes may have changed
-    this.state = {
-      ...this.state,
-      userContext: ctx,
-    };
+    this.state.userContext = ctx;
     this.notifyListeners();
   }
 
@@ -110,10 +104,7 @@ export class ProviderStateStore {
       return; // No change, skip notification
     }
 
-    this.state = {
-      ...this.state,
-      error,
-    };
+    this.state.error = error;
     this.notifyListeners();
   }
 

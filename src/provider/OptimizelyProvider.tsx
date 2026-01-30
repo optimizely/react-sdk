@@ -74,8 +74,10 @@ export function OptimizelyProvider({
       } catch (error) {
         if (!isMounted) return;
         const err = error instanceof Error ? error : new Error(String(error));
-        store.setClientReady(false);
-        store.setError(err);
+        store.setState({
+          isClientReady: false,
+          error: err,
+        });
       }
     };
 
