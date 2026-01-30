@@ -21,4 +21,5 @@ export type { UserInfo, OptimizelyProviderProps, ProviderState, OptimizelyContex
 export { ProviderStateStore } from './ProviderStateStore';
 export type { StateListener } from './ProviderStateStore';
 
-// Provider and Context will be exported here once implemented
+// Provider and Context
+export { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
