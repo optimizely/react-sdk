@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { vi, describe, it, expect } from 'vitest';
 import React, { useContext } from 'react';
 import { render, waitFor, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
 import type { Client as OptimizelyClient, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
@@ -27,31 +27,31 @@ import type { OptimizelyContextValue } from './types';
  */
 function createMockClient(overrides: Partial<OptimizelyClient> = {}): OptimizelyClient {
   const mockUserContext: OptimizelyUserContext = {
-    getUserId: jest.fn().mockReturnValue('test-user'),
-    getAttributes: jest.fn().mockReturnValue({}),
-    fetchQualifiedSegments: jest.fn().mockResolvedValue(true),
-    decide: jest.fn(),
-    decideAll: jest.fn(),
-    decideForKeys: jest.fn(),
-    setForcedDecision: jest.fn(),
-    getForcedDecision: jest.fn(),
-    removeForcedDecision: jest.fn(),
-    removeAllForcedDecisions: jest.fn(),
-    trackEvent: jest.fn(),
-    getOptimizely: jest.fn(),
-    setQualifiedSegments: jest.fn(),
-    getQualifiedSegments: jest.fn().mockReturnValue([]),
+    getUserId: vi.fn().mockReturnValue('test-user'),
+    getAttributes: vi.fn().mockReturnValue({}),
+    fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+    decide: vi.fn(),
+    decideAll: vi.fn(),
+    decideForKeys: vi.fn(),
+    setForcedDecision: vi.fn(),
+    getForcedDecision: vi.fn(),
+    removeForcedDecision: vi.fn(),
+    removeAllForcedDecisions: vi.fn(),
+    trackEvent: vi.fn(),
+    getOptimizely: vi.fn(),
+    setQualifiedSegments: vi.fn(),
+    getQualifiedSegments: vi.fn().mockReturnValue([]),
   } as unknown as OptimizelyUserContext;
 
   return {
     // onReady() resolves when client is ready, rejects on timeout/error
-    onReady: jest.fn().mockResolvedValue(undefined),
-    createUserContext: jest.fn().mockReturnValue(mockUserContext),
-    close: jest.fn(),
-    getOptimizelyConfig: jest.fn(),
+    onReady: vi.fn().mockResolvedValue(undefined),
+    createUserContext: vi.fn().mockReturnValue(mockUserContext),
+    close: vi.fn(),
+    getOptimizelyConfig: vi.fn(),
     notificationCenter: {} as OptimizelyClient['notificationCenter'],
-    sendOdpEvent: jest.fn(),
-    isOdpIntegrated: jest.fn().mockReturnValue(false),
+    sendOdpEvent: vi.fn(),
+    isOdpIntegrated: vi.fn().mockReturnValue(false),
     ...overrides,
   } as unknown as OptimizelyClient;
 }
@@ -137,7 +137,7 @@ describe('OptimizelyProvider', () => {
 
     it('should set isClientReady to true when onReady succeeds', async () => {
       const mockClient = createMockClient({
-        onReady: jest.fn().mockResolvedValue(undefined),
+        onReady: vi.fn().mockResolvedValue(undefined),
       });
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -158,7 +158,7 @@ describe('OptimizelyProvider', () => {
     it('should set isClientReady to false and set error when onReady rejects', async () => {
       const testError = new Error('Client initialization failed');
       const mockClient = createMockClient({
-        onReady: jest.fn().mockRejectedValue(testError),
+        onReady: vi.fn().mockRejectedValue(testError),
       });
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -180,7 +180,7 @@ describe('OptimizelyProvider', () => {
     it('should set error when onReady times out (rejects)', async () => {
       const timeoutError = new Error('onReady timeout after 100ms');
       const mockClient = createMockClient({
-        onReady: jest.fn().mockRejectedValue(timeoutError),
+        onReady: vi.fn().mockRejectedValue(timeoutError),
       });
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -215,7 +215,7 @@ describe('OptimizelyProvider', () => {
   });
 
   describe('cleanup', () => {
-    it.only('should reset store on unmount', async () => {
+    it('should reset store on unmount', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 

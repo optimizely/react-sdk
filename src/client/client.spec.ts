@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
+import { vi, describe, it, expect, beforeEach, type MockedFunction } from 'vitest';
 import { createInstance as jsCreateInstance } from '@optimizely/optimizely-sdk';
 import type { Config } from '@optimizely/optimizely-sdk';
 import { createInstance, CLIENT_ENGINE, CLIENT_VERSION } from './createInstance';
 
-jest.mock('@optimizely/optimizely-sdk', () => ({
-  createInstance: jest.fn().mockReturnValue({
-    onReady: jest.fn().mockResolvedValue(undefined),
-    createUserContext: jest.fn(),
-    close: jest.fn(),
+vi.mock('@optimizely/optimizely-sdk', () => ({
+  createInstance: vi.fn().mockReturnValue({
+    onReady: vi.fn().mockResolvedValue(undefined),
+    createUserContext: vi.fn(),
+    close: vi.fn(),
   }),
 }));
 
-const mockedJsCreateInstance = jsCreateInstance as jest.MockedFunction<typeof jsCreateInstance>;
+const mockedJsCreateInstance = jsCreateInstance as MockedFunction<typeof jsCreateInstance>;
 
 // Minimal valid config for testing
 const createTestConfig = (overrides: Partial<Config> = {}): Config => ({
@@ -36,11 +37,11 @@ const createTestConfig = (overrides: Partial<Config> = {}): Config => ({
 
 describe('createInstance', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('client engine and version', () => {
-    it('should set clientEngine to "react-sdk"', () => {
+    it('should set clientEngine and clientVersion to "react-sdk"', () => {
       createInstance(createTestConfig());
       expect(mockedJsCreateInstance).toHaveBeenCalledWith(
         expect.objectContaining({

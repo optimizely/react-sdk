@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { ProviderStateStore } from './ProviderStateStore';
 
 describe('ProviderStateStore', () => {
@@ -35,7 +36,7 @@ describe('ProviderStateStore', () => {
 
   describe('subscribe', () => {
     it('should add listener and return unsubscribe function', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
 
       const unsubscribe = store.subscribe(listener);
 
@@ -43,7 +44,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should notify listener when state changes', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
 
       store.setClientReady(true);
@@ -57,8 +58,8 @@ describe('ProviderStateStore', () => {
     });
 
     it('should notify multiple listeners', () => {
-      const listener1 = jest.fn();
-      const listener2 = jest.fn();
+      const listener1 = vi.fn();
+      const listener2 = vi.fn();
       store.subscribe(listener1);
       store.subscribe(listener2);
 
@@ -69,7 +70,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should not notify after unsubscribe', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
 
       unsubscribe();
@@ -79,7 +80,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should handle multiple unsubscribes gracefully', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
 
       unsubscribe();
@@ -90,7 +91,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should allow re-subscribing after unsubscribe', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       const unsubscribe1 = store.subscribe(listener);
 
       unsubscribe1();
@@ -112,7 +113,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should not notify if value has not changed', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
 
       store.setClientReady(false); // Same as initial value
@@ -189,7 +190,7 @@ describe('ProviderStateStore', () => {
       const error = new Error('Test error');
       store.setError(error);
 
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
 
       store.setError(error);
@@ -212,7 +213,7 @@ describe('ProviderStateStore', () => {
 
   describe('setState', () => {
     it('should batch update multiple properties', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.subscribe(listener);
 
       const mockUserContext = { userId: 'test-user' } as any;
@@ -256,7 +257,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should notify listeners on reset', () => {
-      const listener = jest.fn();
+      const listener = vi.fn();
       store.setClientReady(true);
       store.subscribe(listener);
 
