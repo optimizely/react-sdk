@@ -20,16 +20,35 @@ import type { Config, Client } from '@optimizely/optimizely-sdk';
 export const CLIENT_ENGINE = 'react-sdk';
 export const CLIENT_VERSION = '4.0.0';
 
+export const REACT_CLIENT_META = Symbol('react-client-meta');
+
+export interface ReactClientMeta {
+  hasOdpManager: boolean;
+  isVuidEnabled: boolean;
+}
+
 /**
  * Creates an Optimizely client instance for use with React SDK.
  *
+ * Uses prototype delegation so the returned object inherits all methods
+ * from the JS SDK client while carrying React-specific metadata.
+ *
  * @param config - Configuration object for the Optimizely client
- * @returns An OptimizelyClient instance
+ * @returns An OptimizelyClient instance with React SDK metadata
  */
 export function createInstance(config: Config): Client {
-  return jsCreateInstance({
+  const jsClient = jsCreateInstance({
     ...config,
     clientEngine: CLIENT_ENGINE,
     clientVersion: CLIENT_VERSION,
   });
+
+  const reactClient = Object.create(jsClient);
+
+  reactClient[REACT_CLIENT_META] = {
+    hasOdpManager: !!config.odpManager,
+    isVuidEnabled: !!config.vuidManager,
+  } satisfies ReactClientMeta;
+
+  return reactClient;
 }
