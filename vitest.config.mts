@@ -7,13 +7,14 @@ export default defineConfig({
     include: [
       'src/client/**/*.spec.{ts,tsx}',
       'src/provider/**/*.spec.{ts,tsx}',
+      'src/utils/**/*.spec.{ts,tsx}',
       // Add more paths as migration progresses
     ],
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'lcov'],
       reportsDirectory: './coverage',
-      include: ['src/client/**', 'src/provider/**'],
+      include: ['src/client/**', 'src/provider/**', 'src/utils/**'],
     },
   },
 });
