@@ -88,13 +88,13 @@ describe('createInstance', () => {
     it('should set isVuidEnabled to false when vuidManager is not provided', () => {
       const client = createInstance(createTestConfig());
       const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.isVuidEnabled).toBe(false);
+      expect(meta.hasVuidManager).toBe(false);
     });
 
     it('should set isVuidEnabled to true when vuidManager is provided', () => {
       const client = createInstance(createTestConfig({ vuidManager: {} as Config['vuidManager'] }));
       const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.isVuidEnabled).toBe(true);
+      expect(meta.hasVuidManager).toBe(true);
     });
 
     it('should store meta on the react client, not on the prototype', () => {

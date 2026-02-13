@@ -24,7 +24,7 @@ export const REACT_CLIENT_META = Symbol('react-client-meta');
 
 export interface ReactClientMeta {
   hasOdpManager: boolean;
-  isVuidEnabled: boolean;
+  hasVuidManager: boolean;
 }
 
 /**
@@ -47,7 +47,7 @@ export function createInstance(config: Config): Client {
 
   reactClient[REACT_CLIENT_META] = {
     hasOdpManager: !!config.odpManager,
-    isVuidEnabled: !!config.vuidManager,
+    hasVuidManager: !!config.vuidManager,
   } satisfies ReactClientMeta;
 
   return reactClient;
