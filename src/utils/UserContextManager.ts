@@ -55,11 +55,14 @@ export class UserContextManager {
   /**
    * Creates a user context, optionally waiting for VUID resolution and
    * fetching ODP segments. Only the latest call's callbacks will fire.
+   *
+   * @param user - Optional user info (id and attributes)
+   * @param qualifiedSegments - Optional pre-fetched segments. When provided,
    */
-  createUserContext(user?: UserInfo): void {
+  createUserContext(user?: UserInfo, qualifiedSegments?: string[]): void {
     const requestId = ++this.requestId;
 
-    this.resolveUserContext(requestId, user).catch((error: unknown) => {
+    this.resolveUserContext(requestId, user, qualifiedSegments).catch((error: unknown) => {
       if (this.isStale(requestId)) return;
       this.onError(error instanceof Error ? error : new Error(String(error)));
     });
@@ -72,7 +75,7 @@ export class UserContextManager {
     this.disposed = true;
   }
 
-  private async resolveUserContext(requestId: number, user?: UserInfo): Promise<void> {
+  private async resolveUserContext(requestId: number, user?: UserInfo, qualifiedSegments?: string[]): Promise<void> {
     if (!user?.id && this.meta.hasVuidManager) {
       await this.client.onReady();
       if (this.isStale(requestId)) return;
@@ -80,6 +83,36 @@ export class UserContextManager {
 
     const ctx = this.client.createUserContext(user?.id, user?.attributes);
 
+    if (qualifiedSegments) {
+      ctx.qualifiedSegments = qualifiedSegments;
+
+      this.onUserContextReady(ctx); // immediate callback for sync decision with pre-set segments
+
+      if (this.skipSegments) return;
+
+      // Background fetch — only when ODP manager exists
+      if (this.meta.hasOdpManager) {
+        await this.client.onReady();
+
+        if (this.isStale(requestId)) return;
+
+        if (this.client.isOdpIntegrated()) {
+          const snapshot = [...qualifiedSegments];
+
+          await ctx.fetchQualifiedSegments();
+
+          if (this.isStale(requestId)) return;
+
+          // update only if different
+          if (!this.segmentsEqual(snapshot, ctx.qualifiedSegments)) {
+            this.onUserContextReady(ctx);
+          }
+        }
+      }
+      return;
+    }
+
+    // Step 3: Original path (no qualifiedSegments)
     if (!this.skipSegments && this.meta.hasOdpManager) {
       await this.client.onReady();
       if (this.isStale(requestId)) return;
@@ -91,6 +124,15 @@ export class UserContextManager {
     }
 
     this.onUserContextReady(ctx);
+  }
+
+  private segmentsEqual(a: string[] | null, b: string[] | null): boolean {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    const sortedA = [...a].sort();
+    const sortedB = [...b].sort();
+    return sortedA.every((val, i) => val === sortedB[i]);
   }
 
   private isStale(requestId: number): boolean {

@@ -50,6 +50,7 @@ function createMockClient(opts: MockClientOptions = {}) {
   const mockUserContext = {
     fetchQualifiedSegments: vi.fn().mockResolvedValue(fetchQualifiedSegmentsResult),
     getUserId: vi.fn().mockReturnValue('test-user'),
+    qualifiedSegments: null as string[] | null,
   } as unknown as OptimizelyUserContext;
 
   const onReadyDeferred = createDeferred();
@@ -339,6 +340,181 @@ describe('UserContextManager', () => {
   });
 
   // ============================================================
+  // Scenario 3: Pre-set Qualified Segments
+  // ============================================================
+  describe('pre-set qualified segments', () => {
+    describe('qualifiedSegments + skipSegments=true', () => {
+      it('should set ctx.qualifiedSegments, fire onUserContextReady once, no background fetch', async () => {
+        const { client, mockUserContext } = createMockClient({
+          hasOdpManager: true,
+          hasVuidManager: false,
+        });
+        const config = createManagerConfig(client, { skipSegments: true });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+
+        expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+        expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
+        expect(client.onReady).not.toHaveBeenCalled();
+
+        manager.dispose();
+      });
+    });
+
+    describe('qualifiedSegments + skipSegments=false + ODP + segments match', () => {
+      it('should callback with pre-set segments immediately than skip second callback when background fetch returns matching segments', async () => {
+        const { client, mockUserContext, onReadyDeferred } = createMockClient({
+          hasOdpManager: true,
+          hasVuidManager: false,
+          isOdpIntegrated: true,
+        });
+        // fetchQualifiedSegments will keep the same segments (simulate match)
+        (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+          mockUserContext.qualifiedSegments = ['seg-a', 'seg-b'];
+          return true;
+        });
+        const config = createManagerConfig(client, { skipSegments: false });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+
+        // Immediate callback with pre-set segments
+        expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        // Background fetch waiting on onReady
+        expect(client.onReady).toHaveBeenCalled();
+
+        onReadyDeferred.resolve(undefined);
+        await flushPromises();
+
+        // Background fetch returned matching segments — no second callback
+        expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        manager.dispose();
+      });
+    });
+
+    describe('qualifiedSegments + skipSegments=false + ODP + segments differ', () => {
+      it('should callback with pre-set segments immediately then callback again when background fetch returns different segments', async () => {
+        const { client, mockUserContext, onReadyDeferred } = createMockClient({
+          hasOdpManager: true,
+          hasVuidManager: false,
+          isOdpIntegrated: true,
+        });
+        // fetchQualifiedSegments returns different segments
+        (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+          mockUserContext.qualifiedSegments = ['seg-a', 'seg-c'];
+          return true;
+        });
+        const config = createManagerConfig(client, { skipSegments: false });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+
+        // Immediate callback with pre-set segments
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        onReadyDeferred.resolve(undefined);
+        await flushPromises();
+
+        // Background fetch returned different segments — second callback fires
+        expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+
+        manager.dispose();
+      });
+    });
+
+    describe('qualifiedSegments + skipSegments=false + ODP not integrated', () => {
+      it('should callback with pre-set segments immediately and skip background fetch when ODP is not integrated', async () => {
+        const { client, mockUserContext, onReadyDeferred } = createMockClient({
+          hasOdpManager: true,
+          hasVuidManager: false,
+          isOdpIntegrated: false,
+        });
+        const config = createManagerConfig(client, { skipSegments: false });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, ['seg-a']);
+
+        // Immediate callback with pre-set segments
+        expect(mockUserContext.qualifiedSegments).toEqual(['seg-a']);
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        onReadyDeferred.resolve(undefined);
+        await flushPromises();
+
+        // ODP not integrated — no background fetch, no second callback
+        expect(client.isOdpIntegrated).toHaveBeenCalled();
+        expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        manager.dispose();
+      });
+    });
+
+    describe('qualifiedSegments + skipSegments=false + no ODP manager', () => {
+      it('should callback with pre-set segments immediately and skip background fetch without ODP manager', async () => {
+        const { client, mockUserContext } = createMockClient({
+          hasOdpManager: false,
+          hasVuidManager: false,
+        });
+        const config = createManagerConfig(client, { skipSegments: false });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+        await flushPromises();
+
+        // Immediate callback with pre-set segments only — no ODP manager, no background fetch
+        expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(client.onReady).not.toHaveBeenCalled();
+        expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
+
+        manager.dispose();
+      });
+    });
+
+    describe('qualifiedSegments=[] empty array', () => {
+      it('should treat empty array as explicit zero segments, callback immediately, then callback again after background fetch', async () => {
+        const { client, mockUserContext, onReadyDeferred } = createMockClient({
+          hasOdpManager: true,
+          hasVuidManager: false,
+          isOdpIntegrated: true,
+        });
+        // fetchQualifiedSegments returns segments (differ from empty)
+        (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+          mockUserContext.qualifiedSegments = ['seg-x'];
+          return true;
+        });
+        const config = createManagerConfig(client, { skipSegments: false });
+        const manager = new UserContextManager(config);
+
+        manager.createUserContext({ id: 'user-1' }, []); // empty array is truthy in JS
+
+        // Immediate callback with empty segments
+        expect(mockUserContext.qualifiedSegments).toEqual([]);
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+        onReadyDeferred.resolve(undefined);
+        await flushPromises();
+
+        // Background fetch returned different segments — second callback fires
+        expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
+        expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+
+        manager.dispose();
+      });
+    });
+  });
+
+  // ============================================================
   // Race conditions
   // ============================================================
   describe('race conditions', () => {
@@ -408,6 +584,54 @@ describe('UserContextManager', () => {
       // Still only one callback (stale request was abandoned)
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
       expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      manager.dispose();
+    });
+
+    it('should suppress background fetch callback of stale request when user changes after pre-set segments callback', async () => {
+      const segmentDeferred = createDeferred<boolean>();
+      const { client, mockUserContext, onReadyDeferred } = createMockClient({
+        hasOdpManager: true,
+        hasVuidManager: false,
+        isOdpIntegrated: true,
+      });
+      (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockReturnValue(segmentDeferred.promise);
+
+      const config = createManagerConfig(client, { skipSegments: false });
+      const manager = new UserContextManager(config);
+
+      // First call with qualifiedSegments — pre-set segments callback fires immediately
+      manager.createUserContext({ id: 'user-1' }, ['seg-a']);
+
+      // Pre-set segments callback of first request fired
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      // Resolve onReady so background fetch starts
+      onReadyDeferred.resolve(undefined);
+      await flushPromises();
+
+      expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
+
+      // New user call invalidates the first request
+      const newCtx = {
+        getUserId: vi.fn().mockReturnValue('user-2'),
+        qualifiedSegments: null as string[] | null,
+        fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+      } as unknown as OptimizelyUserContext;
+      (client.createUserContext as ReturnType<typeof vi.fn>).mockReturnValue(newCtx);
+      manager.createUserContext({ id: 'user-2' });
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+
+      // First request's background fetch completes — callback should be suppressed (stale)
+      (mockUserContext as unknown as { qualifiedSegments: string[] }).qualifiedSegments = ['seg-a', 'seg-new'];
+      segmentDeferred.resolve(true);
+
+      await flushPromises();
+
+      // Still only 2 calls — background fetch callback of stale request was suppressed
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
 
       manager.dispose();
     });
