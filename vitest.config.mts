@@ -4,6 +4,9 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     setupFiles: ['./vitest.setup.ts'],
+    typecheck: {
+      tsconfig: './tsconfig.spec.json',
+    },
     include: [
       'src/client/**/*.spec.{ts,tsx}',
       'src/provider/**/*.spec.{ts,tsx}',

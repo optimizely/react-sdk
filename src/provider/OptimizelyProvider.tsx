@@ -17,7 +17,9 @@
 import React, { createContext, useRef, useMemo, useEffect } from 'react';
 
 import { ProviderStateStore } from './ProviderStateStore';
-import type { OptimizelyProviderProps, OptimizelyContextValue } from './types';
+import { UserContextManager } from '../utils/UserContextManager';
+import { areUsersEqual, areSegmentsEqual } from '../utils/helpers';
+import type { OptimizelyProviderProps, OptimizelyContextValue, UserInfo } from './types';
 
 // TODO: Replace with proper logger when implemented
 const logger = {
@@ -36,10 +38,13 @@ export function OptimizelyProvider({
   user,
   timeout,
   skipSegments = false,
+  qualifiedSegments,
   children,
 }: OptimizelyProviderProps): React.ReactElement {
   const storeRef = useRef<ProviderStateStore | null>(null);
-  // Todo: const prevUserRef = useRef<UserInfo | undefined>(undefined);
+  const managerRef = useRef<UserContextManager | null>(null);
+  const prevUserRef = useRef<UserInfo | undefined>(undefined);
+  const prevSegmentsRef = useRef<string[] | undefined>(undefined);
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
@@ -52,7 +57,7 @@ export function OptimizelyProvider({
       store,
       client,
     }),
-    [store, client]
+    [client, store]
   );
 
   useEffect(() => {
@@ -88,10 +93,48 @@ export function OptimizelyProvider({
     };
   }, [client, timeout, store]);
 
-  // Handle user changes
+  // Effect 2: Manager lifecycle (create/dispose when client/skipSegments changes)
+  // Does NOT trigger createUserContext — only manages the manager instance
   useEffect(() => {
-    // TODO: UserContextManager implementation
-  }, []);
+    if (!client) return;
+
+    managerRef.current?.dispose();
+    managerRef.current = new UserContextManager({
+      client,
+      skipSegments,
+      onUserContextReady: (ctx) => store.setUserContext(ctx),
+      onError: (error) => store.setError(error),
+    });
+
+    // Reset prevUser/segments so Effect 3 treats current user as new
+    prevUserRef.current = undefined;
+    prevSegmentsRef.current = undefined;
+
+    return () => {
+      managerRef.current?.dispose();
+      managerRef.current = null;
+    };
+  }, [client, skipSegments, store]);
+
+  // Effect 3: User/segments prop changes — sole trigger for createUserContext
+  // Runs on mount (prevUser is undefined) and on user/qualifiedSegments prop changes.
+  // Also re-runs when client/skipSegments change (because Effect 2 resets
+  // prevUserRef/prevSegmentsRef to undefined, and these deps are shared).
+  useEffect(() => {
+    if (!managerRef.current) return;
+
+    const prevUser = prevUserRef.current;
+    const prevSegments = prevSegmentsRef.current;
+    const userChanged = prevUser === undefined || !areUsersEqual(prevUser, user);
+    const segmentsChanged = !areSegmentsEqual(prevSegments, qualifiedSegments);
+
+    if (!userChanged && !segmentsChanged) return;
+
+    prevUserRef.current = user;
+    prevSegmentsRef.current = qualifiedSegments;
+    managerRef.current.createUserContext(user, qualifiedSegments);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.attributes, qualifiedSegments, client, skipSegments]);
 
   // Cleanup on unmount
   useEffect(() => {

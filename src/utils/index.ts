@@ -16,3 +16,5 @@
 
 export { UserContextManager } from './UserContextManager';
 export type { UserContextManagerConfig } from './UserContextManager';
+
+export { areUsersEqual } from './helpers';

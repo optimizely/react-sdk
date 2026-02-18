@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-import { vi, describe, it, expect } from 'vitest';
-import React, { useContext } from 'react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import React, { act, useContext } from 'react';
 import { render, waitFor, screen } from '@testing-library/react';
 import type { Client as OptimizelyClient, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
+import { REACT_CLIENT_META } from '../client/index';
+import type { ReactClientMeta } from '../client/index';
 import type { OptimizelyContextValue } from './types';
 
 /**
  * Create a mock Optimizely client for testing.
  */
-function createMockClient(overrides: Partial<OptimizelyClient> = {}): OptimizelyClient {
+function createMockClient(
+  overrides: Partial<OptimizelyClient> = {},
+  meta: Partial<ReactClientMeta> = {}
+): OptimizelyClient {
   const mockUserContext: OptimizelyUserContext = {
     getUserId: vi.fn().mockReturnValue('test-user'),
     getAttributes: vi.fn().mockReturnValue({}),
@@ -41,9 +46,10 @@ function createMockClient(overrides: Partial<OptimizelyClient> = {}): Optimizely
     getOptimizely: vi.fn(),
     setQualifiedSegments: vi.fn(),
     getQualifiedSegments: vi.fn().mockReturnValue([]),
+    qualifiedSegments: null,
   } as unknown as OptimizelyUserContext;
 
-  return {
+  const client = {
     // onReady() resolves when client is ready, rejects on timeout/error
     onReady: vi.fn().mockResolvedValue(undefined),
     createUserContext: vi.fn().mockReturnValue(mockUserContext),
@@ -54,6 +60,13 @@ function createMockClient(overrides: Partial<OptimizelyClient> = {}): Optimizely
     isOdpIntegrated: vi.fn().mockReturnValue(false),
     ...overrides,
   } as unknown as OptimizelyClient;
+
+  (client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META] = {
+    hasOdpManager: meta.hasOdpManager ?? false,
+    hasVuidManager: meta.hasVuidManager ?? false,
+  };
+
+  return client;
 }
 
 /**
@@ -68,6 +81,9 @@ function ContextConsumer({ onContext }: { onContext: (ctx: OptimizelyContextValu
 }
 
 describe('OptimizelyProvider', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   describe('context value', () => {
     it('should provide context with store and client', async () => {
       const mockClient = createMockClient();
@@ -261,6 +277,386 @@ describe('OptimizelyProvider', () => {
       expect(() => {
         render(<OptimizelyProvider client={mockClient} />);
       }).not.toThrow();
+    });
+  });
+
+  describe('user context lifecycle', () => {
+    it('should create user context with userId on mount', async () => {
+      const mockClient = createMockClient();
+
+      render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1', attributes: { plan: 'pro' } }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', { plan: 'pro' });
+    });
+
+    it('should set userContext on the store when user context is created', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext).not.toBeNull();
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
+    });
+
+    it('should recreate user context when user id changes', async () => {
+      const mockClient = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-2' }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-2', undefined);
+    });
+
+    it('should not recreate user context when user prop is value-equal', async () => {
+      const mockClient = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1', attributes: { plan: 'pro' } }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+
+      // Re-render with new object reference but same values
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1', attributes: { plan: 'pro' } }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      // Should still only have been called once
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+    });
+
+    it('should pass qualifiedSegments to createUserContext', async () => {
+      const mockUserContext = {
+        getUserId: vi.fn().mockReturnValue('user-1'),
+        qualifiedSegments: null as string[] | null,
+        fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+      } as unknown as OptimizelyUserContext;
+
+      const mockClient = createMockClient({
+        createUserContext: vi.fn().mockReturnValue(mockUserContext),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} qualifiedSegments={['seg-a', 'seg-b']}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext).not.toBeNull();
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
+      expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
+    });
+
+    it('should dispose manager and recreate when client changes', async () => {
+      const mockClient1 = createMockClient();
+      const mockClient2 = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient1} user={{ id: 'user-1' }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient1.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+
+      rerender(
+        <OptimizelyProvider client={mockClient2} user={{ id: 'user-1' }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient2.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+    });
+
+    it('should dispose manager on unmount', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      const { unmount } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext).not.toBeNull();
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
+
+      unmount();
+
+      // Store should be reset after unmount
+      expect(capturedContext!.store.getState().userContext).toBeNull();
+    });
+
+    it('should recreate user context when only attributes change (same id)', async () => {
+      const mockClient = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1', attributes: { plan: 'free' } }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', { plan: 'free' });
+
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1', attributes: { plan: 'pro' } }}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(2);
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', { plan: 'pro' });
+    });
+
+    it('should recreate user context when qualifiedSegments change', async () => {
+      const mockUserContext = {
+        getUserId: vi.fn().mockReturnValue('user-1'),
+        qualifiedSegments: null as string[] | null,
+        fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+      } as unknown as OptimizelyUserContext;
+
+      const mockClient = createMockClient({
+        createUserContext: vi.fn().mockReturnValue(mockUserContext),
+      });
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} qualifiedSegments={['seg-a']}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} qualifiedSegments={['seg-a', 'seg-b']}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not recreate user context when qualifiedSegments are value-equal', async () => {
+      const mockClient = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} qualifiedSegments={['seg-a', 'seg-b']}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+
+      // Re-render with new array reference but same values
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} qualifiedSegments={['seg-a', 'seg-b']}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+    });
+
+    it('should create user context without userId when user prop is not provided', async () => {
+      const mockClient = createMockClient();
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith(undefined, undefined);
+    });
+  });
+
+  describe('skipSegments', () => {
+    it('should pass skipSegments to UserContextManager', async () => {
+      const mockClient = createMockClient({ isOdpIntegrated: vi.fn().mockReturnValue(true) }, { hasOdpManager: true });
+
+      render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} skipSegments={true}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+
+      // When skipSegments is true, fetchQualifiedSegments should NOT be called
+      const userCtx = (mockClient.createUserContext as ReturnType<typeof vi.fn>).mock.results[0].value;
+
+      expect(userCtx.fetchQualifiedSegments).not.toHaveBeenCalled();
+    });
+
+    it('should recreate manager when skipSegments changes', async () => {
+      const mockClient = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} skipSegments={false}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
+
+      // Change skipSegments — should recreate manager and call createUserContext again
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} skipSegments={true}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('async lifecycle guards', () => {
+    it('should not update state when unmounted before onReady resolves', async () => {
+      let resolveOnReady: () => void;
+      const onReadyPromise = new Promise<void>((resolve) => {
+        resolveOnReady = resolve;
+      });
+      const mockClient = createMockClient({
+        onReady: vi.fn().mockReturnValue(onReadyPromise),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      const { unmount } = render(
+        <OptimizelyProvider client={mockClient}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      const store = capturedContext!.store;
+
+      // Unmount before onReady resolves
+      unmount();
+
+      // Now resolve onReady
+      await act(async () => {
+        resolveOnReady!();
+      });
+
+      // Store was reset on unmount, and onReady resolution should not set isClientReady
+      expect(store.getState().isClientReady).toBe(false);
+    });
+
+    it('should call onReady again when client changes', async () => {
+      const mockClient1 = createMockClient();
+      const mockClient2 = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient1}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient1.onReady).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <OptimizelyProvider client={mockClient2}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient2.onReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('should wrap non-Error rejection from onReady in an Error', async () => {
+      const mockClient = createMockClient({
+        onReady: vi.fn().mockRejectedValue('string error'),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(capturedContext).not.toBeNull();
+        const error = capturedContext!.store.getState().error;
+        expect(error).toBeInstanceOf(Error);
+        expect(error!.message).toBe('string error');
+      });
+    });
+  });
+
+  describe('manager error propagation', () => {
+    it('should set error on store when UserContextManager reports an error', async () => {
+      const mockClient = createMockClient({
+        createUserContext: vi.fn().mockImplementation(() => {
+          throw new Error('createUserContext failed');
+        }),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(capturedContext).not.toBeNull();
+        expect(capturedContext!.store.getState().error).not.toBeNull();
+        expect(capturedContext!.store.getState().error!.message).toBe('createUserContext failed');
+      });
+    });
+  });
+
+  describe('context reference identity', () => {
+    it('should change context value reference when client changes', async () => {
+      const mockClient1 = createMockClient();
+      const mockClient2 = createMockClient();
+      const capturedContexts: (OptimizelyContextValue | null)[] = [];
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient1}>
+          <ContextConsumer onContext={(ctx) => capturedContexts.push(ctx)} />
+        </OptimizelyProvider>
+      );
+
+      rerender(
+        <OptimizelyProvider client={mockClient2}>
+          <ContextConsumer onContext={(ctx) => capturedContexts.push(ctx)} />
+        </OptimizelyProvider>
+      );
+
+      // Context value should be a different reference when client changes
+      const firstContext = capturedContexts[0];
+      const lastContext = capturedContexts[capturedContexts.length - 1];
+
+      expect(firstContext).not.toBe(lastContext);
+      expect(firstContext!.client).toBe(mockClient1);
+      expect(lastContext!.client).toBe(mockClient2);
     });
   });
 });

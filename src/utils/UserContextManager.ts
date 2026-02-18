@@ -18,6 +18,7 @@ import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 import { REACT_CLIENT_META } from '../client/index';
 import type { ReactClientMeta } from '../client/index';
 import type { UserInfo } from '../provider/index';
+import { areSegmentsEqual } from './helpers';
 
 export interface UserContextManagerConfig {
   client: Client;
@@ -104,7 +105,7 @@ export class UserContextManager {
           if (this.isStale(requestId)) return;
 
           // update only if different
-          if (!this.segmentsEqual(snapshot, ctx.qualifiedSegments)) {
+          if (!areSegmentsEqual(snapshot, ctx.qualifiedSegments)) {
             this.onUserContextReady(ctx);
           }
         }
@@ -124,15 +125,6 @@ export class UserContextManager {
     }
 
     this.onUserContextReady(ctx);
-  }
-
-  private segmentsEqual(a: string[] | null, b: string[] | null): boolean {
-    if (a === b) return true;
-    if (!a || !b) return false;
-    if (a.length !== b.length) return false;
-    const sortedA = [...a].sort();
-    const sortedB = [...b].sort();
-    return sortedA.every((val, i) => val === sortedB[i]);
   }
 
   private isStale(requestId: number): boolean {
