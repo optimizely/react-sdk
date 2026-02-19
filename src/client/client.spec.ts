@@ -85,13 +85,13 @@ describe('createInstance', () => {
       expect(meta.hasOdpManager).toBe(true);
     });
 
-    it('should set isVuidEnabled to false when vuidManager is not provided', () => {
+    it('should set hasVuidManager to false when vuidManager is not provided', () => {
       const client = createInstance(createTestConfig());
       const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
       expect(meta.hasVuidManager).toBe(false);
     });
 
-    it('should set isVuidEnabled to true when vuidManager is provided', () => {
+    it('should set hasVuidManager to true when vuidManager is provided', () => {
       const client = createInstance(createTestConfig({ vuidManager: {} as Config['vuidManager'] }));
       const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
       expect(meta.hasVuidManager).toBe(true);

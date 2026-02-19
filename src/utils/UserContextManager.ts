@@ -113,7 +113,7 @@ export class UserContextManager {
       return;
     }
 
-    // Step 3: Original path (no qualifiedSegments)
+    //  odpManager and no qualifiedSegments
     if (!this.skipSegments && this.meta.hasOdpManager) {
       await this.client.onReady();
       if (this.isStale(requestId)) return;

@@ -60,6 +60,7 @@ export function OptimizelyProvider({
     [client, store]
   );
 
+  // Effect 1: client lifecycle (onReady and error handling)
   useEffect(() => {
     if (!client) {
       logger?.error('OptimizelyProvider must be passed an Optimizely client instance');
