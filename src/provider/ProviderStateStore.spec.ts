@@ -20,6 +20,23 @@ import { ProviderStateStore } from './ProviderStateStore';
 describe('ProviderStateStore', () => {
   let store: ProviderStateStore;
 
+  /**
+   * Creates a minimal mock OptimizelyUserContext with forced decision stubs.
+   * This is needed because setUserContext wraps forced decision methods.
+   */
+  function createMockUserContext(overrides?: {
+    setForcedDecision?: (...args: any[]) => boolean;
+    removeForcedDecision?: (...args: any[]) => boolean;
+    removeAllForcedDecisions?: () => boolean;
+  }) {
+    return {
+      userId: 'test-user',
+      setForcedDecision: overrides?.setForcedDecision ?? vi.fn().mockReturnValue(true),
+      removeForcedDecision: overrides?.removeForcedDecision ?? vi.fn().mockReturnValue(true),
+      removeAllForcedDecisions: overrides?.removeAllForcedDecisions ?? vi.fn().mockReturnValue(true),
+    } as any;
+  }
+
   beforeEach(() => {
     store = new ProviderStateStore();
   });
@@ -122,7 +139,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should preserve other state properties', () => {
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       const mockError = new Error('test');
 
       store.setUserContext(mockUserContext);
@@ -138,7 +155,7 @@ describe('ProviderStateStore', () => {
 
   describe('setUserContext', () => {
     it('should update userContext state', () => {
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
 
       store.setUserContext(mockUserContext);
 
@@ -146,7 +163,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should allow setting userContext to null', () => {
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
       store.setUserContext(null);
@@ -159,7 +176,7 @@ describe('ProviderStateStore', () => {
       store.setClientReady(true);
       store.setError(mockError);
 
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
       const state = store.getState();
@@ -199,7 +216,7 @@ describe('ProviderStateStore', () => {
     });
 
     it('should not clear other state when error is set', () => {
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       store.setClientReady(true);
       store.setUserContext(mockUserContext);
 
@@ -216,7 +233,7 @@ describe('ProviderStateStore', () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       store.setState({
         isClientReady: true,
         userContext: mockUserContext,
@@ -243,7 +260,7 @@ describe('ProviderStateStore', () => {
 
   describe('reset', () => {
     it('should reset to initial state', () => {
-      const mockUserContext = { userId: 'test-user' } as any;
+      const mockUserContext = createMockUserContext();
       store.setClientReady(true);
       store.setUserContext(mockUserContext);
       store.setError(new Error('test'));
@@ -264,6 +281,241 @@ describe('ProviderStateStore', () => {
       store.reset();
 
       expect(listener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('forced decision reactivity', () => {
+    it('setUserContext wraps forced decision methods', () => {
+      const ctx = createMockUserContext();
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('subscribeForcedDecision delivers per-flagKey notifications', () => {
+      const ctx = createMockUserContext();
+      const listenerA = vi.fn();
+      const listenerB = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listenerA);
+      store.subscribeForcedDecision('flag-b', listenerB);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+
+      expect(listenerA).toHaveBeenCalledTimes(1);
+      expect(listenerB).not.toHaveBeenCalled();
+    });
+
+    it('removeForcedDecision notifies per-flagKey', () => {
+      const ctx = createMockUserContext();
+      const listenerA = vi.fn();
+      const listenerB = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listenerA);
+      store.subscribeForcedDecision('flag-b', listenerB);
+      store.setUserContext(ctx);
+
+      // First set, then remove
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      listenerA.mockClear();
+
+      ctx.removeForcedDecision({ flagKey: 'flag-a' });
+
+      expect(listenerA).toHaveBeenCalledTimes(1);
+      expect(listenerB).not.toHaveBeenCalled();
+    });
+
+    it('removeAllForcedDecisions notifies all tracked flagKeys', () => {
+      const ctx = createMockUserContext();
+      const listenerA = vi.fn();
+      const listenerB = vi.fn();
+      const listenerC = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listenerA);
+      store.subscribeForcedDecision('flag-b', listenerB);
+      store.subscribeForcedDecision('flag-c', listenerC);
+      store.setUserContext(ctx);
+
+      // Set forced decisions for flag-a and flag-b, but NOT flag-c
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+      listenerA.mockClear();
+      listenerB.mockClear();
+      listenerC.mockClear();
+
+      ctx.removeAllForcedDecisions();
+
+      // flag-a and flag-b were tracked, so their listeners fire
+      expect(listenerA).toHaveBeenCalledTimes(1);
+      expect(listenerB).toHaveBeenCalledTimes(1);
+      // flag-c was never set, so its listener should NOT fire
+      expect(listenerC).not.toHaveBeenCalled();
+    });
+
+    it('failed forced decision does NOT notify', () => {
+      const ctx = createMockUserContext({
+        setForcedDecision: vi.fn().mockReturnValue(false),
+        removeForcedDecision: vi.fn().mockReturnValue(false),
+        removeAllForcedDecisions: vi.fn().mockReturnValue(false),
+      });
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      ctx.removeForcedDecision({ flagKey: 'flag-a' });
+      ctx.removeAllForcedDecisions();
+
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('null context is not wrapped and does not throw', () => {
+      expect(() => {
+        store.setUserContext(null);
+      }).not.toThrow();
+
+      expect(store.getState().userContext).toBeNull();
+    });
+
+    it('new context replaces old wrapping — stale context does not notify', () => {
+      const ctxA = createMockUserContext();
+      const ctxB = createMockUserContext();
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+
+      // Set ctxA, then replace with ctxB
+      store.setUserContext(ctxA);
+      store.setUserContext(ctxB);
+      listener.mockClear();
+
+      // Calling setForcedDecision on the OLD context (ctxA)
+      // should NOT notify — staleness guard
+      ctxA.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+
+      expect(listener).not.toHaveBeenCalled();
+
+      // Calling on the CURRENT context (ctxB) should notify
+      ctxB.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v2' });
+
+      expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('stale context removeForcedDecision does not notify', () => {
+      const ctxA = createMockUserContext();
+      const ctxB = createMockUserContext();
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+
+      store.setUserContext(ctxA);
+      ctxA.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      listener.mockClear();
+
+      // Replace with ctxB
+      store.setUserContext(ctxB);
+      listener.mockClear();
+
+      // Old context remove — should not notify
+      ctxA.removeForcedDecision({ flagKey: 'flag-a' });
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('stale context removeAllForcedDecisions does not notify', () => {
+      const ctxA = createMockUserContext();
+      const ctxB = createMockUserContext();
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+
+      store.setUserContext(ctxA);
+      ctxA.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      listener.mockClear();
+
+      // Replace with ctxB
+      store.setUserContext(ctxB);
+      listener.mockClear();
+
+      // Old context removeAll — should not notify
+      ctxA.removeAllForcedDecisions();
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribe removes the listener', () => {
+      const ctx = createMockUserContext();
+      const listener = vi.fn();
+
+      const unsubscribe = store.subscribeForcedDecision('flag-a', listener);
+      store.setUserContext(ctx);
+
+      // First call — should notify
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(listener).toHaveBeenCalledTimes(1);
+
+      // Unsubscribe
+      unsubscribe();
+      listener.mockClear();
+
+      // Second call — should NOT notify
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v2' });
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('reset clears forced decision listeners', () => {
+      const ctx = createMockUserContext();
+      const listener = vi.fn();
+
+      store.subscribeForcedDecision('flag-a', listener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(listener).toHaveBeenCalledTimes(1);
+      listener.mockClear();
+
+      // Reset the store
+      store.reset();
+
+      // Set a new context and trigger forced decision
+      const ctxNew = createMockUserContext();
+      store.setUserContext(ctxNew);
+
+      ctxNew.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v2' });
+
+      // Old listener should not be called — it was cleared by reset
+      expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('original methods are still called on the underlying context', () => {
+      const originalSet = vi.fn().mockReturnValue(true);
+      const originalRemove = vi.fn().mockReturnValue(true);
+      const originalRemoveAll = vi.fn().mockReturnValue(true);
+
+      const ctx = createMockUserContext({
+        setForcedDecision: originalSet,
+        removeForcedDecision: originalRemove,
+        removeAllForcedDecisions: originalRemoveAll,
+      });
+
+      store.setUserContext(ctx);
+
+      const decisionContext = { flagKey: 'flag-a' };
+      const decision = { variationKey: 'v1' };
+
+      ctx.setForcedDecision(decisionContext, decision);
+      expect(originalSet).toHaveBeenCalledWith(decisionContext, decision);
+
+      ctx.removeForcedDecision(decisionContext);
+      expect(originalRemove).toHaveBeenCalledWith(decisionContext);
+
+      ctx.removeAllForcedDecisions();
+      expect(originalRemoveAll).toHaveBeenCalled();
     });
   });
 });

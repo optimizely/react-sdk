@@ -23,6 +23,11 @@ import type { ProviderState } from './types';
 export type StateListener = (state: ProviderState) => void;
 
 /**
+ * Listener function type for per-flagKey forced decision subscriptions.
+ */
+export type ForcedDecisionListener = () => void;
+
+/**
  * Initial state for the provider store.
  */
 const initialState: ProviderState = {
@@ -42,10 +47,12 @@ const initialState: ProviderState = {
 export class ProviderStateStore {
   private state: ProviderState;
   private listeners: Set<StateListener>;
+  private forcedDecisionListeners: Map<string, Set<ForcedDecisionListener>>;
 
   constructor() {
     this.state = { ...initialState };
     this.listeners = new Set();
+    this.forcedDecisionListeners = new Map();
   }
 
   /**
@@ -87,8 +94,16 @@ export class ProviderStateStore {
   /**
    * Set the current user context.
    * e.g: Called by UserContextManager when user context is created.
+   *
+   * When a non-null context is provided, its forced decision methods
+   * (setForcedDecision, removeForcedDecision, removeAllForcedDecisions)
+   * are wrapped to trigger per-flagKey notifications, enabling React
+   * hooks to re-evaluate only the affected flag.
    */
   setUserContext(ctx: OptimizelyUserContext | null): void {
+    if (ctx) {
+      this.wrapForcedDecisionMethods(ctx);
+    }
     // Always update userContext even if same reference -
     // user attributes may have changed
     this.state.userContext = ctx;
@@ -126,7 +141,95 @@ export class ProviderStateStore {
    */
   reset(): void {
     this.state = { ...initialState };
+    this.forcedDecisionListeners.clear();
     this.notifyListeners();
+  }
+
+  /**
+   * Subscribe to forced decision changes for a specific flagKey.
+   * Hooks use this to re-evaluate decisions only when their flag is affected.
+   *
+   * @param flagKey - The flag key to watch
+   * @param callback - Called when a forced decision for this flagKey changes
+   * @returns Unsubscribe function
+   */
+  subscribeForcedDecision(flagKey: string, callback: ForcedDecisionListener): () => void {
+    if (!this.forcedDecisionListeners.has(flagKey)) {
+      this.forcedDecisionListeners.set(flagKey, new Set());
+    }
+    const listeners = this.forcedDecisionListeners.get(flagKey)!;
+    listeners.add(callback);
+
+    return () => {
+      listeners.delete(callback);
+      if (listeners.size === 0) {
+        this.forcedDecisionListeners.delete(flagKey);
+      }
+    };
+  }
+
+  /**
+   * Notify listeners subscribed to a specific flagKey.
+   * Called internally by wrapped forced decision methods.
+   */
+  notifyForcedDecision(flagKey: string): void {
+    const listeners = this.forcedDecisionListeners.get(flagKey);
+    if (listeners) {
+      listeners.forEach((cb) => cb());
+    }
+  }
+
+  /**
+   * Wrap forced decision methods on a user context to trigger per-flagKey
+   * notifications on mutation. This enables React hooks to re-evaluate
+   * only when the specific flag they watch has a forced decision change.
+   *
+   * Each wrapped context gets its own `forcedDecisionFlagKeys` set (via closure)
+   * so that `removeAllForcedDecisions` can notify all relevant hooks.
+   *
+   * A staleness guard (`store.state.userContext === ctx`) prevents stale
+   * contexts captured in React closures from triggering spurious re-renders
+   * and impression events on the wrong user context.
+   */
+  private wrapForcedDecisionMethods(ctx: OptimizelyUserContext): void {
+    const store = this;
+    const forcedDecisionFlagKeys = new Set<string>();
+    const originalSet = ctx.setForcedDecision.bind(ctx);
+    const originalRemove = ctx.removeForcedDecision.bind(ctx);
+    const originalRemoveAll = ctx.removeAllForcedDecisions.bind(ctx);
+
+    ctx.setForcedDecision = (context, decision) => {
+      const result = originalSet(context, decision);
+      if (result) {
+        forcedDecisionFlagKeys.add(context.flagKey);
+        if (store.state.userContext === ctx) {
+          store.notifyForcedDecision(context.flagKey);
+        }
+      }
+      return result;
+    };
+
+    ctx.removeForcedDecision = (context) => {
+      const result = originalRemove(context);
+      if (result) {
+        forcedDecisionFlagKeys.delete(context.flagKey);
+        if (store.state.userContext === ctx) {
+          store.notifyForcedDecision(context.flagKey);
+        }
+      }
+      return result;
+    };
+
+    ctx.removeAllForcedDecisions = () => {
+      const result = originalRemoveAll();
+      if (result) {
+        if (store.state.userContext === ctx) {
+          forcedDecisionFlagKeys.forEach((flagKey) => store.notifyForcedDecision(flagKey));
+        }
+        forcedDecisionFlagKeys.clear();
+      }
+      return result;
+    };
   }
 
   /**

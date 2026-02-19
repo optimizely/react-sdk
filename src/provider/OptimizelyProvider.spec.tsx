@@ -354,6 +354,9 @@ describe('OptimizelyProvider', () => {
         getUserId: vi.fn().mockReturnValue('user-1'),
         qualifiedSegments: null as string[] | null,
         fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+        setForcedDecision: vi.fn(),
+        removeForcedDecision: vi.fn(),
+        removeAllForcedDecisions: vi.fn(),
       } as unknown as OptimizelyUserContext;
 
       const mockClient = createMockClient({
@@ -439,6 +442,9 @@ describe('OptimizelyProvider', () => {
         getUserId: vi.fn().mockReturnValue('user-1'),
         qualifiedSegments: null as string[] | null,
         fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+        setForcedDecision: vi.fn(),
+        removeForcedDecision: vi.fn(),
+        removeAllForcedDecisions: vi.fn(),
       } as unknown as OptimizelyUserContext;
 
       const mockClient = createMockClient({
