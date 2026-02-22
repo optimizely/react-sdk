@@ -7,6 +7,8 @@ lib
 .npmrc
 dist/
 build/
+.build/
+.github/prompts/
 .rpt2_cache
 .env
 
