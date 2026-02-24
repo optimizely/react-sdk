@@ -57,7 +57,8 @@ export class ProviderStateStore {
 
   /**
    * Get the current state snapshot.
-   * Returns a reference to the current state object.
+   * Each state change creates a new object, so reference equality
+   * can be used to detect changes.
    */
   getState(): ProviderState {
     return this.state;
@@ -87,7 +88,7 @@ export class ProviderStateStore {
       return;
     }
 
-    this.state.isClientReady = ready;
+    this.state = { ...this.state, isClientReady: ready };
     this.notifyListeners();
   }
 
@@ -106,7 +107,7 @@ export class ProviderStateStore {
     }
     // Always update userContext even if same reference -
     // user attributes may have changed
-    this.state.userContext = ctx;
+    this.state = { ...this.state, userContext: ctx };
     this.notifyListeners();
   }
 
@@ -119,7 +120,7 @@ export class ProviderStateStore {
       return; // No change, skip notification
     }
 
-    this.state.error = error;
+    this.state = { ...this.state, error };
     this.notifyListeners();
   }
 
@@ -192,7 +193,6 @@ export class ProviderStateStore {
    * and impression events on the wrong user context.
    */
   private wrapForcedDecisionMethods(ctx: OptimizelyUserContext): void {
-    const store = this;
     const forcedDecisionFlagKeys = new Set<string>();
     const originalSet = ctx.setForcedDecision.bind(ctx);
     const originalRemove = ctx.removeForcedDecision.bind(ctx);
@@ -202,8 +202,8 @@ export class ProviderStateStore {
       const result = originalSet(context, decision);
       if (result) {
         forcedDecisionFlagKeys.add(context.flagKey);
-        if (store.state.userContext === ctx) {
-          store.notifyForcedDecision(context.flagKey);
+        if (this.state.userContext === ctx) {
+          this.notifyForcedDecision(context.flagKey);
         }
       }
       return result;
@@ -213,8 +213,8 @@ export class ProviderStateStore {
       const result = originalRemove(context);
       if (result) {
         forcedDecisionFlagKeys.delete(context.flagKey);
-        if (store.state.userContext === ctx) {
-          store.notifyForcedDecision(context.flagKey);
+        if (this.state.userContext === ctx) {
+          this.notifyForcedDecision(context.flagKey);
         }
       }
       return result;
@@ -223,8 +223,8 @@ export class ProviderStateStore {
     ctx.removeAllForcedDecisions = () => {
       const result = originalRemoveAll();
       if (result) {
-        if (store.state.userContext === ctx) {
-          forcedDecisionFlagKeys.forEach((flagKey) => store.notifyForcedDecision(flagKey));
+        if (this.state.userContext === ctx) {
+          forcedDecisionFlagKeys.forEach((flagKey) => this.notifyForcedDecision(flagKey));
         }
         forcedDecisionFlagKeys.clear();
       }

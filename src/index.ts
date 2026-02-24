@@ -15,8 +15,9 @@
  */
 
 // Client - re-export everything
-export * from './client';
+export * from './client/index';
 
 // Provider
-export { OptimizelyProvider } from './provider/index';
+// Todo: Remove OptimizelyContext export if needed in future
+export { OptimizelyProvider, OptimizelyContext } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
