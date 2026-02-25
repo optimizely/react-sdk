@@ -12,7 +12,6 @@ Refer to the [React SDK's developer documentation](https://docs.developers.optim
 
 For React Native, review the [React Native developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-native-sdk).
 
-
 ### Features
 
 - Automatic datafile downloading
@@ -28,11 +27,7 @@ The React SDK is compatible with `React 16.8.0 +`
 ### Example
 
 ```jsx
-import {
-  createInstance,
-  OptimizelyProvider,
-  useDecision,
-} from '@optimizely/react-sdk';
+import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 
 const optimizelyClient = createInstance({
   sdkKey: 'your-optimizely-sdk-key',
@@ -43,8 +38,8 @@ function MyComponent() {
   return (
     <React.Fragment>
       <SearchComponent algorithm={decision.variables.algorithm} />
-      { decision.variationKey === 'relevant_first' && <RelevantFirstList /> }
-      { decision.variationKey === 'recent_first' && <RecentFirstList /> }
+      {decision.variationKey === 'relevant_first' && <RelevantFirstList />}
+      {decision.variationKey === 'recent_first' && <RecentFirstList />}
     </React.Fragment>
   );
 }
@@ -70,7 +65,8 @@ class App extends React.Component {
 npm install @optimizely/react-sdk
 ```
 
-For **React Native**, installation instruction is bit different. Check out the 
+For **React Native**, installation instruction is bit different. Check out the
+
 - [Official Installation guide](https://docs.developers.optimizely.com/feature-experimentation/docs/install-sdk-reactnative)
 - [Expo React Native Sample App](https://github.com/optimizely/expo-react-native-sdk-sample)
 
@@ -155,9 +151,9 @@ function MyComponent() {
   const [decision, isClientReady, didTimeout] = useDecision('the-flag');
   return (
     <React.Fragment>
-      { isClientReady && <div>The Component</div> }
-      { didTimeout && <div>Default Component</div>}
-      { /* If client is not ready and time out has not occured yet, do not render anything */ }
+      {isClientReady && <div>The Component</div>}
+      {didTimeout && <div>Default Component</div>}
+      {/* If client is not ready and time out has not occured yet, do not render anything */}
     </React.Fragment>
   );
 }
@@ -277,7 +273,7 @@ class MyComp extends React.Component {
   constructor(props) {
     super(props);
     const { optimizely } = this.props;
-    const decision = optimizely.decide('feat1');    
+    const decision = optimizely.decide('feat1');
 
     this.state = {
       decision.enabled,
@@ -298,9 +294,11 @@ const WrappedMyComponent = withOptimizely(MyComp);
 Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the `OptimizelyContext` with `useContext`.
 
 _arguments_
+
 - `OptimizelyContext : React.Context<OptimizelyContextInterface>` The Optimizely context initialized in a parent component (or App).
 
 _returns_
+
 - Wrapped object:
   - `optimizely : ReactSDKClient` The client object which was passed to the `OptimizelyProvider`
   - `isServerSide : boolean` Value that was passed to the `OptimizelyProvider`
@@ -321,10 +319,10 @@ function MyComponent() {
   };
   return (
     <>
-      { decision.enabled && <p>My feature is enabled</p> }
-      { !decision.enabled && <p>My feature is disabled</p> }
-      { decision.variationKey === 'control-variation' && <p>Current Variation</p> }
-      { decision.variationKey === 'experimental-variation' && <p>Better Variation</p> }
+      {decision.enabled && <p>My feature is enabled</p>}
+      {!decision.enabled && <p>My feature is disabled</p>}
+      {decision.variationKey === 'control-variation' && <p>Current Variation</p>}
+      {decision.variationKey === 'experimental-variation' && <p>Better Variation</p>}
       <button onClick={onClick}>Sign Up!</button>
     </>
   );
@@ -332,23 +330,22 @@ function MyComponent() {
 ```
 
 ### Tracking
+
 Use the built-in `useTrackEvent` hook to access the `track` method of optimizely instance
 
 ```jsx
 import { useTrackEvent } from '@optimizely/react-sdk';
 
 function SignupButton() {
-  const [track, clientReady, didTimeout] = useTrackEvent()
+  const [track, clientReady, didTimeout] = useTrackEvent();
 
   const handleClick = () => {
-    if(clientReady) {
-      track('signup-clicked')
+    if (clientReady) {
+      track('signup-clicked');
     }
-  }
+  };
 
-  return (
-    <button onClick={handleClick}>Signup</button>
-  )
+  return <button onClick={handleClick}>Signup</button>;
 }
 ```
 
@@ -411,69 +408,46 @@ To rollout or experiment on a feature by user rather than by random percentage, 
 
 ## Server Side Rendering
 
-Right now server side rendering is possible with a few caveats.
+The React SDK supports server-side rendering (SSR). To generate synchronous decisions during SSR, you must pre-fetch the datafile and pass it to `createInstance`. Using `sdkKey` alone is not supported for SSR because it requires an asynchronous network call.
 
-**Caveats**
+### Setup
 
-1. You must download the datafile manually and pass in via the `datafile` option. Can not use `sdkKey` to automatically download.
-
-2. Rendering of components must be completely synchronous (this is true for all server side rendering), thus the Optimizely SDK assumes that the optimizely client has been instantiated and fired it's `onReady` event already.
-
-### Setting up `<OptimizelyProvider>`
-
-Similar to browser side rendering you will need to wrap your app (or portion of the app using Optimizely) in the `<OptimizelyProvider>` component. A new prop
-`isServerSide` must be equal to true.
+Fetch the datafile on the server, create an Optimizely instance, and wrap your app with `<OptimizelyProvider>`:
 
 ```jsx
-<OptimizelyProvider optimizely={optimizely} user={{ id: 'user1' }} isServerSide={true}>
-  <App />
-</OptimizelyProvider>
-```
+import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
 
-All other Optimizely components, such as `<OptimizelyFeature>` and `<OptimizelyExperiment>` can remain the same.
-
-### Full example
-
-```jsx
-import * as React from 'react';
-import * as ReactDOMServer from 'react-dom/server';
-
-import {
-  createInstance,
-  OptimizelyProvider,
-  useDecision,
-} from '@optimizely/react-sdk';
-
-const fetch = require('node-fetch');
+// Pre-fetched datafile (fetching mechanism depends on your framework)
+const optimizelyClient = createInstance({
+  datafile, // must be provided for SSR
+});
 
 function MyComponent() {
   const [decision] = useDecision('flag1');
-  return (
-    <React.Fragment>
-      { decision.enabled && <p>The feature is enabled</p> }
-      { !decision.enabled && <p>The feature is not enabled</p> }
-      { decision.variationKey === 'variation1' && <p>Variation 1</p> }
-      { decision.variationKey === 'variation2' && <p>Variation 2</p> }
-    </React.Fragment>
-  );
+  return decision.enabled ? <p>Feature enabled</p> : <p>Feature disabled</p>;
 }
 
-async function main() {
-  const resp = await fetch('https://cdn.optimizely.com/datafiles/<Your-SDK-Key>.json');
-  const datafile = await resp.json();
-  const optimizelyClient = createInstance({
-    datafile,
-  });
-
-  const output = ReactDOMServer.renderToString(
-    <OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={true}>
-      <MyComponent />
-    </OptimizelyProvider>
-  );
-  console.log('output', output);
-}
-main();
+// Wrap your app with OptimizelyProvider
+<OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={typeof window === 'undefined'}>
+  <MyComponent />
+</OptimizelyProvider>;
 ```
+
+### React Server Components
+
+The SDK can also be used directly in React Server Components without `OptimizelyProvider`. See the [Next.js Integration Guide](docs/nextjs-ssr.md#react-server-components) for details.
+
+### Next.js Integration
+
+For detailed Next.js examples covering both App Router and Pages Router patterns, see the [Next.js Integration Guide](docs/nextjs-ssr.md).
+
+### Limitations
+
+- **Datafile required** — SSR requires a pre-fetched datafile. Using `sdkKey` alone falls back to a failed decision.
+- **Static user only** — User `Promise` is not supported during SSR.
+- **ODP segments unavailable** — ODP audience segments require async I/O and are not available during server rendering.
+
+For more details and workarounds, see the [Next.js Integration Guide — Limitations](docs/nextjs-ssr.md#limitations).
 
 ## Disabled event dispatcher
 

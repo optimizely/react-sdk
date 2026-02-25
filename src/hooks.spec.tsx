@@ -1020,6 +1020,47 @@ describe('hooks', () => {
       await waitFor(() => expect(mockLog).toHaveBeenCalledWith(true));
     });
 
+    it('should re-render with updated decision after fetchQualifiedSegments completes via setUser', async () => {
+      // Simulate ODP scenario: config + userContext available synchronously (canMakeDecision = true),
+      // but client not fully ready yet (fetchQualifiedSegments still pending)
+      (optimizelyMock.getOptimizelyConfig as jest.Mock).mockReturnValue({});
+      (optimizelyMock.getUserContext as jest.Mock).mockReturnValue({});
+      (optimizelyMock.isReady as any) = () => false;
+      (optimizelyMock.getIsReadyPromiseFulfilled as any) = () => false;
+
+      // Phase 1: decision without ODP segments
+      decideMock.mockReturnValue({ ...defaultDecision, enabled: false });
+
+      let resolveReadyPromise: (result: { success: boolean }) => void;
+      const readyPromise: Promise<any> = new Promise((res) => {
+        resolveReadyPromise = res;
+      });
+      getOnReadyPromise = (): Promise<any> => readyPromise;
+
+      render(
+        <OptimizelyProvider optimizely={optimizelyMock}>
+          <UseDecisionLoggingComponent />
+        </OptimizelyProvider>
+      );
+
+      // Phase 1: canMakeDecision is true, so hook evaluates sync decision (without segments)
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(false);
+
+      mockLog.mockReset();
+
+      // Phase 2: fetchQualifiedSegments completes, setUser resolves userPromise, onReady resolves
+      // Now decision includes segment-based targeting
+      decideMock.mockReturnValue({ ...defaultDecision, enabled: true });
+
+      await act(async () => {
+        resolveReadyPromise!({ success: true });
+      });
+
+      await waitFor(() => expect(mockLog).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(mockLog).toHaveBeenCalledWith(true));
+    });
+
     it('should re-render after updating the override user ID argument', async () => {
       decideMock.mockReturnValue({ ...defaultDecision });
       const { rerender } = render(
