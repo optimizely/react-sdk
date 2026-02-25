@@ -172,6 +172,8 @@ describe('hooks', () => {
       setForcedDecision: setForcedDecisionMock,
       track: jest.fn(),
       setUser: jest.fn(),
+      getOptimizelyConfig: jest.fn().mockImplementation(() => (readySuccess ? {} : null)),
+      getUserContext: jest.fn().mockImplementation(() => (readySuccess ? {} : null)),
     } as unknown as ReactSDKClient;
 
     mockLog = jest.fn();
