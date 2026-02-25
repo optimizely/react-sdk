@@ -435,7 +435,29 @@ function MyComponent() {
 
 ### React Server Components
 
-The SDK can also be used directly in React Server Components without `OptimizelyProvider`. See the [Next.js Integration Guide](docs/nextjs-ssr.md#react-server-components) for details.
+The SDK can also be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:
+
+```tsx
+import { createInstance } from '@optimizely/react-sdk';
+
+export default async function ServerExperiment() {
+  const client = createInstance({
+    sdkKey: process.env.OPTIMIZELY_SDK_KEY || '',
+  });
+
+  client.setUser({
+    id: 'user-123',
+  });
+
+  await client.onReady();
+
+  const decision = client.decide('flag-1');
+
+  return decision.enabled
+    ? <h1>Experiment Variation</h1>
+    : <h1>Control</h1>;
+}
+```
 
 ### Next.js Integration
 

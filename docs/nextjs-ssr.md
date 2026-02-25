@@ -154,33 +154,6 @@ export default function FeatureBanner() {
 }
 ```
 
-## React Server Components
-
-The SDK can be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:
-
-```tsx
-// src/app/components/ServerExperiment.tsx
-import { createInstance } from '@optimizely/react-sdk';
-
-export default async function ServerExperiment() {
-  const client = createInstance({
-    sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
-  });
-
-  client.setUser({
-    id: 'user-123',
-  });
-
-  await client.onReady();
-
-  const decision = client.decide('flag-1');
-
-  return decision.enabled ? <h1>Experiment Variation</h1> : <h1>Control</h1>;
-}
-```
-
-> **Note:** Server Components render only on the server and do not ship JavaScript to the client. This means there is no client-side interactivity or auto-updating of decisions. For interactive feature flags, use a client component with `useDecision` instead.
-
 ## Limitations
 
 ### Datafile required for SSR
