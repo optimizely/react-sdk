@@ -270,7 +270,7 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
-  const canMakeDecision = optimizely?.getOptimizelyConfig() && optimizely.getUserContext();
+  const canMakeDecision = !!(optimizely?.getOptimizelyConfig() && optimizely.getUserContext());
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
     const decisionState = canMakeDecision ? getCurrentDecision() : { variation: null };
     return {
@@ -368,7 +368,7 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
-  const canMakeDecision = optimizely?.getOptimizelyConfig() && optimizely.getUserContext();
+  const canMakeDecision = !!(optimizely?.getOptimizelyConfig() && optimizely.getUserContext());
 
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
     const decisionState = canMakeDecision ? getCurrentDecision() : { isEnabled: false, variables: {} };
@@ -468,7 +468,7 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
-  const canMakeDecision = optimizely?.getOptimizelyConfig() && optimizely.getUserContext();
+  const canMakeDecision = !!(optimizely?.getOptimizelyConfig() && optimizely.getUserContext());
 
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
     const decisionState = canMakeDecision
