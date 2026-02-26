@@ -479,6 +479,8 @@ export default async function ServerExperiment() {
 
   const decision = client.decide('flag-1');
 
+  client.close();
+
   return decision.enabled
     ? <h1>Experiment Variation</h1>
     : <h1>Control</h1>;
