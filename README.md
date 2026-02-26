@@ -491,7 +491,7 @@ export default async function ServerExperiment() {
 
 ### Next.js Integration
 
-For detailed Next.js examples covering both App Router and Pages Router patterns, see the [Next.js Integration Guide](docs/nextjs-ssr.md).
+For detailed Next.js examples covering both App Router and Pages Router patterns, see the [Next.js Integration Guide](docs/nextjs-integration.md).
 
 ### Limitations
 
@@ -499,7 +499,7 @@ For detailed Next.js examples covering both App Router and Pages Router patterns
 - **Static user only** — User `Promise` is not supported during SSR.
 - **ODP segments unavailable** — ODP audience segments require async I/O and are not available during server rendering.
 
-For more details and workarounds, see the [Next.js Integration Guide — Limitations](docs/nextjs-ssr.md#limitations).
+For more details and workarounds, see the [Next.js Integration Guide — Limitations](docs/nextjs-integration.md#limitations).
 
 ## Disabled event dispatcher
 
