@@ -433,6 +433,32 @@ function MyComponent() {
 </OptimizelyProvider>;
 ```
 
+### Configuring the instance for server use
+
+Server-side instances are short-lived (created per request) and may not be garbage collected immediately. To avoid unnecessary background work and ensure events are dispatched before the instance is discarded, configure `createInstance` with server-appropriate options:
+
+```jsx
+import { createInstance, OptimizelyDecideOption } from '@optimizely/react-sdk';
+
+const isServer = typeof window === 'undefined';
+
+const optimizelyClient = createInstance({
+  datafile,
+  datafileOptions: { autoUpdate: !isServer },
+  eventBatchSize: isServer ? 1 : 10,
+  eventMaxQueueSize: isServer ? 1 : 100,
+  // Optional: disable decision events on server if they will be sent from the client
+  defaultDecideOptions: isServer ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+});
+```
+
+| Option | Server value | Why |
+|---|---|---|
+| `datafileOptions.autoUpdate` | `false` | No need to poll for datafile updates on a per-request instance |
+| `eventBatchSize` | `1` | Flush events immediately — the instance won't live long enough for a batch to fill |
+| `eventMaxQueueSize` | `1` | Prevent event accumulation in a short-lived instance |
+| `defaultDecideOptions` | `[DISABLE_DECISION_EVENT]` | Optional — avoids duplicate decision events if the client will also fire them after hydration |
+
 ### React Server Components
 
 The SDK can also be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:

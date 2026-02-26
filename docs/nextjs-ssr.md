@@ -47,11 +47,21 @@ Since `OptimizelyProvider` uses React Context (a client-side feature), it must b
 // src/providers/OptimizelyProvider.tsx
 'use client';
 
-import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
+import { OptimizelyProvider, createInstance, OptimizelyDecideOption } from '@optimizely/react-sdk';
 import { ReactNode, useState } from 'react';
 
 export function OptimizelyClientProvider({ children, datafile }: { children: ReactNode; datafile: object }) {
-  const [optimizely] = useState(() => createInstance({ datafile }));
+  const [optimizely] = useState(() => {
+    const isServer = typeof window === 'undefined';
+    return createInstance({
+      datafile,
+      datafileOptions: { autoUpdate: !isServer },
+      eventBatchSize: isServer ? 1 : 10,
+      eventMaxQueueSize: isServer ? 1 : 100,
+      // Optional: disable decision events on server if they will be sent from the client
+      defaultDecideOptions: isServer ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+    });
+  });
   const isServerSide = typeof window === 'undefined';
 
   return (
@@ -61,6 +71,8 @@ export function OptimizelyClientProvider({ children, datafile }: { children: Rea
   );
 }
 ```
+
+> See [Configuring the instance for server use](../README.md#configuring-the-instance-for-server-use) in the README for an explanation of each option.
 
 ### 3. Wire it up in your root layout
 
