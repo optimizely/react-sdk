@@ -156,12 +156,8 @@ Once the provider is set up, use the `useDecision` hook in any client component:
 import { useDecision } from '@optimizely/react-sdk';
 
 export default function FeatureBanner() {
-  const [decision, isClientReady, didTimeout] = useDecision('banner-flag');
-
-  if (!didTimeout && !isClientReady) {
-    return <p>Loading...</p>;
-  }
-
+  const [decision] = useDecision('banner-flag');
+  
   return decision.enabled ? <h1>New Banner</h1> : <h1>Default Banner</h1>;
 }
 ```

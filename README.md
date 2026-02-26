@@ -420,6 +420,7 @@ import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/rea
 // Pre-fetched datafile (fetching mechanism depends on your framework)
 const optimizelyClient = createInstance({
   datafile, // must be provided for SSR
+  sdkKey: 'YOUR_SDK_KEY'
 });
 
 function MyComponent() {
@@ -444,6 +445,7 @@ const isServer = typeof window === 'undefined';
 
 const optimizelyClient = createInstance({
   datafile,
+  sdkKey: 'YOUR_SDK_KEY'
   datafileOptions: { autoUpdate: !isServer },
   eventBatchSize: isServer ? 1 : 10,
   eventMaxQueueSize: isServer ? 1 : 100,
