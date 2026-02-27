@@ -1,6 +1,6 @@
 # Next.js Integration Guide
 
-This guide covers how to use the Optimizely React SDK with Next.js for server-side rendering (SSR) and React Server Components.
+This guide covers how to use the Optimizely React SDK with Next.js for server-side rendering (SSR), static site generation (SSG), and React Server Components.
 
 ## Prerequisites
 
@@ -158,6 +158,36 @@ import { useDecision } from '@optimizely/react-sdk';
 export default function FeatureBanner() {
   const [decision] = useDecision('banner-flag');
   
+  return decision.enabled ? <h1>New Banner</h1> : <h1>Default Banner</h1>;
+}
+```
+
+## Static Site Generation (SSG)
+
+For statically generated pages, the SDK cannot make decisions during the build because there is no per-user context at build time. Instead, use the SDK as a regular client-side React library — the static HTML serves a default or loading state, and decisions resolve on the client after hydration.
+
+```tsx
+'use client';
+
+import { OptimizelyProvider, createInstance, useDecision } from '@optimizely/react-sdk';
+
+const optimizely = createInstance({ sdkKey: 'YOUR_SDK_KEY' });
+
+export function App() {
+  return (
+    <OptimizelyProvider optimizely={optimizely} user={{ id: 'user123' }}>
+      <FeatureBanner />
+    </OptimizelyProvider>
+  );
+}
+
+function FeatureBanner() {
+  const [decision, isClientReady, didTimeout] = useDecision('banner-flag');
+
+  if (!isClientReady && !didTimeout) {
+    return <h1>Loading...</h1>;
+  }
+
   return decision.enabled ? <h1>New Banner</h1> : <h1>Default Banner</h1>;
 }
 ```
