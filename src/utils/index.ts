@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023, 2024, 2026 Optimizely
+ * Copyright 2026, Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-export {
-  createInstance,
-  createPollingProjectConfigManager,
-  createStaticProjectConfigManager,
-  createBatchEventProcessor,
-  createForwardingEventProcessor,
-  createOdpManager,
-  createVuidManager,
-  createErrorNotifier,
-  createLogger 
-} from './client/index';
+export { UserContextManager } from './UserContextManager';
+export type { UserContextManagerConfig } from './UserContextManager';
 
-export type * from "@optimizely/optimizely-sdk";
-
-// Provider
-// Todo: Remove OptimizelyContext export in future
-export { OptimizelyProvider } from './provider/index';
-export type { UserInfo, OptimizelyProviderProps } from './provider/index';
+export { areUsersEqual } from './helpers';

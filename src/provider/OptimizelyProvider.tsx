@@ -17,7 +17,9 @@
 import React, { createContext, useRef, useMemo, useEffect } from 'react';
 
 import { ProviderStateStore } from './ProviderStateStore';
+import { UserContextManager } from '../utils/UserContextManager';
 import type { OptimizelyProviderProps, OptimizelyContextValue } from './types';
+import type { Client } from '@optimizely/optimizely-sdk';
 
 // TODO: Replace with proper logger when implemented
 const logger = {
@@ -36,25 +38,45 @@ export function OptimizelyProvider({
   user,
   timeout,
   skipSegments = false,
+  qualifiedSegments,
   children,
 }: OptimizelyProviderProps): React.ReactElement {
   const storeRef = useRef<ProviderStateStore | null>(null);
-  // Todo: const prevUserRef = useRef<UserInfo | undefined>(undefined);
+  const userManagerRef = useRef<UserContextManager | null>(null);
+  const prevClientRef = useRef<Client>();
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
   }
 
   const store = storeRef.current;
-
   const contextValue = useMemo<OptimizelyContextValue>(
     () => ({
       store,
       client,
     }),
-    [store, client]
+    [client, store]
   );
 
+  if (client) {
+    // Create UserContextManager if not exists or if client has changed
+    if (userManagerRef.current === null || prevClientRef.current !== client) {
+      userManagerRef.current?.dispose();
+
+      userManagerRef.current = new UserContextManager({
+        client,
+        onUserContextReady: (ctx) => store.setUserContext(ctx),
+        onError: (error) => store.setError(error),
+      });
+
+      prevClientRef.current = client;
+    }
+
+    // UCM internally checks for user/segments/skipSegments changes
+    userManagerRef.current.resolveUserContext(user, qualifiedSegments, skipSegments);
+  }
+
+  // Effect: Client onReady
   useEffect(() => {
     if (!client) {
       logger?.error('OptimizelyProvider must be passed an Optimizely client instance');
@@ -88,14 +110,11 @@ export function OptimizelyProvider({
     };
   }, [client, timeout, store]);
 
-  // Handle user changes
-  useEffect(() => {
-    // TODO: UserContextManager implementation
-  }, []);
-
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      userManagerRef.current?.dispose();
+      userManagerRef.current = null;
       store.reset();
     };
   }, [store]);

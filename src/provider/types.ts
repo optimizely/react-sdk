@@ -53,6 +53,14 @@ export interface OptimizelyProviderProps {
   skipSegments?: boolean;
 
   /**
+   * Pre-fetched qualified segments for the user.
+   * When provided, the user context is created immediately with these segments,
+   * and a background fetch verifies them (unless skipSegments is true).
+   * `undefined` = normal flow, `[]` = explicit "zero segments".
+   */
+  qualifiedSegments?: string[];
+
+  /**
    * React children to render.
    */
   children?: ReactNode;

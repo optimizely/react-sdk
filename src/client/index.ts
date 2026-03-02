@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-export { createInstance } from './createInstance';
+export { createInstance, REACT_CLIENT_META } from './createInstance';
+export type { ReactClientMeta } from './createInstance';
 
 export type * from '@optimizely/optimizely-sdk';
 
