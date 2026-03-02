@@ -71,12 +71,11 @@ function createMockClient(opts: MockClientOptions = {}) {
   };
 }
 
-function createManagerConfig(client: Client, overrides: { skipSegments?: boolean } = {}) {
+function createManagerConfig(client: Client) {
   const onUserContextReady = vi.fn();
   const onError = vi.fn();
   return {
     client,
-    skipSegments: overrides.skipSegments ?? false,
     onUserContextReady,
     onError,
   };
@@ -107,7 +106,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1', attributes: { plan: 'premium' } });
+        manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'premium' } });
 
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', { plan: 'premium' });
         expect(client.onReady).not.toHaveBeenCalled();
@@ -127,7 +126,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext(); // no user
+        manager.resolveUserContext(); // no user
         await flushPromises();
 
         // Should be waiting on onReady
@@ -159,7 +158,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext();
+        manager.resolveUserContext();
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
@@ -182,10 +181,10 @@ describe('UserContextManager', () => {
           hasVuidManager: false,
           isOdpIntegrated: true,
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' });
+        manager.resolveUserContext({ id: 'user-1' });
 
         await flushPromises();
 
@@ -213,10 +212,10 @@ describe('UserContextManager', () => {
           hasVuidManager: false,
           isOdpIntegrated: false, // datafile doesn't have ODP config
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' });
+        manager.resolveUserContext({ id: 'user-1' });
         await flushPromises();
 
         onReadyDeferred.resolve(undefined);
@@ -237,10 +236,10 @@ describe('UserContextManager', () => {
           hasVuidManager: true,
           isOdpIntegrated: true,
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext(); // no user
+        manager.resolveUserContext(); // no user
         await flushPromises();
 
         // Waiting on onReady for VUID
@@ -269,10 +268,10 @@ describe('UserContextManager', () => {
           hasOdpManager: true,
           hasVuidManager: false,
         });
-        const config = createManagerConfig(client, { skipSegments: true });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' });
+        manager.resolveUserContext({ id: 'user-1' }, undefined, true);
 
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
         expect(client.onReady).not.toHaveBeenCalled();
@@ -291,10 +290,10 @@ describe('UserContextManager', () => {
           hasVuidManager: true,
           isOdpIntegrated: true,
         });
-        const config = createManagerConfig(client, { skipSegments: true });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext(); // no user
+        manager.resolveUserContext(undefined, undefined, true); // no user, skipSegments
         await flushPromises();
 
         expect(client.onReady).toHaveBeenCalledTimes(1);
@@ -324,10 +323,10 @@ describe('UserContextManager', () => {
         (client.createUserContext as ReturnType<typeof vi.fn>).mockImplementation(() => {
           throw sdkError;
         });
-        const config = createManagerConfig(client, { skipSegments: true });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext(); // no user, no VUID
+        manager.resolveUserContext(undefined, undefined, true); // no user, no VUID, skipSegments
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
@@ -349,10 +348,10 @@ describe('UserContextManager', () => {
           hasOdpManager: true,
           hasVuidManager: false,
         });
-        const config = createManagerConfig(client, { skipSegments: true });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+        manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b'], true);
 
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
@@ -377,10 +376,10 @@ describe('UserContextManager', () => {
           mockUserContext.qualifiedSegments = ['seg-a', 'seg-b'];
           return true;
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+        manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
 
         // Immediate callback with pre-set segments
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
@@ -412,10 +411,10 @@ describe('UserContextManager', () => {
           mockUserContext.qualifiedSegments = ['seg-a', 'seg-c'];
           return true;
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+        manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
 
         // Immediate callback with pre-set segments
         expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
@@ -438,10 +437,10 @@ describe('UserContextManager', () => {
           hasVuidManager: false,
           isOdpIntegrated: false,
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, ['seg-a']);
+        manager.resolveUserContext({ id: 'user-1' }, ['seg-a']);
 
         // Immediate callback with pre-set segments
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a']);
@@ -465,10 +464,10 @@ describe('UserContextManager', () => {
           hasOdpManager: false,
           hasVuidManager: false,
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+        manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
         await flushPromises();
 
         // Immediate callback with pre-set segments only — no ODP manager, no background fetch
@@ -493,10 +492,10 @@ describe('UserContextManager', () => {
           mockUserContext.qualifiedSegments = ['seg-x'];
           return true;
         });
-        const config = createManagerConfig(client, { skipSegments: false });
+        const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.createUserContext({ id: 'user-1' }, []); // empty array is truthy in JS
+        manager.resolveUserContext({ id: 'user-1' }, []); // empty array is truthy in JS
 
         // Immediate callback with empty segments
         expect(mockUserContext.qualifiedSegments).toEqual([]);
@@ -533,11 +532,11 @@ describe('UserContextManager', () => {
       const manager = new UserContextManager(config);
 
       // First call — no userId, will wait for onReady
-      manager.createUserContext();
+      manager.resolveUserContext();
       await flushPromises();
 
       // Second call — also no userId, should invalidate first
-      manager.createUserContext();
+      manager.resolveUserContext();
       await flushPromises();
 
       // Resolve onReady — both resume, but first is stale
@@ -566,12 +565,12 @@ describe('UserContextManager', () => {
       const manager = new UserContextManager(config);
 
       // First call — no userId, will wait for onReady
-      manager.createUserContext();
+      manager.resolveUserContext();
       await flushPromises();
       expect(client.onReady).toHaveBeenCalled();
 
       // Second call — has userId, completes synchronously
-      manager.createUserContext({ id: 'user-1' });
+      manager.resolveUserContext({ id: 'user-1' });
       await flushPromises();
 
       expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
@@ -597,11 +596,11 @@ describe('UserContextManager', () => {
       });
       (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockReturnValue(segmentDeferred.promise);
 
-      const config = createManagerConfig(client, { skipSegments: false });
+      const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
       // First call with qualifiedSegments — pre-set segments callback fires immediately
-      manager.createUserContext({ id: 'user-1' }, ['seg-a']);
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a']);
 
       // Pre-set segments callback of first request fired
       expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
@@ -619,7 +618,7 @@ describe('UserContextManager', () => {
         fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
       } as unknown as OptimizelyUserContext;
       (client.createUserContext as ReturnType<typeof vi.fn>).mockReturnValue(newCtx);
-      manager.createUserContext({ id: 'user-2' });
+      manager.resolveUserContext({ id: 'user-2' });
       await flushPromises();
 
       expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
@@ -649,7 +648,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.createUserContext(); // no userId, will await onReady
+      manager.resolveUserContext(); // no userId, will await onReady
       await flushPromises();
 
       // Dispose before onReady resolves
@@ -671,10 +670,10 @@ describe('UserContextManager', () => {
         isOdpIntegrated: true,
       });
       (mockUserContext.fetchQualifiedSegments as ReturnType<typeof vi.fn>).mockReturnValue(segmentDeferred.promise);
-      const config = createManagerConfig(client, { skipSegments: false });
+      const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.createUserContext({ id: 'user-1' });
+      manager.resolveUserContext({ id: 'user-1' });
       await flushPromises();
 
       // Resolve onReady so we get to segment fetch
@@ -702,7 +701,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.createUserContext(); // no userId, will await onReady
+      manager.resolveUserContext(); // no userId, will await onReady
       await flushPromises();
 
       manager.dispose();
@@ -728,7 +727,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.createUserContext();
+      manager.resolveUserContext();
       await flushPromises();
 
       onReadyDeferred.reject(new Error('SDK init failed'));
@@ -748,13 +747,157 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.createUserContext();
+      manager.resolveUserContext();
       await flushPromises();
 
       onReadyDeferred.reject('string error');
       await flushPromises();
 
       expect(config.onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'string error' }));
+
+      manager.dispose();
+    });
+  });
+
+  // ============================================================
+  // Change detection (no-op short-circuit)
+  // ============================================================
+  describe('change detection', () => {
+    it('should not recreate user context when called with same user and segments', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'pro' } });
+
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      // Call again with value-equal user — should be a no-op
+      manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'pro' } });
+
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      manager.dispose();
+    });
+
+    it('should recreate user context when user id changes', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' });
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext({ id: 'user-2' });
+      expect(client.createUserContext).toHaveBeenCalledTimes(2);
+
+      manager.dispose();
+    });
+
+    it('should recreate user context when user attributes change', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'free' } });
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'pro' } });
+      expect(client.createUserContext).toHaveBeenCalledTimes(2);
+
+      manager.dispose();
+    });
+
+    it('should recreate user context when qualifiedSegments change', async () => {
+      const mockUserContext = {
+        getUserId: vi.fn().mockReturnValue('user-1'),
+        qualifiedSegments: null as string[] | null,
+        fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+      } as unknown as OptimizelyUserContext;
+
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      (client.createUserContext as ReturnType<typeof vi.fn>).mockReturnValue(mockUserContext);
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a']);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+
+      manager.dispose();
+    });
+
+    it('should not recreate user context when qualifiedSegments are value-equal', async () => {
+      const mockUserContext = {
+        getUserId: vi.fn().mockReturnValue('user-1'),
+        qualifiedSegments: null as string[] | null,
+        fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
+      } as unknown as OptimizelyUserContext;
+
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      (client.createUserContext as ReturnType<typeof vi.fn>).mockReturnValue(mockUserContext);
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      // New array reference, same values
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      manager.dispose();
+    });
+
+    it('should recreate user context when skipSegments changes', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' }, undefined, false);
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext({ id: 'user-1' }, undefined, true);
+      expect(client.createUserContext).toHaveBeenCalledTimes(2);
+
+      manager.dispose();
+    });
+
+    it('should not recreate when all of user, segments, and skipSegments are unchanged', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a'], true);
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext({ id: 'user-1' }, ['seg-a'], true);
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
 
       manager.dispose();
     });

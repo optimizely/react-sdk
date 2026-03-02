@@ -520,7 +520,7 @@ describe('OptimizelyProvider', () => {
       expect(userCtx.fetchQualifiedSegments).not.toHaveBeenCalled();
     });
 
-    it('should recreate manager when skipSegments changes', async () => {
+    it('should recreate user context when skipSegments changes', async () => {
       const mockClient = createMockClient();
 
       const { rerender } = render(
@@ -531,7 +531,7 @@ describe('OptimizelyProvider', () => {
 
       expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
 
-      // Change skipSegments — should recreate manager and call createUserContext again
+      // Change skipSegments — UCM detects the change and recreates user context
       rerender(
         <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }} skipSegments={true}>
           <div>Child</div>

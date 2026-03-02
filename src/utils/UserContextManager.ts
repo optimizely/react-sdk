@@ -18,11 +18,10 @@ import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 import { REACT_CLIENT_META } from '../client/index';
 import type { ReactClientMeta } from '../client/index';
 import type { UserInfo } from '../provider/index';
-import { areSegmentsEqual } from './helpers';
+import { areSegmentsEqual, areUsersEqual } from './helpers';
 
 export interface UserContextManagerConfig {
   client: Client;
-  skipSegments: boolean;
   onUserContextReady: (ctx: OptimizelyUserContext) => void;
   onError: (error: Error) => void;
 }
@@ -33,20 +32,25 @@ export interface UserContextManagerConfig {
  * Handles async operations with staleness checks so that rapid user changes
  * only result in the latest request's callback being fired. Previous in-flight
  * operations are abandoned via a requestId counter.
+ *
+ * Internally tracks previous user, segments, and skipSegments values to
+ * short-circuit when nothing has changed.
  */
 export class UserContextManager {
   private readonly client: Client;
-  private readonly skipSegments: boolean;
   private readonly onUserContextReady: (ctx: OptimizelyUserContext) => void;
   private readonly onError: (error: Error) => void;
   private readonly meta: ReactClientMeta;
 
   private requestId = 0;
   private disposed = false;
+  private initialized = false;
+  private skipSegments = false;
+  private prevUser?: UserInfo;
+  private prevSegments?: string[];
 
   constructor(config: UserContextManagerConfig) {
     this.client = config.client;
-    this.skipSegments = config.skipSegments;
     this.onUserContextReady = config.onUserContextReady;
     this.onError = config.onError;
 
@@ -54,16 +58,32 @@ export class UserContextManager {
   }
 
   /**
-   * Creates a user context, optionally waiting for VUID resolution and
-   * fetching ODP segments. Only the latest call's callbacks will fire.
+   * Resolves whether user context needs to be (re)created based on
+   * value-equality of user, qualifiedSegments, and skipSegments.
+   * Short-circuits if nothing has changed since the previous call.
    *
    * @param user - Optional user info (id and attributes)
    * @param qualifiedSegments - Optional pre-fetched segments. When provided,
+   * @param skipSegments - Whether to skip ODP segment fetching (default: false)
    */
-  createUserContext(user?: UserInfo, qualifiedSegments?: string[]): void {
+  resolveUserContext(user?: UserInfo, qualifiedSegments?: string[], skipSegments = false): void {
+    if (
+      this.initialized &&
+      this.skipSegments === skipSegments &&
+      areUsersEqual(this.prevUser, user) &&
+      areSegmentsEqual(this.prevSegments, qualifiedSegments)
+    ) {
+      return;
+    }
+
+    this.initialized = true;
+    this.skipSegments = skipSegments;
+    this.prevUser = user;
+    this.prevSegments = qualifiedSegments;
+
     const requestId = ++this.requestId;
 
-    this.resolveUserContext(requestId, user, qualifiedSegments).catch((error: unknown) => {
+    this.createUserContext(requestId, user, qualifiedSegments).catch((error: unknown) => {
       if (this.isStale(requestId)) return;
       this.onError(error instanceof Error ? error : new Error(String(error)));
     });
@@ -76,7 +96,7 @@ export class UserContextManager {
     this.disposed = true;
   }
 
-  private async resolveUserContext(requestId: number, user?: UserInfo, qualifiedSegments?: string[]): Promise<void> {
+  private async createUserContext(requestId: number, user?: UserInfo, qualifiedSegments?: string[]): Promise<void> {
     if (!user?.id && this.meta.hasVuidManager) {
       await this.client.onReady();
       if (this.isStale(requestId)) return;

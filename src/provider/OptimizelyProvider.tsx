@@ -18,7 +18,6 @@ import React, { createContext, useRef, useMemo, useEffect } from 'react';
 
 import { ProviderStateStore } from './ProviderStateStore';
 import { UserContextManager } from '../utils/UserContextManager';
-import { areUsersEqual, areSegmentsEqual } from '../utils/helpers';
 import type { OptimizelyProviderProps, OptimizelyContextValue } from './types';
 import type { Client } from '@optimizely/optimizely-sdk';
 
@@ -44,21 +43,13 @@ export function OptimizelyProvider({
 }: OptimizelyProviderProps): React.ReactElement {
   const storeRef = useRef<ProviderStateStore | null>(null);
   const userManagerRef = useRef<UserContextManager | null>(null);
-  const prevRef = useRef<{
-    client?: Client;
-    skipSegments?: boolean;
-    user?: OptimizelyProviderProps['user'];
-    segments?: string[];
-  }>({});
+  const prevClientRef = useRef<Client>();
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
   }
 
   const store = storeRef.current;
-  const prev = prevRef.current;
-  const clientChanged = prev.client !== client;
-  const skipSegmentsChanged = prev.skipSegments !== skipSegments;
   const contextValue = useMemo<OptimizelyContextValue>(
     () => ({
       store,
@@ -68,31 +59,21 @@ export function OptimizelyProvider({
   );
 
   if (client) {
-    // Create UserContextManager if not exists or if client/skipSegments config has changed
-    if (userManagerRef.current === null || clientChanged || skipSegmentsChanged) {
+    // Create UserContextManager if not exists or if client has changed
+    if (userManagerRef.current === null || prevClientRef.current !== client) {
       userManagerRef.current?.dispose();
 
       userManagerRef.current = new UserContextManager({
         client,
-        skipSegments,
         onUserContextReady: (ctx) => store.setUserContext(ctx),
         onError: (error) => store.setError(error),
       });
 
-      prev.client = client;
-      prev.skipSegments = skipSegments;
-      prev.user = user;
-      prev.segments = qualifiedSegments;
-      userManagerRef.current.createUserContext(user, qualifiedSegments);
+      prevClientRef.current = client;
     }
-  }
-  // Update user context if user or qualifiedSegments props have changed (value equality)
-  if (userManagerRef.current) {
-    if (!areUsersEqual(prev.user, user) || !areSegmentsEqual(prev.segments, qualifiedSegments)) {
-      prev.user = user;
-      prev.segments = qualifiedSegments;
-      userManagerRef.current.createUserContext(user, qualifiedSegments);
-    }
+
+    // UCM internally checks for user/segments/skipSegments changes
+    userManagerRef.current.resolveUserContext(user, qualifiedSegments, skipSegments);
   }
 
   // Effect: Client onReady
