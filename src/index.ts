@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
-// Client - re-export everything
-export * from './client/index';
+export {
+  createInstance,
+  createPollingProjectConfigManager,
+  createStaticProjectConfigManager,
+  createBatchEventProcessor,
+  createForwardingEventProcessor,
+  createOdpManager,
+  createVuidManager,
+  createErrorNotifier,
+  createLogger 
+} from './client/index';
+
+export type * from "@optimizely/optimizely-sdk";
 
 // Provider
-// Todo: Remove OptimizelyContext export if needed in future
-export { OptimizelyProvider, OptimizelyContext } from './provider/index';
+// Todo: Remove OptimizelyContext export in future
+export { OptimizelyProvider } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
