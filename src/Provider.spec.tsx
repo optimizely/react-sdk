@@ -58,13 +58,13 @@ describe('OptimizelyProvider', () => {
 
   it('should resolve user promise and set user in optimizely', async () => {
     render(<OptimizelyProvider optimizely={mockReactClient} user={Promise.resolve(user1)} />);
-    await waitFor(() => expect(mockReactClient.setUser).toHaveBeenCalledWith(user1));
+    await waitFor(() => expect(mockReactClient.setUser).toHaveBeenCalledWith(user1, undefined));
   });
 
   it('should render successfully with user provided', () => {
     render(<OptimizelyProvider optimizely={mockReactClient} user={user1} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1, undefined);
   });
 
   it('should throw error, if setUser throws error', () => {
@@ -76,10 +76,13 @@ describe('OptimizelyProvider', () => {
   it('should render successfully with userId provided', () => {
     render(<OptimizelyProvider optimizely={mockReactClient} userId={user1.id} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith({
-      id: user1.id,
-      attributes: {},
-    });
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(
+      {
+        id: user1.id,
+        attributes: {},
+      },
+      undefined
+    );
   });
 
   it('should render successfully without user or userId provided', () => {
@@ -87,13 +90,13 @@ describe('OptimizelyProvider', () => {
     mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(DefaultUser);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(DefaultUser, undefined);
   });
 
   it('should render successfully with user id & attributes provided', () => {
     render(<OptimizelyProvider optimizely={mockReactClient} user={user1} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1, undefined);
   });
 
   it('should succeed just userAttributes provided', () => {
@@ -101,25 +104,31 @@ describe('OptimizelyProvider', () => {
     mockReactClient.user = undefined;
     render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value1' }} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith({
-      id: DefaultUser.id,
-      attributes: { attr1: 'value1' },
-    });
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(
+      {
+        id: DefaultUser.id,
+        attributes: { attr1: 'value1' },
+      },
+      undefined
+    );
   });
 
   it('should succeed with the initial user available in client', () => {
     render(<OptimizelyProvider optimizely={mockReactClient} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1, undefined);
   });
 
   it('should succeed with the initial user id and newly passed attributes', () => {
     render(<OptimizelyProvider optimizely={mockReactClient} userAttributes={{ attr1: 'value2' }} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith({
-      id: user1.id,
-      attributes: { attr1: 'value2' },
-    });
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(
+      {
+        id: user1.id,
+        attributes: { attr1: 'value2' },
+      },
+      undefined
+    );
   });
 
   it('should not update when isServerSide is true', () => {
@@ -142,7 +151,7 @@ describe('OptimizelyProvider', () => {
     // Change props to trigger componentDidUpdate
     rerender(<OptimizelyProvider optimizely={mockReactClient} user={user1} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user1, undefined);
   });
 
   it('should update user if users are not equal', () => {
@@ -153,7 +162,7 @@ describe('OptimizelyProvider', () => {
     // Change props to a different user to trigger componentDidUpdate
     rerender(<OptimizelyProvider optimizely={mockReactClient} user={user2} />);
 
-    expect(mockReactClient.setUser).toHaveBeenCalledWith(user2);
+    expect(mockReactClient.setUser).toHaveBeenCalledWith(user2, undefined);
   });
 
   it('should not update user if users are equal', () => {

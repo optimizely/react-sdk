@@ -1061,6 +1061,25 @@ describe('hooks', () => {
       await waitFor(() => expect(mockLog).toHaveBeenCalledWith(true));
     });
 
+    it('should pass qualifiedSegments to setUser when provided via OptimizelyProvider', async () => {
+      const segments = ['segment1', 'segment2'];
+      decideMock.mockReturnValue({ ...defaultDecision, enabled: true });
+
+      render(
+        <OptimizelyProvider
+          optimizely={optimizelyMock}
+          user={{ id: 'testuser', attributes: {} }}
+          qualifiedSegments={segments}
+        >
+          <MyDecideComponent />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(optimizelyMock.setUser).toHaveBeenCalledWith({ id: 'testuser', attributes: {} }, segments);
+      });
+    });
+
     it('should re-render after updating the override user ID argument', async () => {
       decideMock.mockReturnValue({ ...defaultDecision });
       const { rerender } = render(
