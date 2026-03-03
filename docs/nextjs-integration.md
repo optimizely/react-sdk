@@ -16,7 +16,7 @@ You will need your Optimizely SDK key, available from the Optimizely app under *
 
 Server-side rendering requires a pre-fetched datafile. The SDK cannot fetch the datafile asynchronously during server rendering, so you must fetch it beforehand and pass it to `createInstance`.
 
-There are many ways to pre-fetch the datafile on the server. Below are two common approaches you could follow.
+There are several ways to pre-fetch the datafile on the server. Below are two common approaches you could follow.
 
 ## Next.js App Router
 
@@ -24,11 +24,9 @@ In the App Router, fetch the datafile in an async server component (e.g., your r
 
 ### 1. Create a datafile fetcher
 
-There are several ways to fetch the datafile. Here are two common approaches:
-
 **Option A: Using the SDK's built-in datafile fetching (Recommended)**
 
-Create an SDK instance with your `sdkKey` and let it fetch and cache the datafile internally. This approach benefits from the SDK's built-in polling and caching, making it suitable when you want automatic datafile updates across requests.
+Create a module-level SDK instance with your `sdkKey` and use a notification listener to detect when the datafile is ready. This approach benefits from the SDK's built-in polling and caching, making it suitable when you want automatic datafile updates across requests.
 
 ```ts
 // src/data/getDatafile.ts
@@ -38,18 +36,23 @@ const pollingInstance = createInstance({
   sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || "",
 });
 
-export async function getDatafile() {
-  pollingInstance.setUser({
-    id: "dummyUser",
-  });
-  await pollingInstance.onReady();
-  return pollingInstance.getOptimizelyConfig()?.getDatafile();
+const pollingInstance = createInstane();
+
+const configReady = new Promise<void>((resolve) => {
+  pollingInstance.notificationCenter.addNotificationListener(
+    enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
+    () => resolve();
+  );
+}
+
+export function getDatafile(): Promise<string | undefined> {
+  return configReady.then(() => pollingInstance.getOptimizelyConfig()?.getDatafile());
 }
 ```
 
 **Option B: Direct CDN fetch**
 
-Fetch the datafile directly from Optimizely's CDN. This is simpler and gives you full control over caching (e.g., via Next.js `fetch` options like `next.revalidate`), but does not include automatic polling for updates.
+Fetch the datafile directly from CDN.
 
 ```ts
 // src/data/getDatafile.ts
@@ -270,6 +273,19 @@ User `Promise` is not supported during SSR. You must provide a static user objec
 <OptimizelyProvider user={fetchUserPromise} ... />
 ```
 
-### ODP audience segments unavailable
+### ODP audience segments
 
-ODP (Optimizely Data Platform) audience segments require fetching segment data via an async network call, which is not available during server rendering. Decisions will be made without audience segment data. If your experiment relies on ODP segments, consider using the loading state pattern above and deferring the decision to the client.
+ODP (Optimizely Data Platform) audience segments require fetching segment data via an async network call, which is not available during server rendering. To include segment data during SSR, pass pre-fetched segments via the `qualifiedSegments` prop on `OptimizelyProvider`:
+
+```tsx
+<OptimizelyProvider
+  optimizely={optimizely}
+  user={{ id: 'user123' }}
+  qualifiedSegments={['segment1', 'segment2']}
+  isServerSide={isServerSide}
+>
+  {children}
+</OptimizelyProvider>
+```
+
+This enables synchronous ODP-based decisions during server rendering. If `qualifiedSegments` is not provided, decisions will be made without audience segment data — in that case, consider deferring the decision to the client using the loading state fallback pattern described above, where ODP segments are fetched automatically when ODP is enabled.
