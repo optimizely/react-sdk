@@ -408,58 +408,42 @@ To rollout or experiment on a feature by user rather than by random percentage, 
 
 ## Server Side Rendering
 
-The React SDK supports server-side rendering (SSR). To generate synchronous decisions during SSR, you must pre-fetch the datafile and pass it to `createInstance`. Using `sdkKey` alone is not supported for SSR because it requires an asynchronous network call.
-
-### Setup
-
-Fetch the datafile on the server, create an Optimizely instance, and wrap your app with `<OptimizelyProvider>`:
+The React SDK supports server-side rendering (SSR). Pre-fetch the datafile and pass it to `createInstance` so decisions are available synchronously. Server-side instances are short-lived (created per request), so configure them to avoid unnecessary background work:
 
 ```jsx
-import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
+import { createInstance, OptimizelyProvider, OptimizelyDecideOption, useDecision } from '@optimizely/react-sdk';
 
-// Pre-fetched datafile (fetching mechanism depends on your framework)
-const optimizelyClient = createInstance({
-  datafile, // must be provided for SSR
-  sdkKey: 'YOUR_SDK_KEY'
-});
+function App() {
+  const isServerSide = typeof window === 'undefined';
+  const [optimizely] = useState(() =>
+    createInstance({
+      datafile,
+      sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+      datafileOptions: { autoUpdate: !isServerSide },
+      defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+      odpOptions: {
+        disabled: isServerSide,
+      },
+    })
+  );
+}
 
 function MyComponent() {
   const [decision] = useDecision('flag1');
   return decision.enabled ? <p>Feature enabled</p> : <p>Feature disabled</p>;
 }
 
-// Wrap your app with OptimizelyProvider
-<OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={typeof window === 'undefined'}>
+<OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={isServerSide}>
   <MyComponent />
 </OptimizelyProvider>;
 ```
 
-### Configuring the instance for server use
-
-Server-side instances are short-lived (created per request) and may not be garbage collected immediately. To avoid unnecessary background work and ensure events are dispatched before the instance is discarded, configure `createInstance` with server-appropriate options:
-
-```jsx
-import { createInstance, OptimizelyDecideOption } from '@optimizely/react-sdk';
-
-const isServer = typeof window === 'undefined';
-
-const optimizelyClient = createInstance({
-  datafile,
-  sdkKey: 'YOUR_SDK_KEY'
-  datafileOptions: { autoUpdate: !isServer },
-  eventBatchSize: isServer ? 1 : 10,
-  eventMaxQueueSize: isServer ? 1 : 100,
-  // Optional: disable decision events on server if they will be sent from the client
-  defaultDecideOptions: isServer ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
-});
-```
-
-| Option | Server value | Why |
-|---|---|---|
-| `datafileOptions.autoUpdate` | `false` | No need to poll for datafile updates on a per-request instance |
-| `eventBatchSize` | `1` | Flush events immediately — the instance won't live long enough for a batch to fill |
-| `eventMaxQueueSize` | `1` | Prevent event accumulation in a short-lived instance |
-| `defaultDecideOptions` | `[DISABLE_DECISION_EVENT]` | Optional — avoids duplicate decision events if the client will also fire them after hydration |
+| Option                       | Server value               | Why                                                                                              |
+| ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `datafile`                   | Pre-fetched datafile JSON  | Provides the datafile directly so the SDK is ready synchronously to make decisions                |
+| `datafileOptions.autoUpdate` | `false`                    | No need to poll for datafile updates on a per-request instance                                   |
+| `defaultDecideOptions`       | `[DISABLE_DECISION_EVENT]` | avoids duplicate decision events if the client will also fire them after hydration  |
+| `odpOptions.disabled`        | `true`                     | Disables ODP event manager processing during SSR — avoids unnecessary event batching, API calls, and VUID tracking overhead |
 
 ### React Server Components
 
@@ -483,9 +467,7 @@ export default async function ServerExperiment() {
 
   client.close();
 
-  return decision.enabled
-    ? <h1>Experiment Variation</h1>
-    : <h1>Control</h1>;
+  return decision.enabled ? <h1>Experiment Variation</h1> : <h1>Control</h1>;
 }
 ```
 

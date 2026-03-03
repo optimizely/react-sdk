@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, 2023 Optimizely
+ * Copyright 2019, 2023, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require('path');
 const execSync = require('child_process').execSync;
 
@@ -45,4 +46,14 @@ console.log('\nBuilding SystemJS modules...');
 exec(`./node_modules/.bin/rollup -c scripts/config.js -f system -o dist/${packageName}.system.js`, {
   EXTERNALS: 'forBrowsers',
   BUILD_ENV: 'production',
+});
+
+console.log('\nBuilding server ES modules...');
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f es -o dist/server.es.js`, {
+  ENTRY: 'src/server.ts',
+});
+
+console.log('\nBuilding server CommonJS modules...');
+exec(`./node_modules/.bin/rollup -c scripts/config.js -f cjs -o dist/server.js`, {
+  ENTRY: 'src/server.ts',
 });

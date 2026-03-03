@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Optimizely
+ * Copyright 2024, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as utils from './utils';
+import * as reactUtils from './reactUtils';
 import React, { forwardRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import hoistNonReactStatics from 'hoist-non-react-statics';
@@ -74,7 +75,7 @@ describe('utils', () => {
       }
     }
 
-    const WrappedComponent = utils.hoistStaticsAndForwardRefs(TestComponent, SourceComponent, 'WrappedComponent');
+    const WrappedComponent = reactUtils.hoistStaticsAndForwardRefs(TestComponent, SourceComponent, 'WrappedComponent');
 
     it('should forward refs and hoist static methods', () => {
       const ref = React.createRef<HTMLDivElement>();

@@ -24,6 +24,33 @@ In the App Router, fetch the datafile in an async server component (e.g., your r
 
 ### 1. Create a datafile fetcher
 
+There are several ways to fetch the datafile. Here are two common approaches:
+
+**Option A: Using the SDK's built-in datafile fetching (Recommended)**
+
+Create an SDK instance with your `sdkKey` and let it fetch and cache the datafile internally. This approach benefits from the SDK's built-in polling and caching, making it suitable when you want automatic datafile updates across requests.
+
+```ts
+// src/data/getDatafile.ts
+import { createInstance } from '@optimizely/react-sdk';
+
+const pollingInstance = createInstance({
+  sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || "",
+});
+
+export async function getDatafile() {
+  pollingInstance.setUser({
+    id: "dummyUser",
+  });
+  await pollingInstance.onReady();
+  return pollingInstance.getOptimizelyConfig()?.getDatafile();
+}
+```
+
+**Option B: Direct CDN fetch**
+
+Fetch the datafile directly from Optimizely's CDN. This is simpler and gives you full control over caching (e.g., via Next.js `fetch` options like `next.revalidate`), but does not include automatic polling for updates.
+
 ```ts
 // src/data/getDatafile.ts
 const CDN_URL = `https://cdn.optimizely.com/datafiles/${process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY}.json`;
@@ -51,18 +78,19 @@ import { OptimizelyProvider, createInstance, OptimizelyDecideOption } from '@opt
 import { ReactNode, useState } from 'react';
 
 export function OptimizelyClientProvider({ children, datafile }: { children: ReactNode; datafile: object }) {
-  const [optimizely] = useState(() => {
-    const isServer = typeof window === 'undefined';
-    return createInstance({
+    const isServerSide = typeof window === 'undefined';
+
+    const [optimizely] = useState(() =>
+    createInstance({
       datafile,
-      datafileOptions: { autoUpdate: !isServer },
-      eventBatchSize: isServer ? 1 : 10,
-      eventMaxQueueSize: isServer ? 1 : 100,
-      // Optional: disable decision events on server if they will be sent from the client
-      defaultDecideOptions: isServer ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
-    });
-  });
-  const isServerSide = typeof window === 'undefined';
+      sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+      datafileOptions: { autoUpdate: !isServerSide },
+      defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+      odpOptions: {
+        disabled: isServerSide,
+      },
+    })
+  );
 
   return (
     <OptimizelyProvider optimizely={optimizely} user={{ id: 'user123', attributes: { plan_type: 'premium' } }} isServerSide={isServerSide}>
@@ -96,18 +124,25 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 ## Next.js Pages Router
 
-In the Pages Router, fetch the datafile in `getServerSideProps` (or `getStaticProps`) and pass it through `_app.tsx`.
+In the Pages Router, fetch the datafile server-side and pass it as a prop. There are three data-fetching strategies depending on your needs.
 
 ### 1. Create a client-side provider
 
 Same as the [App Router provider](#2-create-a-client-side-provider) above (without the `'use client'` directive, which is not needed in Pages Router).
 
-### 2. Set up `_app.tsx`
+### 2. Fetch the datafile
+
+Choose the data-fetching strategy that best fits your use case:
+
+#### Option A: `getInitialProps` — app-wide setup
+
+Fetches the datafile for every page via `_app.tsx`. Useful when you want Optimizely available globally across all pages.
 
 ```tsx
 // pages/_app.tsx
 import { OptimizelyClientProvider } from '@/providers/OptimizelyProvider';
-import type { AppProps } from 'next/app';
+import type { AppProps, AppContext } from 'next/app';
+import { getDatafile } from '@/data/getDatafile';
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
@@ -116,28 +151,35 @@ export default function App({ Component, pageProps }: AppProps) {
     </OptimizelyClientProvider>
   );
 }
+
+App.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const datafile = await getDatafile();
+  return { ...appProps, pageProps: { ...appProps.pageProps, datafile } };
+};
 ```
 
-### 3. Fetch the datafile in your page
+#### Option B: `getServerSideProps` — per-page setup
+
+Fetches the datafile per request on specific pages. Useful when only certain pages need feature flags.
 
 ```tsx
 // pages/index.tsx
 export async function getServerSideProps() {
-  const res = await fetch(`https://cdn.optimizely.com/datafiles/${process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY}.json`);
-  const datafile = await res.json();
+  const datafile = await getDatafile();
 
   return { props: { datafile } };
 }
 ```
 
-#### Alternative: Static generation with revalidation
+#### Option C: `getStaticProps` — static generation with revalidation
 
-If you prefer build-time fetching with periodic revalidation instead of per-request fetching:
+Fetches the datafile at build time and revalidates periodically. Best for static pages where per-request freshness is not critical.
 
 ```tsx
+// pages/index.tsx
 export async function getStaticProps() {
-  const res = await fetch(`https://cdn.optimizely.com/datafiles/${process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY}.json`);
-  const datafile = await res.json();
+  const datafile = await getDatafile();
 
   return {
     props: { datafile },
@@ -216,7 +258,7 @@ export default function MyFeature() {
 }
 ```
 
-### Static user only
+### User Promise not supported
 
 User `Promise` is not supported during SSR. You must provide a static user object to `OptimizelyProvider`:
 

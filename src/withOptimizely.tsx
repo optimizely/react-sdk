@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, Optimizely
+ * Copyright 2018-2019, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ import * as React from 'react';
 
 import { OptimizelyContextConsumer, OptimizelyContextInterface } from './Context';
 import { ReactSDKClient } from './client';
-import { hoistStaticsAndForwardRefs } from './utils';
+import { hoistStaticsAndForwardRefs } from './reactUtils';
 
 export interface WithOptimizelyProps {
   optimizely: ReactSDKClient | null;
