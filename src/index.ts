@@ -32,3 +32,6 @@ export type * from "@optimizely/optimizely-sdk";
 // Todo: Remove OptimizelyContext export in future
 export { OptimizelyProvider } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
+
+// Hooks
+export { useOptimizelyUserContext } from './hooks/index';
