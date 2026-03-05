@@ -23,10 +23,10 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-  createLogger 
+  createLogger,
 } from './client/index';
 
-export type * from "@optimizely/optimizely-sdk";
+export type * from '@optimizely/optimizely-sdk';
 
 // Provider
 // Todo: Remove OptimizelyContext export in future

@@ -38,15 +38,8 @@ export function useOptimizelyUserContext(): OptimizelyUserContext | null {
   const { store } = context;
 
   const [userContext, setUserContext] = useState<OptimizelyUserContext | null>(() => store.getState().userContext);
-  // const userContextRef = useRef(userContext);
-  // userContextRef.current = userContext;
 
   useEffect(() => {
-    // // Sync in case state changed between render and effect
-    // const currentContext = store.getState().userContext;
-    // if (currentContext !== userContextRef.current) {
-    //   setUserContext(currentContext);
-    // }
     setUserContext(store.getState().userContext);
     const unsubscribe = store.subscribe((state) => {
       setUserContext(state.userContext);
