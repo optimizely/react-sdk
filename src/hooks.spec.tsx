@@ -1,5 +1,5 @@
 /**
- * Copyright 2022, 2023, 2024 Optimizely
+ * Copyright 2022, 2023, 2024, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1077,6 +1077,55 @@ describe('hooks', () => {
 
       await waitFor(() => {
         expect(optimizelyMock.setUser).toHaveBeenCalledWith({ id: 'testuser', attributes: {} }, segments);
+      });
+    });
+
+    it('should make sync decision when qualifiedSegments are provided via OptimizelyProvider with ODP integrated', async () => {
+      const segments = ['segment1', 'segment2'];
+
+      // Mock ODP integration
+      (optimizelyMock as any)._client = {
+        isOdpIntegrated: () => true,
+      };
+
+      // Client not fully ready yet (fetchQualifiedSegments still pending)
+      (optimizelyMock.isReady as any) = () => false;
+      (optimizelyMock.getIsReadyPromiseFulfilled as any) = () => false;
+
+      // Simulate setUser synchronously making config and userContext (with segments) available
+      // This mirrors real behavior: setUser synchronously sets userContext.qualifiedSegments
+      // before awaiting onReady
+      (optimizelyMock.setUser as jest.Mock).mockImplementation((_user, qualifiedSegments) => {
+        (optimizelyMock.getOptimizelyConfig as jest.Mock).mockReturnValue({});
+        (optimizelyMock.getUserContext as jest.Mock).mockReturnValue({ qualifiedSegments });
+      });
+
+      decideMock.mockReturnValue({ ...defaultDecision, enabled: true });
+
+      // Hold onReady so client never becomes "ready" during initial render
+      let resolveReadyPromise: (result: { success: boolean }) => void;
+      const readyPromise = new Promise<any>((res) => {
+        resolveReadyPromise = res;
+      });
+      getOnReadyPromise = (): Promise<any> => readyPromise;
+
+      render(
+        <OptimizelyProvider
+          optimizely={optimizelyMock}
+          user={{ id: 'testuser', attributes: {} }}
+          qualifiedSegments={segments}
+        >
+          <UseDecisionLoggingComponent />
+        </OptimizelyProvider>
+      );
+
+      // hasConfigAndUserInfo returns true (config + userContext + odpIntegrated + qualifiedSegments)
+      // so useDecision should evaluate a sync decision even though client is not ready
+      expect(mockLog).toHaveBeenCalledTimes(1);
+      expect(mockLog).toHaveBeenCalledWith(true);
+      // Cleanup: resolve onReady promise to prevent test timeout
+      await act(async () => {
+        resolveReadyPromise!({ success: true });
       });
     });
 
