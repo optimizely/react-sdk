@@ -106,3 +106,146 @@ export function sprintf(format: string, ...args: any[]): string {
     }
   });
 }
+
+const QUALIFIED = 'qualified';
+
+/**
+ * Extracts ODP segments from audience conditions in the datafile.
+ * Looks for conditions with `match: 'qualified'` and collects their values.
+ */
+function extractSegmentsFromConditions(condition: any): string[] {
+  if (typeof condition === 'string') {
+    return [];
+  }
+
+  if (Array.isArray(condition)) {
+    const segments: string[] = [];
+    condition.forEach((c) => segments.push(...extractSegmentsFromConditions(c)));
+    return segments;
+  }
+
+  if (condition && typeof condition === 'object' && condition['match'] === 'qualified') {
+    return [condition['value']];
+  }
+
+  return [];
+}
+
+/**
+ * Builds the GraphQL query payload for fetching audience segments from ODP.
+ */
+function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
+  const segmentsList = segmentsToCheck.map((s) => `\\"${s}\\"`).join(',');
+  return `{"query" : "query {customer(fs_user_id : \\"${userId}\\") {audiences(subset: [${segmentsList}]) {edges {node {name state}}}}}"}`;
+}
+
+/**
+ * Fetches qualified ODP segments for a user given a datafile and user ID.
+ *
+ * This is a standalone, self-contained utility that:
+ * 1. Parses the datafile to extract ODP configuration (apiKey, apiHost)
+ * 2. Collects all ODP segments referenced in audience conditions
+ * 3. Queries the ODP GraphQL API
+ * 4. Returns only the segments where the user is qualified
+ *
+ * @param userId - The user ID to fetch qualified segments for
+ * @param datafile - The Optimizely datafile (JSON object or string)
+ * @returns Array of qualified segment names, empty array if no segments configured,
+ *          or null if ODP is not integrated or the fetch fails.
+ *
+ * @example
+ * ```ts
+ * const segments = await getQualifiedSegments('user-123', datafile);
+ * if (segments) {
+ *   console.log('Qualified segments:', segments);
+ * }
+ * ```
+ */
+export async function getQualifiedSegments(
+  userId: string,
+  datafile?: string | Record<string, any>
+): Promise<string[] | null> {
+  let datafileObj: any;
+
+  if (typeof datafile === 'string') {
+    try {
+      datafileObj = JSON.parse(datafile);
+    } catch {
+      return null;
+    }
+  } else if (typeof datafile === 'object') {
+    datafileObj = datafile;
+  } else {
+    return null;
+  }
+
+  // Extract ODP integration config from datafile
+  let apiKey = '';
+  let apiHost = '';
+  let odpIntegrated = false;
+
+  if (Array.isArray(datafileObj.integrations)) {
+    for (const integration of datafileObj.integrations) {
+      if (integration.key === 'odp') {
+        odpIntegrated = true;
+        apiKey = integration.publicKey || '';
+        apiHost = integration.host || '';
+        break;
+      }
+    }
+  }
+
+  if (!odpIntegrated || !apiKey || !apiHost) {
+    return null;
+  }
+
+  // Collect all ODP segments from audience conditions
+  const allSegments = new Set<string>();
+  const audiences = [...(datafileObj.audiences || []), ...(datafileObj.typedAudiences || [])];
+
+  for (const audience of audiences) {
+    if (audience.conditions) {
+      const conditions =
+        typeof audience.conditions === 'string' ? JSON.parse(audience.conditions) : audience.conditions;
+      extractSegmentsFromConditions(conditions).forEach((s) => allSegments.add(s));
+    }
+  }
+
+  const segmentsToCheck = Array.from(allSegments);
+  if (segmentsToCheck.length === 0) {
+    return [];
+  }
+
+  const endpoint = `${apiHost}/v3/graphql`;
+  const query = buildGraphQLQuery(userId, segmentsToCheck);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: query,
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const json = await response.json();
+
+    if (json.errors?.length > 0) {
+      return null;
+    }
+
+    const edges = json?.data?.customer?.audiences?.edges;
+    if (!edges) {
+      return null;
+    }
+
+    return edges.filter((edge: any) => edge.node.state === QUALIFIED).map((edge: any) => edge.node.name);
+  } catch {
+    return null;
+  }
+}
