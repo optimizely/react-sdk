@@ -30,7 +30,7 @@ interface OptimizelyProviderProps {
   user?: Promise<UserInfo> | UserInfo;
   userId?: string;
   userAttributes?: UserAttributes;
-  qualifiedSegments?: string[];
+  qualifiedSegments?: string[] | null;
   children?: React.ReactNode;
 }
 

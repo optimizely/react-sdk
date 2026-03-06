@@ -125,6 +125,32 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 }
 ```
 
+#### Pre-fetching ODP audience segments
+
+If your project uses ODP audience segments, you can pre-fetch them server-side using `getQualifiedSegments` and pass them to the provider via the `qualifiedSegments` prop. 
+
+```tsx
+// src/app/layout.tsx
+import { getQualifiedSegments } from '@optimizely/react-sdk';
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const datafile = await getDatafile();
+  const segments = await getQualifiedSegments('user-123', datafile);
+
+  return (
+    <html lang="en">
+      <body>
+        <OptimizelyClientProvider datafile={datafile} qualifiedSegments={segments}>
+          {children}
+        </OptimizelyClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+> **Caching recommendation:** The ODP segment fetch adds latency to initial page loads. Consider caching the result per user to avoid re-fetching on every request.
+
 ## Next.js Pages Router
 
 In the Pages Router, fetch the datafile server-side and pass it as a prop. There are three data-fetching strategies depending on your needs.
@@ -161,6 +187,20 @@ App.getInitialProps = async (appContext: AppContext) => {
   return { ...appProps, pageProps: { ...appProps.pageProps, datafile } };
 };
 ```
+
+Similar to App Router example, if you have ODP enabled and want to pre-fetch segments, you can do following -
+
+```tsx
+import { getQualifiedSegments } from "@optimizely/react-sdk";
+
+App.getInitialProps = async (appContext: AppContext) => {
+  const appProps = await App.getInitialProps(appContext);
+  const datafile = await getDatafile();
+  const segments = await getQualifiedSegments('user-123', datafile);
+  return { ...appProps, pageProps: { ...appProps.pageProps, datafile, segments } };
+};
+```
+
 
 #### Option B: `getServerSideProps` — per-page setup
 

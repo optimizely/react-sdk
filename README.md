@@ -110,7 +110,7 @@ _props_
 | `isServerSide` | `boolean` | No | Must pass `true` for server side rendering. |
 | `userId` | `string` | No | **Deprecated, prefer `user` instead.** Another way to provide user id. The `user` prop takes precedence when both are provided. |
 | `userAttributes` | `object` | No | **Deprecated, prefer `user` instead.** Another way to provide user attributes. The `user` prop takes precedence when both are provided. |
-| `qualifiedSegments` | `string[]` | No | Pre-fetched ODP audience segments for the user. Useful during SSR where async segment fetching is unavailable. |
+| `qualifiedSegments` | `string[] \| null` | No | Pre-fetched ODP audience segments for the user. Useful during SSR where async segment fetching is unavailable. Use [`getQualifiedSegments`](#getqualifiedsegments) to obtain these segments server-side. |
 
 ### Readiness
 
@@ -450,7 +450,26 @@ function MyComponent() {
 | `defaultDecideOptions`       | `[DISABLE_DECISION_EVENT]` | avoids duplicate decision events if the client will also fire them after hydration  |
 | `odpOptions.disabled`        | `true`                     | Disables ODP event manager processing during SSR — avoids unnecessary event batching, API calls, and VUID tracking overhead |
 
-> **ODP audience segments during SSR:** Disabling ODP prevents automatic segment fetching, but you can still make audience-segment-based decisions by passing pre-fetched segments via the `qualifiedSegments` prop on `OptimizelyProvider`. See the [Limitations — ODP segments](#limitations) section for details.
+> **ODP audience segments during SSR:** Disabling ODP prevents automatic segment fetching, but you can still make audience-segment-based decisions by passing pre-fetched segments via the `qualifiedSegments` prop on `OptimizelyProvider`.
+
+### `getQualifiedSegments`
+
+A standalone async utility that fetches qualified ODP audience segments for a user, given a datafile. It parses the datafile to extract ODP configuration and segment conditions, queries the ODP GraphQL API, and returns only the segments where the user is qualified.
+
+```ts
+import { getQualifiedSegments } from '@optimizely/react-sdk';
+
+const segments = await getQualifiedSegments(userId, datafile);
+```
+
+| Argument   | Type                              | Description                                      |
+| ---------- | --------------------------------- | ------------------------------------------------ |
+| `userId`   | `string`                          | The user ID to fetch qualified segments for       |
+| `datafile` | `string \| Record<string, any>`   | The Optimizely datafile (JSON object or string)   |
+
+**Returns:** `Promise<string[] | null>` 
+
+> **Caching recommendation:** The ODP segment fetch adds latency to server rendering. Consider caching the result per user to avoid re-fetching on every request.
 
 ### React Server Components
 

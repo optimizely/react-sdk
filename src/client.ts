@@ -59,7 +59,7 @@ export interface ReactSDKClient
   user: UserInfo;
   client: optimizely.Client | null;
   onReady(opts?: { timeout?: number }): Promise<any>;
-  setUser(userInfo: UserInfo, qualifiedSegments?: string[]): Promise<void>;
+  setUser(userInfo: UserInfo, qualifiedSegments?: string[] | null): Promise<void>;
   onUserUpdate(handler: OnUserUpdateHandler): DisposeFn;
   isReady(): boolean;
   getIsReadyPromiseFulfilled(): boolean;
@@ -381,7 +381,7 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     return await this.userContext.fetchQualifiedSegments(options);
   }
 
-  public async setUser(userInfo: UserInfo, qualifiedSegments?: string[]): Promise<void> {
+  public async setUser(userInfo: UserInfo, qualifiedSegments?: string[] | null): Promise<void> {
     // If user id is not present and ODP is explicitly off, user promise will be pending until setUser is called again with proper user id
     if (userInfo.id === null && this.odpExplicitlyOff) {
       return;
@@ -403,11 +403,16 @@ class OptimizelyReactSDKClient implements ReactSDKClient {
     } else {
       // synchronous user context setting is required including for server side rendering (SSR)
       this.setCurrentUserContext(userInfo);
-
-      if (this.userContext && !this.odpExplicitlyOff && this._client?.isOdpIntegrated() && qualifiedSegments) {
+      // Synchronous segments setting
+      if (
+        this.userContext &&
+        !this.odpExplicitlyOff &&
+        this._client?.isOdpIntegrated() &&
+        qualifiedSegments !== undefined
+      ) {
         this.userContext.qualifiedSegments = qualifiedSegments;
       }
-      // we need to wait for fetch qualified segments success for failure
+
       await this._client?.onReady();
     }
 
