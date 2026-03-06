@@ -15,15 +15,14 @@
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React, { act, useRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import React, { useRef } from 'react';
+import { render, screen, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-
 import { OptimizelyContext } from '../provider/OptimizelyProvider';
 import { ProviderStateStore } from '../provider/ProviderStateStore';
-import type { OptimizelyContextValue } from '../provider/types';
 import { useOptimizelyUserContext } from './useOptimizelyUserContext';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+import type { OptimizelyContextValue } from '../provider/types';
 
 function useRenderCount() {
   const renderCount = useRef(0);
@@ -97,7 +96,7 @@ describe('useOptimizelyUserContext', () => {
     expect(result.current).toBe(mockUserContext);
   });
 
-  it('should update when user context changes', () => {
+  it('should update when user context changes', async () => {
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
@@ -193,17 +192,5 @@ describe('useOptimizelyUserContext', () => {
 
     expect(capturedRenderCount).toBe(initialRenderCount);
     expect(screen.getByTestId('user-id').textContent).toBe('test-user');
-  });
-
-  it('should return wrapped user context with forced decision methods', () => {
-    const mockUserContext = createMockUserContext();
-    store.setUserContext(mockUserContext);
-
-    const wrapper = createWrapper(store);
-    const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
-
-    // The returned context should be the same reference as what's in the store
-    // (already wrapped by ProviderStateStore.setUserContext)
-    expect(result.current).toBe(store.getState().userContext);
   });
 });

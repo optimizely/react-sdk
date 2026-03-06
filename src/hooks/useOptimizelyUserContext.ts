@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-import { useContext, useState, useEffect, useRef } from 'react';
+import { useContext, useCallback } from 'react';
+import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyContext } from '../provider/index';
 
 /**
- * Returns the current OptimizelyUserContext from the ProviderStateStore.
+ * Returns the current {@link OptimizelyUserContext} for the nearest `<OptimizelyProvider>`.
  *
- * The returned context has wrapped forced decision methods — calling
- * `setForcedDecision()`, `removeForcedDecision()`, or `removeAllForcedDecisions()`
- * on it will automatically trigger React re-renders in hooks watching the affected flags.
+ * The user context gives access to the user's identity (user ID and attributes)
+ * and methods for working with forced decisions (`setForcedDecision`,
+ * `removeForcedDecision`, `removeAllForcedDecisions`).
  *
- * Returns `null` while the SDK is initializing or if the user context has not been created yet.
+ * Returns `null` while the SDK is initializing or if no user has been set yet.
  */
+
 export function useOptimizelyUserContext(): OptimizelyUserContext | null {
   const context = useContext(OptimizelyContext);
 
@@ -37,16 +39,9 @@ export function useOptimizelyUserContext(): OptimizelyUserContext | null {
 
   const { store } = context;
 
-  const [userContext, setUserContext] = useState<OptimizelyUserContext | null>(() => store.getState().userContext);
+  const subscribe = useCallback((onStoreChange: () => void) => store.subscribe(onStoreChange), [store]);
 
-  useEffect(() => {
-    setUserContext(store.getState().userContext);
-    const unsubscribe = store.subscribe((state) => {
-      setUserContext(state.userContext);
-    });
+  const getSnapshot = useCallback(() => store.getState().userContext, [store]);
 
-    return unsubscribe;
-  }, [store]);
-
-  return userContext;
+  return useSyncExternalStore(subscribe, getSnapshot);
 }
