@@ -235,6 +235,7 @@ describe('utils', () => {
 
     it('returns null when datafile is invalid or missing ODP integration', async () => {
       // undefined datafile
+      // @ts-ignore
       expect(await utils.getQualifiedSegments('user-1')).toBeNull();
       // invalid JSON string
       expect(await utils.getQualifiedSegments('user-1', '{bad json')).toBeNull();

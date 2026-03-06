@@ -504,8 +504,8 @@ For detailed Next.js examples covering both App Router and Pages Router patterns
 ### Limitations
 
 - **Datafile required** — SSR requires a pre-fetched datafile. Using `sdkKey` alone falls back to a failed decision.
-- **Static user only** — User `Promise` is not supported during SSR.
-- **ODP segments** — ODP audience segments require async I/O and are not available during server rendering. Pass pre-fetched segments via the `qualifiedSegments` prop on `OptimizelyProvider` to enable synchronous ODP-based decisions. Without it, consider deferring the decision to the client using the fallback pattern.
+- **User Promise not supported** — User `Promise` is not supported during SSR.
+- **ODP segments** — ODP audience segments require async I/O and are not available during server rendering. Use [`getQualifiedSegments`](#getqualifiedsegments) to pre-fetch segments server-side and pass them via the `qualifiedSegments` prop on `OptimizelyProvider` to enable synchronous ODP-based decisions. Without it, consider deferring the decision to the client using the fallback pattern.
 
 For more details and workarounds, see the [Next.js Integration Guide — Limitations](docs/nextjs-integration.md#limitations).
 

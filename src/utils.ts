@@ -163,7 +163,7 @@ function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
  */
 export async function getQualifiedSegments(
   userId: string,
-  datafile?: string | Record<string, any>
+  datafile: string | Record<string, any>
 ): Promise<string[] | null> {
   let datafileObj: any;
 
