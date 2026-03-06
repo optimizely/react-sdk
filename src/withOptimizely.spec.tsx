@@ -70,7 +70,7 @@ describe('withOptimizely', () => {
       );
 
       await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({ id: userId, attributes });
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith({ id: userId, attributes }, undefined);
     });
   });
 
@@ -84,10 +84,13 @@ describe('withOptimizely', () => {
       );
 
       await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({
-        id: userId,
-        attributes: {},
-      });
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith(
+        {
+          id: userId,
+          attributes: {},
+        },
+        undefined
+      );
     });
   });
 
@@ -101,10 +104,13 @@ describe('withOptimizely', () => {
       );
 
       await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({
-        id: userId,
-        attributes: {},
-      });
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith(
+        {
+          id: userId,
+          attributes: {},
+        },
+        undefined
+      );
     });
   });
 
@@ -119,10 +125,13 @@ describe('withOptimizely', () => {
       );
 
       await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({
-        id: userId,
-        attributes,
-      });
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith(
+        {
+          id: userId,
+          attributes,
+        },
+        undefined
+      );
     });
   });
 
@@ -143,10 +152,13 @@ describe('withOptimizely', () => {
       );
 
       await waitFor(() => expect(optimizelyClient.setUser).toHaveBeenCalledTimes(1));
-      expect(optimizelyClient.setUser).toHaveBeenCalledWith({
-        id: userId,
-        attributes,
-      });
+      expect(optimizelyClient.setUser).toHaveBeenCalledWith(
+        {
+          id: userId,
+          attributes,
+        },
+        undefined
+      );
     });
   });
 

@@ -30,6 +30,7 @@ interface OptimizelyProviderProps {
   user?: Promise<UserInfo> | UserInfo;
   userId?: string;
   userAttributes?: UserAttributes;
+  qualifiedSegments?: string[] | null;
   children?: React.ReactNode;
 }
 
@@ -46,7 +47,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
   }
 
   async setUserInOptimizely(): Promise<void> {
-    const { optimizely, userId, userAttributes, user } = this.props;
+    const { optimizely, userId, userAttributes, user, qualifiedSegments } = this.props;
 
     if (!optimizely) {
       logger.error('OptimizelyProvider must be passed an instance of the Optimizely SDK client');
@@ -58,7 +59,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     if (user) {
       if ('then' in user) {
         user.then((res: UserInfo) => {
-          optimizely.setUser(res);
+          optimizely.setUser(res, qualifiedSegments);
         });
       } else {
         finalUser = {
@@ -89,7 +90,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     // if user is a promise, setUser occurs in the then block above
     if (finalUser) {
       try {
-        await optimizely.setUser(finalUser);
+        await optimizely.setUser(finalUser, qualifiedSegments);
       } catch {
         logger.error('Error while trying to set user.');
       }
@@ -105,7 +106,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
     if (this.props.user && 'id' in this.props.user) {
       if (!optimizely.user.id) {
         // no user is set in optimizely, update
-        optimizely.setUser(this.props.user);
+        optimizely.setUser(this.props.user, this.props.qualifiedSegments);
       } else if (
         // if the users aren't equal update
         !areUsersEqual(
@@ -120,7 +121,7 @@ export class OptimizelyProvider extends React.Component<OptimizelyProviderProps,
           }
         )
       ) {
-        optimizely.setUser(this.props.user);
+        optimizely.setUser(this.props.user, this.props.qualifiedSegments);
       }
     }
   }

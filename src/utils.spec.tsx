@@ -1,5 +1,5 @@
 /**
- * Copyright 2024 Optimizely
+ * Copyright 2024, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as utils from './utils';
+import * as reactUtils from './reactUtils';
 import React, { forwardRef } from 'react';
 import { render, screen } from '@testing-library/react';
 import hoistNonReactStatics from 'hoist-non-react-statics';
@@ -74,7 +75,7 @@ describe('utils', () => {
       }
     }
 
-    const WrappedComponent = utils.hoistStaticsAndForwardRefs(TestComponent, SourceComponent, 'WrappedComponent');
+    const WrappedComponent = reactUtils.hoistStaticsAndForwardRefs(TestComponent, SourceComponent, 'WrappedComponent');
 
     it('should forward refs and hoist static methods', () => {
       const ref = React.createRef<HTMLDivElement>();
@@ -201,6 +202,105 @@ describe('utils', () => {
 
     it('should handle missing arguments as undefined', () => {
       expect(utils.sprintf('Two placeholders: %s and %s', 'first')).toBe('Two placeholders: first and undefined');
+    });
+  });
+
+  describe('getQualifiedSegments', () => {
+    const odpIntegration = {
+      key: 'odp',
+      publicKey: 'test-api-key',
+      host: 'https://odp.example.com',
+    };
+
+    const makeDatafile = (overrides: Record<string, any> = {}) => ({
+      integrations: [odpIntegration],
+      typedAudiences: [
+        {
+          conditions: ['or', { match: 'qualified', value: 'seg1' }, { match: 'qualified', value: 'seg2' }],
+        },
+      ],
+      ...overrides,
+    });
+
+    const mockFetchResponse = (body: any, ok = true) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok,
+        json: () => Promise.resolve(body),
+      });
+    };
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns null when datafile is invalid or missing ODP integration', async () => {
+      // undefined datafile
+      // @ts-ignore
+      expect(await utils.getQualifiedSegments('user-1')).toBeNull();
+      // invalid JSON string
+      expect(await utils.getQualifiedSegments('user-1', '{bad json')).toBeNull();
+      // no ODP integration
+      expect(await utils.getQualifiedSegments('user-1', { integrations: [] })).toBeNull();
+      // ODP integration missing publicKey
+      expect(
+        await utils.getQualifiedSegments('user-1', {
+          integrations: [{ key: 'odp', host: 'https://odp.example.com' }],
+        })
+      ).toBeNull();
+    });
+
+    it('returns empty array when ODP is integrated but no segment conditions exist', async () => {
+      const datafile = makeDatafile({ typedAudiences: [], audiences: [] });
+      const result = await utils.getQualifiedSegments('user-1', datafile);
+      expect(result).toEqual([]);
+      expect(global.fetch).toBeUndefined();
+    });
+
+    it('calls ODP GraphQL API and returns only qualified segments', async () => {
+      mockFetchResponse({
+        data: {
+          customer: {
+            audiences: {
+              edges: [
+                { node: { name: 'seg1', state: 'qualified' } },
+                { node: { name: 'seg2', state: 'not_qualified' } },
+              ],
+            },
+          },
+        },
+      });
+
+      const result = await utils.getQualifiedSegments('user-1', makeDatafile());
+
+      expect(result).toEqual(['seg1']);
+      expect(global.fetch).toHaveBeenCalledWith('https://odp.example.com/v3/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': 'test-api-key',
+        },
+        body: expect.stringContaining('user-1'),
+      });
+    });
+
+    it('returns null when fetch fails or response is not ok', async () => {
+      // network error
+      global.fetch = jest.fn().mockRejectedValue(new Error('network error'));
+      expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+
+      // non-200 response
+      mockFetchResponse({}, false);
+      expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+    });
+
+    it('returns null when response contains GraphQL errors or missing edges', async () => {
+      // GraphQL errors
+      mockFetchResponse({ errors: [{ message: 'something went wrong' }] });
+      expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+
+      // missing edges path
+      mockFetchResponse({ data: {} });
+      expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
     });
   });
 });

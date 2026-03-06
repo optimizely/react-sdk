@@ -60,6 +60,8 @@ describe('<OptimizelyFeature>', () => {
       isReady: jest.fn().mockImplementation(() => isReady),
       getIsReadyPromiseFulfilled: () => true,
       getIsUsingSdkKey: () => true,
+      getOptimizelyConfig: jest.fn().mockImplementation(() => (isReady ? {} : null)),
+      getUserContext: jest.fn().mockImplementation(() => (isReady ? {} : null)),
     } as unknown as ReactSDKClient;
   });
 
@@ -310,6 +312,11 @@ describe('<OptimizelyFeature>', () => {
   });
 
   describe('when the isServerSide prop is true', () => {
+    beforeEach(() => {
+      (optimizelyMock.getOptimizelyConfig as jest.Mock).mockReturnValue({});
+      (optimizelyMock.getUserContext as jest.Mock).mockReturnValue({});
+    });
+
     it('should immediately render the result of isFeatureEnabled and getFeatureVariables', async () => {
       const { container } = render(
         <OptimizelyProvider optimizely={optimizelyMock} isServerSide={true}>

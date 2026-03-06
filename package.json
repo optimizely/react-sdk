@@ -9,6 +9,20 @@
   "types": "dist/index.d.ts",
   "main": "dist/react-sdk.js",
   "browser": "dist/react-sdk.js",
+  "exports": {
+    ".": {
+      "react-server": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.es.js",
+        "require": "./dist/server.js",
+        "default": "./dist/server.js"
+      },
+      "types": "./dist/index.d.ts",
+      "import": "./dist/react-sdk.es.js",
+      "require": "./dist/react-sdk.js",
+      "default": "./dist/react-sdk.js"
+    }
+  },
   "directories": {
     "lib": "lib"
   },

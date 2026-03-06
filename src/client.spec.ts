@@ -386,6 +386,74 @@ describe('ReactSDKClient', () => {
 
       expect(instance.fetchQualifiedSegments).toHaveBeenCalledTimes(3);
     });
+
+    it('should set qualifiedSegments synchronously on userContext before fetchQualifiedSegments is called', async () => {
+      jest.spyOn(mockInnerClient, 'isOdpIntegrated').mockReturnValue(true);
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+      jest.spyOn(mockOptimizelyUserContext, 'getAttributes').mockReturnValue(userAttributes);
+
+      const segments = ['segment1', 'segment2'];
+      let segmentsAtFetchTime: string[] | null | undefined;
+
+      instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockImplementation(async () => {
+        // Capture qualifiedSegments at the time fetchQualifiedSegments is called
+        segmentsAtFetchTime = mockOptimizelyUserContext.qualifiedSegments;
+        return true;
+      });
+
+      await instance.setUser({ id: userId, attributes: userAttributes }, segments);
+
+      // Verify segments were already set on the userContext before fetchQualifiedSegments ran
+      expect(segmentsAtFetchTime).toEqual(segments);
+    });
+
+    it('should not set qualifiedSegments when ODP is explicitly disabled', async () => {
+      jest.spyOn(mockInnerClient, 'isOdpIntegrated').mockReturnValue(true);
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+      jest.spyOn(mockOptimizelyUserContext, 'getAttributes').mockReturnValue(userAttributes);
+
+      const segments = ['segment1', 'segment2'];
+
+      instance = createInstance({
+        ...config,
+        odpOptions: { disabled: true },
+      });
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
+      await instance.setUser({ id: userId, attributes: userAttributes }, segments);
+
+      expect(mockOptimizelyUserContext.qualifiedSegments).toBeUndefined();
+    });
+
+    it('should not set qualifiedSegments when ODP is not integrated', async () => {
+      jest.spyOn(mockInnerClient, 'isOdpIntegrated').mockReturnValue(false);
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(userId);
+      jest.spyOn(mockOptimizelyUserContext, 'getAttributes').mockReturnValue(userAttributes);
+
+      const segments = ['segment1', 'segment2'];
+
+      instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
+      await instance.setUser({ id: userId, attributes: userAttributes }, segments);
+
+      expect(mockOptimizelyUserContext.qualifiedSegments).toBeUndefined();
+    });
+
+    it('should not set qualifiedSegments for anonymous/default users', async () => {
+      jest.spyOn(mockInnerClient, 'isOdpIntegrated').mockReturnValue(true);
+      jest.spyOn(mockOptimizelyUserContext, 'getUserId').mockReturnValue(validVuid);
+
+      const segments = ['segment1', 'segment2'];
+
+      instance = createInstance(config);
+      jest.spyOn(instance, 'fetchQualifiedSegments').mockResolvedValue(true);
+
+      await instance.setUser(DefaultUser, segments);
+
+      expect(mockOptimizelyUserContext.qualifiedSegments).toBeUndefined();
+    });
   });
 
   describe('onUserUpdate', () => {

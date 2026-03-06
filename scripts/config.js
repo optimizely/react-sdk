@@ -1,5 +1,5 @@
 /**
- * Copyright 2019, 2023 Optimizely
+ * Copyright 2019, 2023, 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+/* eslint-disable @typescript-eslint/no-var-requires */
 const typescript = require('rollup-plugin-typescript2');
 const commonjs = require('@rollup/plugin-commonjs');
 const replace = require('@rollup/plugin-replace');
@@ -65,7 +66,7 @@ function getPlugins(env, externals) {
 }
 
 const config = {
-  input: 'src/index.ts',
+  input: process.env.ENTRY || 'src/index.ts',
   output: {
     globals: {
       react: 'React',

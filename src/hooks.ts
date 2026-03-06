@@ -249,6 +249,15 @@ function useCompareAttrsMemoize(value: UserAttributes | undefined): UserAttribut
   return ref.current;
 }
 
+function hasConfigAndUserInfo(optimizely: ReactSDKClient | null): boolean {
+  const hasConfig = !!optimizely?.getOptimizelyConfig();
+  const userContext = optimizely?.getUserContext();
+  // @ts-ignore
+  const isOdpIntegrated = optimizely?._client?.isOdpIntegrated();
+  const areSegmentsAvailable = !!(isOdpIntegrated && userContext?.qualifiedSegments !== undefined);
+  return !!(hasConfig && userContext && (!isOdpIntegrated || areSegmentsAvailable));
+}
+
 /**
  * A React Hook that retrieves the variation for an experiment, optionally
  * auto updating that value based on underlying user or datafile changes.
@@ -270,9 +279,10 @@ export const useExperiment: UseExperiment = (experimentKey, options = {}, overri
 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
+  const isExperimentReady = hasConfigAndUserInfo(optimizely) || isClientReady;
 
   const [state, setState] = useState<ExperimentDecisionValues & InitializationState>(() => {
-    const decisionState = isClientReady ? getCurrentDecision() : { variation: null };
+    const decisionState = isExperimentReady ? getCurrentDecision() : { variation: null };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -368,9 +378,10 @@ export const useFeature: UseFeature = (featureKey, options = {}, overrides = {})
 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
+  const isFeatureReady = hasConfigAndUserInfo(optimizely) || isClientReady;
 
   const [state, setState] = useState<FeatureDecisionValues & InitializationState>(() => {
-    const decisionState = isClientReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
+    const decisionState = isFeatureReady ? getCurrentDecision() : { isEnabled: false, variables: {} };
     return {
       ...decisionState,
       clientReady: isClientReady,
@@ -468,8 +479,10 @@ export const useDecision: UseDecision = (flagKey, options = {}, overrides = {}) 
   const isClientReady = isServerSide || !!optimizely?.isReady();
   const isReadyPromiseFulfilled = !!optimizely?.getIsReadyPromiseFulfilled();
 
+  const isDecisionReady = hasConfigAndUserInfo(optimizely) || isClientReady;
+
   const [state, setState] = useState<{ decision: OptimizelyDecision } & InitializationState>(() => {
-    const decisionState = isClientReady
+    const decisionState = isDecisionReady
       ? getCurrentDecision()
       : {
           decision: defaultDecision,

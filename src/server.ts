@@ -1,5 +1,5 @@
 /**
- * Copyright 2018-2019, 2023, 2024 Optimizely
+ * Copyright 2026 Optimizely
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-export { OptimizelyContext, OptimizelyContextConsumer, OptimizelyContextProvider } from './Context';
-export { OptimizelyProvider } from './Provider';
-export { OptimizelyFeature } from './Feature';
-export { useFeature, useExperiment, useDecision, useTrackEvent } from './hooks';
-export { withOptimizely, WithOptimizelyProps, WithoutOptimizelyProps } from './withOptimizely';
-export { OptimizelyExperiment } from './Experiment';
-export { OptimizelyVariation } from './Variation';
-export { OptimizelyDecision, getQualifiedSegments } from './utils';
+/**
+ * Server-safe entry point for @optimizely/react-sdk.
+ *
+ * This module can be safely imported in React Server Components (RSC)
+ * as it does not use any client-only React APIs (createContext, hooks, etc.).
+ */
+
+export { createInstance, ReactSDKClient } from './client';
+
+export { OptimizelyDecision } from './utils';
+
+export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher';
 
 export {
   logging,
@@ -36,7 +40,3 @@ export {
   ListenerPayload,
   OptimizelySegmentOption,
 } from '@optimizely/optimizely-sdk';
-
-export { createInstance, ReactSDKClient } from './client';
-
-export { default as logOnlyEventDispatcher } from './logOnlyEventDispatcher';

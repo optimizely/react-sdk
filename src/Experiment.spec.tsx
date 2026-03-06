@@ -63,6 +63,8 @@ describe('<OptimizelyExperiment>', () => {
       getIsUsingSdkKey: () => true,
       onForcedVariationsUpdate: jest.fn().mockReturnValue(() => {}),
       setUser: jest.fn(),
+      getOptimizelyConfig: jest.fn().mockImplementation(() => (isReady ? {} : null)),
+      getUserContext: jest.fn().mockImplementation(() => (isReady ? {} : null)),
     } as unknown as ReactSDKClient;
   });
 
@@ -512,6 +514,11 @@ describe('<OptimizelyExperiment>', () => {
   });
 
   describe('when the isServerSide prop is true', () => {
+    beforeEach(() => {
+      (optimizelyMock.getOptimizelyConfig as jest.Mock).mockReturnValue({});
+      (optimizelyMock.getUserContext as jest.Mock).mockReturnValue({});
+    });
+
     it('should immediately render the result of the experiment without waiting', async () => {
       render(
         <OptimizelyProvider optimizely={optimizelyMock} timeout={100} isServerSide={true}>
