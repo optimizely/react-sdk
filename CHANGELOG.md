@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.4.0] - Mar 6, 2026 
+
+### New Features
+- Added a server-safe bundle that is automatically resolved when imported in React Server Components, excluding client-only React APIs ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Added `qualifiedSegments` prop to `OptimizelyProvider` for passing pre-fetched ODP segments, enabling synchronous ODP-based decisions during SSR ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Added `getQualifiedSegments` utility for fetching ODP audience segments server-side ([#318](https://github.com/optimizely/react-sdk/pull/318))
+
+### Enhancements
+- Improved `useExperiment`, `useFeature`, and `useDecision` hooks to compute decisions when config and user context (including segments) are available, without waiting for `onReady` ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Added comprehensive server-side rendering integration guide covering SSR, SSG, and App Router patterns ([#318](https://github.com/optimizely/react-sdk/pull/318))
+
 ## [3.3.1] - Dec 8, 2025 
 
 ### Changed
