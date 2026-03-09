@@ -1,6 +1,6 @@
 # Changelog
 
-## [3.4.0] - Mar 6, 2026 
+## [3.4.0] - Mar 9, 2026 
 
 ### New Features
 - Add a server-safe bundle that is automatically resolved when imported in React Server Components, excluding client-only React APIs ([#318](https://github.com/optimizely/react-sdk/pull/318))
