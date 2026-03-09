@@ -43,5 +43,5 @@ export function useOptimizelyUserContext(): OptimizelyUserContext | null {
 
   const getSnapshot = useCallback(() => store.getState().userContext, [store]);
 
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

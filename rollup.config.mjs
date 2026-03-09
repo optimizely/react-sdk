@@ -19,7 +19,8 @@ import terser from '@rollup/plugin-terser';
 import pkg from './package.json' with { type: 'json' };
 
 const { dependencies, peerDependencies } = pkg;
-const external = [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {}), 'crypto'];
+const externalDeps = [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {}), 'crypto'];
+const external = (id) => externalDeps.some((dep) => id === dep || id.startsWith(dep + '/'));
 
 export default {
   input: '.build/index.js',
