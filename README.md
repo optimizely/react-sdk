@@ -471,9 +471,9 @@ const segments = await getQualifiedSegments(userId, datafile);
 
 > **Caching recommendation:** The ODP segment fetch adds latency to server rendering. Consider caching the result per user to avoid re-fetching on every request.
 
-### React Server Components
+### React Server Components (v3.4.0+)
 
-The SDK can also be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:
+Since version 3.4.0, the SDK can be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:
 
 ```tsx
 import { createInstance } from '@optimizely/react-sdk';
