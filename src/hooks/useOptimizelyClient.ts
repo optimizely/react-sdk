@@ -14,5 +14,19 @@
  * limitations under the License.
  */
 
-export { useOptimizelyClient } from './useOptimizelyClient';
-export { useOptimizelyUserContext } from './useOptimizelyUserContext';
+import { useContext } from 'react';
+import { OptimizelyContext } from '../provider/index';
+import type { Client } from '@optimizely/optimizely-sdk';
+
+/**
+ * Returns the Optimizely client instance from the nearest `<OptimizelyProvider>`.
+ */
+export function useOptimizelyClient(): Client {
+  const context = useContext(OptimizelyContext);
+
+  if (!context) {
+    throw new Error('useOptimizelyClient must be used within an <OptimizelyProvider>');
+  }
+
+  return context.client;
+}
