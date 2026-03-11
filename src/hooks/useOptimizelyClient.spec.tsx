@@ -40,7 +40,7 @@ describe('useOptimizelyClient', () => {
 
     expect(() => {
       renderHook(() => useOptimizelyClient());
-    }).toThrow('useOptimizelyClient must be used within an <OptimizelyProvider>');
+    }).toThrow('Optimizely hooks must be used within an <OptimizelyProvider>');
 
     consoleSpy.mockRestore();
   });

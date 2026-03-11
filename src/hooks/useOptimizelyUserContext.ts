@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useContext, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
-import { OptimizelyContext } from '../provider/index';
+import { useOptimizelyContext } from './useOptimizelyContext';
 
 /**
  * Returns the current {@link OptimizelyUserContext} for the nearest `<OptimizelyProvider>`.
@@ -29,15 +29,8 @@ import { OptimizelyContext } from '../provider/index';
  *
  * Returns `null` while the SDK is initializing or if no user has been set yet.
  */
-
 export function useOptimizelyUserContext(): OptimizelyUserContext | null {
-  const context = useContext(OptimizelyContext);
-
-  if (!context) {
-    throw new Error('useOptimizelyUserContext must be used within an <OptimizelyProvider>');
-  }
-
-  const { store } = context;
+  const { store } = useOptimizelyContext();
 
   const subscribe = useCallback((onStoreChange: () => void) => store.subscribe(onStoreChange), [store]);
 

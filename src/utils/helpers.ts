@@ -15,6 +15,22 @@
  */
 
 import type { UserInfo } from '../provider/types';
+import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+
+/**
+ * Creates a default decision to return while loading or when an error occurs.
+ */
+export function createDefaultDecision(flagKey: string, reason: string): OptimizelyDecision {
+  return {
+    variationKey: null,
+    enabled: false,
+    variables: {},
+    ruleKey: null,
+    flagKey,
+    userContext: { id: null, attributes: {} } as unknown as OptimizelyUserContext,
+    reasons: [reason],
+  };
+}
 
 /**
  * Compares two string arrays for value equality (order-insensitive).

@@ -74,7 +74,7 @@ describe('useOptimizelyUserContext', () => {
 
     expect(() => {
       renderHook(() => useOptimizelyUserContext());
-    }).toThrow('useOptimizelyUserContext must be used within an <OptimizelyProvider>');
+    }).toThrow('Optimizely hooks must be used within an <OptimizelyProvider>');
 
     consoleSpy.mockRestore();
   });

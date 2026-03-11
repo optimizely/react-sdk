@@ -16,3 +16,5 @@
 
 export { useOptimizelyClient } from './useOptimizelyClient';
 export { useOptimizelyUserContext } from './useOptimizelyUserContext';
+export { useDecide } from './useDecide';
+export type { UseDecideConfig, UseDecideResult } from './useDecide';
