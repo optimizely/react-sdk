@@ -45,8 +45,6 @@ export interface UseDecideResult {
 export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
-  const defaultDecision = useMemo(() => createDefaultDecision(flagKey), [flagKey]);
-
   // --- General state subscription ---
   // store.getState() returns a new object on every state change,
   // so Object.is comparison works naturally.
@@ -67,21 +65,19 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
 
   // --- Derive decision ---
   return useMemo(() => {
+    void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
     if (error) {
-      return { decision: defaultDecision, isLoading: false, error };
+      return { decision: createDefaultDecision(flagKey), isLoading: false, error };
     }
 
     if (!hasConfig || userContext === null) {
-      return { decision: defaultDecision, isLoading: true, error: null };
+      return { decision: createDefaultDecision(flagKey), isLoading: true, error: null };
     }
 
     const decision = userContext.decide(flagKey, decideOptions);
     return { decision, isLoading: false, error: null };
-    // fdVersion is not referenced in the callback but triggers recomputation
-    // when a forced decision changes for this flagKey.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, fdVersion, client, flagKey, decideOptions, defaultDecision]);
+  }, [fdVersion, state, client, flagKey, decideOptions]);
 }
