@@ -103,14 +103,14 @@ describe('useOptimizelyUserContext', () => {
     expect(result.current).toBeNull();
 
     const mockUserContext = createMockUserContext('user-1');
-    act(() => {
+    await act(async () => {
       store.setUserContext(mockUserContext);
     });
 
     expect(result.current).toBe(mockUserContext);
   });
 
-  it('should update when user context changes to a different user', () => {
+  it('should update when user context changes to a different user', async () => {
     const userContext1 = createMockUserContext('user-1');
     store.setUserContext(userContext1);
 
@@ -120,14 +120,14 @@ describe('useOptimizelyUserContext', () => {
     expect(result.current).toBe(userContext1);
 
     const userContext2 = createMockUserContext('user-2');
-    act(() => {
+    await act(async () => {
       store.setUserContext(userContext2);
     });
 
     expect(result.current).toBe(userContext2);
   });
 
-  it('should update to null when store is reset', () => {
+  it('should update to null when store is reset', async () => {
     const mockUserContext = createMockUserContext();
     store.setUserContext(mockUserContext);
 
@@ -136,7 +136,7 @@ describe('useOptimizelyUserContext', () => {
 
     expect(result.current).toBe(mockUserContext);
 
-    act(() => {
+    await act(async () => {
       store.reset();
     });
 

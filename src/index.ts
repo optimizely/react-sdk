@@ -34,4 +34,4 @@ export { OptimizelyProvider } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
 
 // Hooks
-export { useOptimizelyUserContext } from './hooks/index';
+export { useOptimizelyUserContext, useOptimizelyClient, useDecide } from './hooks/index';

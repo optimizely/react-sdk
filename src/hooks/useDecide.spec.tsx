@@ -172,7 +172,7 @@ describe('useDecide', () => {
     expect(mockUserContext.decide).toHaveBeenCalledWith('flag_1', decideOptions);
   });
 
-  it('should re-evaluate when store state changes (user context set after mount)', () => {
+  it('should re-evaluate when store state changes (user context set after mount)', async () => {
     mockClient = createMockClient(true);
     const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
@@ -180,7 +180,7 @@ describe('useDecide', () => {
     expect(result.current.isLoading).toBe(true);
 
     const mockUserContext = createMockUserContext();
-    act(() => {
+    await act(async () => {
       store.setUserContext(mockUserContext);
     });
 
@@ -188,7 +188,7 @@ describe('useDecide', () => {
     expect(result.current.decision).toBe(MOCK_DECISION);
   });
 
-  it('should re-evaluate when setClientReady fire', () => {
+  it('should re-evaluate when setClientReady fire', async () => {
     const mockUserContext = createMockUserContext();
     store.setUserContext(mockUserContext);
     // Client has no config yet
@@ -199,7 +199,7 @@ describe('useDecide', () => {
 
     // Simulate config becoming available when onReady resolves
     (mockClient.getOptimizelyConfig as ReturnType<typeof vi.fn>).mockReturnValue({ revision: '1' });
-    act(() => {
+    await act(async () => {
       store.setClientReady(true);
     });
 
@@ -207,14 +207,14 @@ describe('useDecide', () => {
     expect(result.current.decision).toBe(MOCK_DECISION);
   });
 
-  it('should return error from store with isLoading: false', () => {
+  it('should return error from store with isLoading: false', async () => {
     const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
 
     const testError = new Error('SDK initialization failed');
-    act(() => {
+    await act(async () => {
       store.setError(testError);
     });
 
@@ -331,7 +331,7 @@ describe('useDecide', () => {
     expect(result.current.decision.flagKey).toBe('flag_b');
   });
 
-  it('should re-call decide() when setClientReady fires after sync decision was already served', () => {
+  it('should re-call decide() when setClientReady fires after sync decision was already served', async () => {
     // Sync datafile scenario: config + userContext available before onReady
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
@@ -349,7 +349,7 @@ describe('useDecide', () => {
     // useSyncExternalStore re-renders → useMemo recomputes → decide() called again.
     // This is a redundant call since config + userContext haven't changed,
     // but it's a one-time cost per flag per page load.
-    act(() => {
+    await act(async () => {
       store.setClientReady(true);
     });
 

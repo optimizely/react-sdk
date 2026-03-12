@@ -48,6 +48,7 @@ export class ProviderStateStore {
   private state: ProviderState;
   private listeners: Set<StateListener>;
   private forcedDecisionListeners: Map<string, Set<ForcedDecisionListener>>;
+  private notifyScheduled = false;
 
   constructor() {
     this.state = { ...initialState };
@@ -234,10 +235,24 @@ export class ProviderStateStore {
 
   /**
    * Notify all listeners of state change.
+   *
+   * Notifications are deferred via queueMicrotask to avoid triggering
+   * setState in subscriber hooks (e.g. useDecide -> useSyncExternalStore)
+   * while the Provider component is still rendering.
+   *
+   * The state itself is updated synchronously so getState() returns the correct value
+   * immediately (required for SSR).
+   *
+   * Multiple synchronous state changes are batched into a single notification.
    */
   private notifyListeners(): void {
-    this.listeners.forEach((listener) => {
-      listener(this.state);
+    if (this.notifyScheduled) return;
+    this.notifyScheduled = true;
+    queueMicrotask(() => {
+      this.notifyScheduled = false;
+      this.listeners.forEach((listener) => {
+        listener(this.state);
+      });
     });
   }
 }
