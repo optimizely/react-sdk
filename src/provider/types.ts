@@ -58,7 +58,7 @@ export interface OptimizelyProviderProps {
    * and a background fetch verifies them (unless skipSegments is true).
    * `undefined` = normal flow, `[]` = explicit "zero segments".
    */
-  qualifiedSegments?: string[];
+  qualifiedSegments?: string[] | null;
 
   /**
    * React children to render.

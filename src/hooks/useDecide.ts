@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/optimizely-sdk';
 
@@ -45,10 +45,7 @@ export interface UseDecideResult {
 export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
-  const defaultDecision = useMemo(
-    () => createDefaultDecision(flagKey, 'Optimizely SDK not configured properly yet.'),
-    [flagKey]
-  );
+  const defaultDecision = useMemo(() => createDefaultDecision(flagKey), [flagKey]);
 
   // --- General state subscription ---
   // store.getState() returns a new object on every state change,
@@ -56,6 +53,17 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
   const subscribeState = useCallback((onStoreChange: () => void) => store.subscribe(onStoreChange), [store]);
   const getStateSnapshot = useCallback(() => store.getState(), [store]);
   const state = useSyncExternalStore(subscribeState, getStateSnapshot, getStateSnapshot);
+
+  // --- Forced decision subscription ---
+  // Forced decisions don't change store state, so we use a version counter
+  // to trigger useMemo recomputation. Per-flagKey granularity prevents
+  // unrelated hooks from re-evaluating.
+  const [fdVersion, setFdVersion] = useState(0);
+  useEffect(() => {
+    return store.subscribeForcedDecision(flagKey, () => {
+      setFdVersion((v) => v + 1);
+    });
+  }, [store, flagKey]);
 
   // --- Derive decision ---
   return useMemo(() => {
@@ -72,5 +80,8 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
 
     const decision = userContext.decide(flagKey, decideOptions);
     return { decision, isLoading: false, error: null };
-  }, [state, client, flagKey, decideOptions, defaultDecision]);
+    // fdVersion is not referenced in the callback but triggers recomputation
+    // when a forced decision changes for this flagKey.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, fdVersion, client, flagKey, decideOptions, defaultDecision]);
 }

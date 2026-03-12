@@ -20,7 +20,7 @@ import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/opti
 /**
  * Creates a default decision to return while loading or when an error occurs.
  */
-export function createDefaultDecision(flagKey: string, reason: string): OptimizelyDecision {
+export function createDefaultDecision(flagKey: string): OptimizelyDecision {
   return {
     variationKey: null,
     enabled: false,
@@ -28,7 +28,7 @@ export function createDefaultDecision(flagKey: string, reason: string): Optimize
     ruleKey: null,
     flagKey,
     userContext: { id: null, attributes: {} } as unknown as OptimizelyUserContext,
-    reasons: [reason],
+    reasons: ['Optimizely SDK not configured properly yet.'],
   };
 }
 

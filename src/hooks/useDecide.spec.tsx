@@ -15,7 +15,7 @@
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React, { useRef } from 'react';
+import React from 'react';
 import { act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { OptimizelyContext, ProviderStateStore } from '../provider/index';
@@ -46,10 +46,10 @@ function createMockUserContext(overrides?: Partial<Record<'decide', unknown>>): 
     decide: vi.fn().mockReturnValue(MOCK_DECISION),
     decideAll: vi.fn(),
     decideForKeys: vi.fn(),
-    setForcedDecision: vi.fn(),
+    setForcedDecision: vi.fn().mockReturnValue(true),
     getForcedDecision: vi.fn(),
-    removeForcedDecision: vi.fn(),
-    removeAllForcedDecisions: vi.fn(),
+    removeForcedDecision: vi.fn().mockReturnValue(true),
+    removeAllForcedDecisions: vi.fn().mockReturnValue(true),
     trackEvent: vi.fn(),
     getOptimizely: vi.fn(),
     setQualifiedSegments: vi.fn(),
@@ -74,11 +74,6 @@ function createWrapper(store: ProviderStateStore, client: Client) {
   return function Wrapper({ children }: { children: React.ReactNode }) {
     return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
   };
-}
-
-function useRenderCount() {
-  const renderCount = useRef(0);
-  return ++renderCount.current;
 }
 
 describe('useDecide', () => {
@@ -356,5 +351,133 @@ describe('useDecide', () => {
     expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.decision).toBe(MOCK_DECISION);
+  });
+
+  describe('forced decision reactivity', () => {
+    it('should re-evaluate when setForcedDecision is called for the same flagKey', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const wrapper = createWrapper(store, mockClient);
+      const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(1);
+
+      const forcedDecision: OptimizelyDecision = {
+        ...MOCK_DECISION,
+        variationKey: 'forced_variation',
+      };
+      (mockUserContext.decide as ReturnType<typeof vi.fn>).mockReturnValue(forcedDecision);
+
+      act(() => {
+        mockUserContext.setForcedDecision({ flagKey: 'flag_1' }, { variationKey: 'forced_variation' });
+      });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
+      expect(result.current.decision).toBe(forcedDecision);
+    });
+
+    it('should NOT re-evaluate when setForcedDecision is called for a different flagKey', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const wrapper = createWrapper(store, mockClient);
+      renderHook(() => useDecide('flag_1'), { wrapper });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(1);
+      (mockUserContext.decide as ReturnType<typeof vi.fn>).mockClear();
+
+      act(() => {
+        mockUserContext.setForcedDecision({ flagKey: 'flag_2' }, { variationKey: 'v1' });
+      });
+
+      // flag_1 hook should NOT re-evaluate — different flagKey
+      expect(mockUserContext.decide).not.toHaveBeenCalled();
+    });
+
+    it('should re-evaluate when removeForcedDecision is called for the same flagKey', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const wrapper = createWrapper(store, mockClient);
+      renderHook(() => useDecide('flag_1'), { wrapper });
+
+      // Set then remove
+      act(() => {
+        mockUserContext.setForcedDecision({ flagKey: 'flag_1' }, { variationKey: 'v1' });
+      });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
+
+      act(() => {
+        mockUserContext.removeForcedDecision({ flagKey: 'flag_1' });
+      });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(3);
+    });
+
+    it('should re-evaluate when removeAllForcedDecisions is called', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const wrapper = createWrapper(store, mockClient);
+      renderHook(() => useDecide('flag_1'), { wrapper });
+
+      // Set a forced decision to register the flagKey internally
+      act(() => {
+        mockUserContext.setForcedDecision({ flagKey: 'flag_1' }, { variationKey: 'v1' });
+      });
+      // (mockUserContext.decide as ReturnType<typeof vi.fn>).mockClear();
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
+
+      act(() => {
+        mockUserContext.removeAllForcedDecisions();
+      });
+
+      expect(mockUserContext.decide).toHaveBeenCalledTimes(3);
+    });
+
+    it('should unsubscribe forced decision listener on unmount', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const unsubscribeFdSpy = vi.fn();
+      const subscribeFdSpy = vi.spyOn(store, 'subscribeForcedDecision').mockReturnValue(unsubscribeFdSpy);
+
+      const wrapper = createWrapper(store, mockClient);
+      const { unmount } = renderHook(() => useDecide('flag_1'), { wrapper });
+
+      expect(subscribeFdSpy).toHaveBeenCalledTimes(1);
+      expect(subscribeFdSpy).toHaveBeenCalledWith('flag_1', expect.any(Function));
+
+      unmount();
+
+      expect(unsubscribeFdSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should re-subscribe to forced decisions when flagKey changes', () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const subscribeFdSpy = vi.spyOn(store, 'subscribeForcedDecision');
+
+      const wrapper = createWrapper(store, mockClient);
+      const { rerender } = renderHook(({ flagKey }) => useDecide(flagKey), {
+        wrapper,
+        initialProps: { flagKey: 'flag_1' },
+      });
+
+      expect(subscribeFdSpy).toHaveBeenCalledWith('flag_1', expect.any(Function));
+
+      rerender({ flagKey: 'flag_2' });
+
+      expect(subscribeFdSpy).toHaveBeenCalledWith('flag_2', expect.any(Function));
+    });
   });
 });
