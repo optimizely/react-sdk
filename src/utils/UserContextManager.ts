@@ -47,7 +47,7 @@ export class UserContextManager {
   private initialized = false;
   private skipSegments = false;
   private prevUser?: UserInfo;
-  private prevSegments?: string[] | null;
+  private prevSegments?: string[];
 
   constructor(config: UserContextManagerConfig) {
     this.client = config.client;
@@ -66,7 +66,7 @@ export class UserContextManager {
    * @param qualifiedSegments - Optional pre-fetched segments. When provided,
    * @param skipSegments - Whether to skip ODP segment fetching (default: false)
    */
-  resolveUserContext(user?: UserInfo, qualifiedSegments?: string[] | null, skipSegments = false): void {
+  resolveUserContext(user?: UserInfo, qualifiedSegments?: string[], skipSegments = false): void {
     if (
       this.initialized &&
       this.skipSegments === skipSegments &&
@@ -96,11 +96,7 @@ export class UserContextManager {
     this.disposed = true;
   }
 
-  private async createUserContext(
-    requestId: number,
-    user?: UserInfo,
-    qualifiedSegments?: string[] | null
-  ): Promise<void> {
+  private async createUserContext(requestId: number, user?: UserInfo, qualifiedSegments?: string[]): Promise<void> {
     if (!user?.id && this.meta.hasVuidManager) {
       await this.client.onReady();
       if (this.isStale(requestId)) return;
@@ -122,7 +118,7 @@ export class UserContextManager {
         if (this.isStale(requestId)) return;
 
         if (this.client.isOdpIntegrated()) {
-          const snapshot = qualifiedSegments ? [...qualifiedSegments] : null;
+          const snapshot = [...qualifiedSegments];
 
           await ctx.fetchQualifiedSegments();
 

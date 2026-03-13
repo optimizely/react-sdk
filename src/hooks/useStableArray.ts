@@ -36,8 +36,11 @@ function shallowEqualArrays<T>(a: T[] | undefined, b: T[] | undefined): boolean 
   if (a === undefined || b === undefined) return false;
   if (a.length !== b.length) return false;
 
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+
+  for (let i = 0; i < sortedA.length; i++) {
+    if (sortedA[i] !== sortedB[i]) return false;
   }
 
   return true;

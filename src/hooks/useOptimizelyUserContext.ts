@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
+
+export type UseOptimizelyUserContextResult =
+  | { isLoading: true; error: null; userContext: null }
+  | { isLoading: false; error: Error; userContext: null }
+  | { isLoading: false; error: null; userContext: OptimizelyUserContext };
 
 /**
  * Returns the current {@link OptimizelyUserContext} for the nearest `<OptimizelyProvider>`.
@@ -26,15 +31,25 @@ import { useOptimizelyContext } from './useOptimizelyContext';
  * The user context gives access to the user's identity (user ID and attributes)
  * and methods for working with forced decisions (`setForcedDecision`,
  * `removeForcedDecision`, `removeAllForcedDecisions`).
- *
- * Returns `null` while the SDK is initializing or if no user has been set yet.
  */
-export function useOptimizelyUserContext(): OptimizelyUserContext | null {
+export function useOptimizelyUserContext(): UseOptimizelyUserContextResult {
   const { store } = useOptimizelyContext();
 
   const subscribe = useCallback((onStoreChange: () => void) => store.subscribe(onStoreChange), [store]);
+  const getSnapshot = useCallback(() => store.getState(), [store]);
+  const state = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
-  const getSnapshot = useCallback(() => store.getState().userContext, [store]);
+  return useMemo(() => {
+    const { userContext, error } = state;
 
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    if (error) {
+      return { userContext: null, isLoading: false, error };
+    }
+
+    if (userContext === null) {
+      return { userContext: null, isLoading: true, error: null };
+    }
+
+    return { userContext, isLoading: false, error: null };
+  }, [state]);
 }

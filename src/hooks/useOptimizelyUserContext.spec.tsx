@@ -79,35 +79,41 @@ describe('useOptimizelyUserContext', () => {
     consoleSpy.mockRestore();
   });
 
-  it('should return null when no user context is set', () => {
+  it('should return isLoading: true with null userContext when no user context is set', () => {
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
-    expect(result.current).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.error).toBeNull();
+    expect(result.current.userContext).toBeNull();
   });
 
-  it('should return the current user context from the store', () => {
+  it('should return the current user context with isLoading: false', () => {
     const mockUserContext = createMockUserContext();
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
-    expect(result.current).toBe(mockUserContext);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBeNull();
+    expect(result.current.userContext).toBe(mockUserContext);
   });
 
   it('should update when user context changes', async () => {
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
-    expect(result.current).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.userContext).toBeNull();
 
     const mockUserContext = createMockUserContext('user-1');
     await act(async () => {
       store.setUserContext(mockUserContext);
     });
 
-    expect(result.current).toBe(mockUserContext);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.userContext).toBe(mockUserContext);
   });
 
   it('should update when user context changes to a different user', async () => {
@@ -117,30 +123,47 @@ describe('useOptimizelyUserContext', () => {
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
-    expect(result.current).toBe(userContext1);
+    expect(result.current.userContext).toBe(userContext1);
 
     const userContext2 = createMockUserContext('user-2');
     await act(async () => {
       store.setUserContext(userContext2);
     });
 
-    expect(result.current).toBe(userContext2);
+    expect(result.current.userContext).toBe(userContext2);
   });
 
-  it('should update to null when store is reset', async () => {
+  it('should return isLoading: true when store is reset', async () => {
     const mockUserContext = createMockUserContext();
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
-    expect(result.current).toBe(mockUserContext);
+    expect(result.current.userContext).toBe(mockUserContext);
 
     await act(async () => {
       store.reset();
     });
 
-    expect(result.current).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.userContext).toBeNull();
+  });
+
+  it('should return error with isLoading: false when store has error', async () => {
+    const wrapper = createWrapper(store);
+    const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
+
+    expect(result.current.isLoading).toBe(true);
+
+    const testError = new Error('SDK initialization failed');
+    await act(async () => {
+      store.setError(testError);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(testError);
+    expect(result.current.userContext).toBeNull();
   });
 
   it('should unsubscribe from store on unmount', () => {
@@ -164,10 +187,10 @@ describe('useOptimizelyUserContext', () => {
 
     let capturedRenderCount = 0;
     function TestComponent() {
-      const ctx = useOptimizelyUserContext();
+      const { userContext } = useOptimizelyUserContext();
       const renderCount = useRenderCount();
       capturedRenderCount = renderCount;
-      return <div data-testid="user-id">{ctx?.getUserId()}</div>;
+      return <div data-testid="user-id">{userContext?.getUserId()}</div>;
     }
 
     const contextValue: OptimizelyContextValue = {
@@ -184,8 +207,8 @@ describe('useOptimizelyUserContext', () => {
     const initialRenderCount = capturedRenderCount;
 
     // Changing isClientReady triggers a store notification,
-    // but since userContext reference didn't change, React's useState
-    // bails out and skips the re-render
+    // but since the derived result hasn't changed, useMemo returns
+    // the same reference and React bails out
     act(() => {
       store.setClientReady(true);
     });

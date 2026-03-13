@@ -102,9 +102,7 @@ describe('useDecide', () => {
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
-    expect(result.current.decision.enabled).toBe(false);
-    expect(result.current.decision.variationKey).toBeNull();
-    expect(result.current.decision.flagKey).toBe('flag_1');
+    expect(result.current.decision).toBeNull();
   });
 
   it('should return isLoading: true when config is available but no user context', () => {
@@ -127,17 +125,13 @@ describe('useDecide', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should return default decision while loading', () => {
+  it('should return null decision while loading', () => {
     const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecide('my_flag'), { wrapper });
 
-    const { decision } = result.current;
-    expect(decision.enabled).toBe(false);
-    expect(decision.variationKey).toBeNull();
-    expect(decision.ruleKey).toBeNull();
-    expect(decision.variables).toEqual({});
-    expect(decision.flagKey).toBe('my_flag');
-    expect(decision.reasons).toContain('Optimizely SDK not configured properly yet.');
+    expect(result.current.decision).toBeNull();
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.error).toBeNull();
   });
 
   it('should return actual decision when config and user context are available', () => {
@@ -215,8 +209,7 @@ describe('useDecide', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(testError);
-    expect(result.current.decision.enabled).toBe(false);
-    expect(result.current.decision.variationKey).toBeNull();
+    expect(result.current.decision).toBeNull();
   });
 
   it('should re-evaluate when flagKey changes', () => {
@@ -312,18 +305,18 @@ describe('useDecide', () => {
     expect(mockUserContext.decide).not.toHaveBeenCalled();
   });
 
-  it('should update default decision flagKey when flagKey changes', () => {
+  it('should return null decision for both flagKeys when loading', () => {
     const wrapper = createWrapper(store, mockClient);
     const { result, rerender } = renderHook(({ flagKey }) => useDecide(flagKey), {
       wrapper,
       initialProps: { flagKey: 'flag_a' },
     });
 
-    expect(result.current.decision.flagKey).toBe('flag_a');
+    expect(result.current.decision).toBeNull();
 
     rerender({ flagKey: 'flag_b' });
 
-    expect(result.current.decision.flagKey).toBe('flag_b');
+    expect(result.current.decision).toBeNull();
   });
 
   it('should re-call decide() when setClientReady fires after sync decision was already served', async () => {

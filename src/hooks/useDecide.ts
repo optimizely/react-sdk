@@ -20,17 +20,15 @@ import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/opt
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useStableArray } from './useStableArray';
-import { createDefaultDecision } from '../utils/helpers';
 
 export interface UseDecideConfig {
   decideOptions?: OptimizelyDecideOption[];
 }
 
-export interface UseDecideResult {
-  decision: OptimizelyDecision;
-  isLoading: boolean;
-  error: Error | null;
-}
+export type UseDecideResult =
+  | { isLoading: true; error: null; decision: null }
+  | { isLoading: false; error: Error; decision: null }
+  | { isLoading: false; error: null; decision: OptimizelyDecision };
 
 /**
  * Returns a feature flag decision for the given flag key.
@@ -70,11 +68,11 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
     const hasConfig = client.getOptimizelyConfig() !== null;
 
     if (error) {
-      return { decision: createDefaultDecision(flagKey), isLoading: false, error };
+      return { decision: null, isLoading: false, error };
     }
 
     if (!hasConfig || userContext === null) {
-      return { decision: createDefaultDecision(flagKey), isLoading: true, error: null };
+      return { decision: null, isLoading: true, error: null };
     }
 
     const decision = userContext.decide(flagKey, decideOptions);

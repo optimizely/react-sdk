@@ -15,29 +15,13 @@
  */
 
 import type { UserInfo } from '../provider/types';
-import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-
-/**
- * Creates a default decision to return while loading or when an error occurs.
- */
-export function createDefaultDecision(flagKey: string): OptimizelyDecision {
-  return {
-    variationKey: null,
-    enabled: false,
-    variables: {},
-    ruleKey: null,
-    flagKey,
-    userContext: { id: null, attributes: {} } as unknown as OptimizelyUserContext,
-    reasons: ['Optimizely SDK not configured properly yet.'],
-  };
-}
 
 /**
  * Compares two string arrays for value equality (order-insensitive).
  * Used to prevent redundant user context creation when the segments prop
  * is referentially different but value-equal.
  */
-export function areSegmentsEqual(a?: string[] | null, b?: string[] | null): boolean {
+export function areSegmentsEqual(a?: string[], b?: string[]): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   if (a.length !== b.length) return false;
