@@ -17,6 +17,8 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { ProviderStateStore } from './ProviderStateStore';
 
+const flushMicrotasks = () => new Promise<void>((resolve) => queueMicrotask(resolve));
+
 describe('ProviderStateStore', () => {
   let store: ProviderStateStore;
 
@@ -60,11 +62,12 @@ describe('ProviderStateStore', () => {
       expect(typeof unsubscribe).toBe('function');
     });
 
-    it('should notify listener when state changes', () => {
+    it('should notify listener when state changes', async () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
       store.setClientReady(true);
+      await flushMicrotasks();
 
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(
@@ -74,29 +77,31 @@ describe('ProviderStateStore', () => {
       );
     });
 
-    it('should notify multiple listeners', () => {
+    it('should notify multiple listeners', async () => {
       const listener1 = vi.fn();
       const listener2 = vi.fn();
       store.subscribe(listener1);
       store.subscribe(listener2);
 
       store.setClientReady(true);
+      await flushMicrotasks();
 
       expect(listener1).toHaveBeenCalledTimes(1);
       expect(listener2).toHaveBeenCalledTimes(1);
     });
 
-    it('should not notify after unsubscribe', () => {
+    it('should not notify after unsubscribe', async () => {
       const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
 
       unsubscribe();
       store.setClientReady(true);
+      await flushMicrotasks();
 
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('should handle multiple unsubscribes gracefully', () => {
+    it('should handle multiple unsubscribes gracefully', async () => {
       const listener = vi.fn();
       const unsubscribe = store.subscribe(listener);
 
@@ -104,10 +109,11 @@ describe('ProviderStateStore', () => {
       unsubscribe(); // Second call should not throw
 
       store.setClientReady(true);
+      await flushMicrotasks();
       expect(listener).not.toHaveBeenCalled();
     });
 
-    it('should allow re-subscribing after unsubscribe', () => {
+    it('should allow re-subscribing after unsubscribe', async () => {
       const listener = vi.fn();
       const unsubscribe1 = store.subscribe(listener);
 
@@ -115,6 +121,7 @@ describe('ProviderStateStore', () => {
 
       const unsubscribe2 = store.subscribe(listener);
       store.setClientReady(true);
+      await flushMicrotasks();
 
       expect(listener).toHaveBeenCalledTimes(1);
 
@@ -129,11 +136,12 @@ describe('ProviderStateStore', () => {
       expect(store.getState().isClientReady).toBe(true);
     });
 
-    it('should not notify if value has not changed', () => {
+    it('should not notify if value has not changed', async () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
       store.setClientReady(false); // Same as initial value
+      await flushMicrotasks();
 
       expect(listener).not.toHaveBeenCalled();
     });
@@ -203,14 +211,16 @@ describe('ProviderStateStore', () => {
       expect(store.getState().error).toBeNull();
     });
 
-    it('should not notify if same error reference', () => {
+    it('should not notify if same error reference', async () => {
       const error = new Error('Test error');
       store.setError(error);
+      await flushMicrotasks(); // flush notification from initial setError
 
       const listener = vi.fn();
       store.subscribe(listener);
 
       store.setError(error);
+      await flushMicrotasks();
 
       expect(listener).not.toHaveBeenCalled();
     });
@@ -229,7 +239,7 @@ describe('ProviderStateStore', () => {
   });
 
   describe('setState', () => {
-    it('should batch update multiple properties', () => {
+    it('should batch update multiple properties', async () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
@@ -238,6 +248,7 @@ describe('ProviderStateStore', () => {
         isClientReady: true,
         userContext: mockUserContext,
       });
+      await flushMicrotasks();
 
       // Should only notify once for batch update
       expect(listener).toHaveBeenCalledTimes(1);
@@ -245,6 +256,26 @@ describe('ProviderStateStore', () => {
       const state = store.getState();
       expect(state.isClientReady).toBe(true);
       expect(state.userContext).toBe(mockUserContext);
+    });
+
+    it('should batch multiple synchronous updates into one notification', async () => {
+      const listener = vi.fn();
+      store.subscribe(listener);
+
+      const mockUserContext = createMockUserContext();
+      store.setClientReady(true);
+      store.setUserContext(mockUserContext);
+      store.setError(new Error('test'));
+      await flushMicrotasks();
+
+      // Three state changes, but only one notification due to microtask batching
+      expect(listener).toHaveBeenCalledTimes(1);
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isClientReady: true,
+          userContext: mockUserContext,
+        })
+      );
     });
 
     it('should allow partial updates', () => {
@@ -273,12 +304,13 @@ describe('ProviderStateStore', () => {
       expect(state.error).toBeNull();
     });
 
-    it('should notify listeners on reset', () => {
+    it('should notify listeners on reset', async () => {
       const listener = vi.fn();
       store.setClientReady(true);
       store.subscribe(listener);
 
       store.reset();
+      await flushMicrotasks();
 
       expect(listener).toHaveBeenCalledTimes(1);
     });

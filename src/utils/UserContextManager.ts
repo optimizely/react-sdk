@@ -104,7 +104,7 @@ export class UserContextManager {
 
     const ctx = this.client.createUserContext(user?.id, user?.attributes);
 
-    if (qualifiedSegments) {
+    if (qualifiedSegments !== undefined) {
       ctx.qualifiedSegments = qualifiedSegments;
 
       this.onUserContextReady(ctx); // immediate callback for sync decision with pre-set segments

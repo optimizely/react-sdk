@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-export { UserContextManager } from './UserContextManager';
-export type { UserContextManagerConfig } from './UserContextManager';
+import type { Client } from '@optimizely/optimizely-sdk';
+import { useOptimizelyContext } from './useOptimizelyContext';
 
-export * from './helpers';
+/**
+ * Returns the Optimizely client instance from the nearest `<OptimizelyProvider>`.
+ */
+export function useOptimizelyClient(): Client {
+  return useOptimizelyContext().client;
+}

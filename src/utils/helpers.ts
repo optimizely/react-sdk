@@ -21,7 +21,7 @@ import type { UserInfo } from '../provider/types';
  * Used to prevent redundant user context creation when the segments prop
  * is referentially different but value-equal.
  */
-export function areSegmentsEqual(a?: string[] | null, b?: string[] | null): boolean {
+export function areSegmentsEqual(a?: string[], b?: string[]): boolean {
   if (a === b) return true;
   if (!a || !b) return false;
   if (a.length !== b.length) return false;

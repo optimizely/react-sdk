@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-export { UserContextManager } from './UserContextManager';
-export type { UserContextManagerConfig } from './UserContextManager';
-
-export * from './helpers';
+export { useOptimizelyClient } from './useOptimizelyClient';
+export { useOptimizelyUserContext } from './useOptimizelyUserContext';
+export type { UseOptimizelyUserContextResult } from './useOptimizelyUserContext';
+export { useDecide } from './useDecide';
+export type { UseDecideConfig, UseDecideResult } from './useDecide';

@@ -23,12 +23,15 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-  createLogger 
+  createLogger,
 } from './client/index';
 
-export type * from "@optimizely/optimizely-sdk";
+export type * from '@optimizely/optimizely-sdk';
 
 // Provider
 // Todo: Remove OptimizelyContext export in future
 export { OptimizelyProvider } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
+
+// Hooks
+export { useOptimizelyUserContext, useOptimizelyClient, useDecide } from './hooks/index';
