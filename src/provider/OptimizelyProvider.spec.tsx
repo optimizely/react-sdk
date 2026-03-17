@@ -55,7 +55,10 @@ function createMockClient(
     createUserContext: vi.fn().mockReturnValue(mockUserContext),
     close: vi.fn(),
     getOptimizelyConfig: vi.fn(),
-    notificationCenter: {} as OptimizelyClient['notificationCenter'],
+    notificationCenter: {
+      addNotificationListener: vi.fn().mockReturnValue(1),
+      removeNotificationListener: vi.fn(),
+    } as unknown as OptimizelyClient['notificationCenter'],
     sendOdpEvent: vi.fn(),
     isOdpIntegrated: vi.fn().mockReturnValue(false),
     ...overrides,
@@ -635,6 +638,91 @@ describe('OptimizelyProvider', () => {
         expect(capturedContext!.store.getState().error).not.toBeNull();
         expect(capturedContext!.store.getState().error!.message).toBe('createUserContext failed');
       });
+    });
+  });
+
+  describe('config update subscription', () => {
+    it('should subscribe to OPTIMIZELY_CONFIG_UPDATE on mount', () => {
+      const mockClient = createMockClient();
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.notificationCenter.addNotificationListener).toHaveBeenCalledWith(
+        'OPTIMIZELY_CONFIG_UPDATE',
+        expect.any(Function)
+      );
+    });
+
+    it('should remove notification listener on unmount', () => {
+      const mockClient = createMockClient();
+
+      const { unmount } = render(
+        <OptimizelyProvider client={mockClient}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      unmount();
+
+      expect(mockClient.notificationCenter.removeNotificationListener).toHaveBeenCalledWith(1);
+    });
+
+    it('should trigger store state change when config update fires', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(capturedContext).not.toBeNull();
+      });
+
+      const stateBefore = capturedContext!.store.getState();
+
+      // Get the callback that was registered and invoke it
+      const configUpdateCallback = (
+        mockClient.notificationCenter.addNotificationListener as ReturnType<typeof vi.fn>
+      ).mock.calls.find((call: unknown[]) => call[0] === 'OPTIMIZELY_CONFIG_UPDATE')![1];
+
+      await act(() => {
+        configUpdateCallback();
+      });
+
+      const stateAfter = capturedContext!.store.getState();
+
+      // State should be a new reference (triggers useSyncExternalStore subscribers)
+      expect(stateBefore).not.toBe(stateAfter);
+    });
+
+    it('should re-subscribe when client changes', () => {
+      const mockClient1 = createMockClient();
+      const mockClient2 = createMockClient();
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient1}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient1.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <OptimizelyProvider client={mockClient2}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      // Old listener cleaned up, new one registered
+      expect(mockClient1.notificationCenter.removeNotificationListener).toHaveBeenCalledWith(1);
+      expect(mockClient2.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
     });
   });
 

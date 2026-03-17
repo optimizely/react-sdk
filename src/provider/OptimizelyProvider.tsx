@@ -15,6 +15,7 @@
  */
 
 import React, { createContext, useRef, useMemo, useEffect } from 'react';
+import { NOTIFICATION_TYPES } from '@optimizely/optimizely-sdk';
 
 import { ProviderStateStore } from './ProviderStateStore';
 import { UserContextManager } from '../utils/UserContextManager';
@@ -109,6 +110,22 @@ export function OptimizelyProvider({
       isMounted = false;
     };
   }, [client, timeout, store]);
+
+  // Effect: Subscribe to config/datafile updates (e.g., polling)
+  useEffect(() => {
+    if (!client) return;
+
+    const listenerId = client.notificationCenter.addNotificationListener(
+      NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
+      () => {
+        store.setState({});
+      }
+    );
+
+    return () => {
+      client.notificationCenter.removeNotificationListener(listenerId);
+    };
+  }, [client, store]);
 
   // Cleanup on unmount
   useEffect(() => {

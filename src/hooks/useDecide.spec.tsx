@@ -16,9 +16,10 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { OptimizelyContext, ProviderStateStore } from '../provider/index';
+import { OptimizelyContext, ProviderStateStore, OptimizelyProvider } from '../provider/index';
+import { REACT_CLIENT_META } from '../client/index';
 import { useDecide } from './useDecide';
 import type {
   OptimizelyUserContext,
@@ -66,6 +67,49 @@ function createMockClient(hasConfig = false): Client {
     onReady: vi.fn().mockResolvedValue({ success: true }),
     notificationCenter: {},
   } as unknown as Client;
+}
+
+/**
+ * Creates a mock client with notification center support and wraps it in OptimizelyProvider.
+ * Used for integration-style tests that need the full Provider lifecycle.
+ */
+function createProviderWrapper(mockUserContext: OptimizelyUserContext) {
+  let configUpdateCallback: (() => void) | undefined;
+
+  const client = {
+    getOptimizelyConfig: vi.fn().mockReturnValue({ revision: '1' }),
+    createUserContext: vi.fn().mockReturnValue(mockUserContext),
+    onReady: vi.fn().mockResolvedValue(undefined),
+    isOdpIntegrated: vi.fn().mockReturnValue(false),
+    notificationCenter: {
+      addNotificationListener: vi.fn().mockImplementation((type: string, cb: () => void) => {
+        if (type === 'OPTIMIZELY_CONFIG_UPDATE') {
+          configUpdateCallback = cb;
+        }
+        return 1;
+      }),
+      removeNotificationListener: vi.fn(),
+    },
+  } as unknown as Client;
+
+  (client as unknown as Record<symbol, unknown>)[REACT_CLIENT_META] = {
+    hasOdpManager: false,
+    hasVuidManager: false,
+  };
+
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <OptimizelyProvider client={client} user={{ id: 'user-1' }}>
+        {children}
+      </OptimizelyProvider>
+    );
+  }
+
+  return {
+    wrapper: Wrapper,
+    client,
+    fireConfigUpdate: () => configUpdateCallback?.(),
+  };
 }
 
 function createWrapper(store: ProviderStateStore, client: Client) {
@@ -344,6 +388,38 @@ describe('useDecide', () => {
     expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.decision).toBe(MOCK_DECISION);
+  });
+
+  it('should re-evaluate decision when OPTIMIZELY_CONFIG_UPDATE fires from the client', async () => {
+    const mockUserContext = createMockUserContext();
+    const { wrapper, fireConfigUpdate } = createProviderWrapper(mockUserContext);
+
+    const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
+
+    // Wait for Provider's onReady + UserContextManager + queueMicrotask chain to complete
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.decision).toBe(MOCK_DECISION);
+    const callCountBeforeUpdate = (mockUserContext.decide as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // Simulate a new datafile with a different decision
+    const updatedDecision: OptimizelyDecision = {
+      ...MOCK_DECISION,
+      variationKey: 'variation_2',
+      variables: { color: 'blue' },
+    };
+    (mockUserContext.decide as ReturnType<typeof vi.fn>).mockReturnValue(updatedDecision);
+
+    // Fire the config update notification (as the SDK would on datafile poll)
+    await act(async () => {
+      fireConfigUpdate();
+    });
+
+    expect(mockUserContext.decide).toHaveBeenCalledTimes(callCountBeforeUpdate + 1);
+    expect(result.current.decision).toBe(updatedDecision);
+    expect(result.current.isLoading).toBe(false);
   });
 
   describe('forced decision reactivity', () => {
