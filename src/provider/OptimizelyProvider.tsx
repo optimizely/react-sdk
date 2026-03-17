@@ -77,7 +77,8 @@ export function OptimizelyProvider({
     userManagerRef.current.resolveUserContext(user, qualifiedSegments, skipSegments);
   }
 
-  // Effect: Client onReady
+  // Effect: Client onReady — only needed for error handling.
+  // Readiness is derived from userContext + getOptimizelyConfig() by hooks.
   useEffect(() => {
     if (!client) {
       logger?.error('OptimizelyProvider must be passed an Optimizely client instance');
@@ -87,24 +88,11 @@ export function OptimizelyProvider({
 
     let isMounted = true;
 
-    const waitForClientReady = async (): Promise<void> => {
-      try {
-        await client.onReady({ timeout });
-
-        if (!isMounted) return;
-
-        store.setClientReady(true);
-      } catch (error) {
-        if (!isMounted) return;
-        const err = error instanceof Error ? error : new Error(String(error));
-        store.setState({
-          isClientReady: false,
-          error: err,
-        });
-      }
-    };
-
-    waitForClientReady();
+    client.onReady({ timeout }).catch((error) => {
+      if (!isMounted) return;
+      const err = error instanceof Error ? error : new Error(String(error));
+      store.setError(err);
+    });
 
     return () => {
       isMounted = false;
@@ -118,7 +106,7 @@ export function OptimizelyProvider({
     const listenerId = client.notificationCenter.addNotificationListener(
       NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
       () => {
-        store.setState({});
+        store.refresh();
       }
     );
 

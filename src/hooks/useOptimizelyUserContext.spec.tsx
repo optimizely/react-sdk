@@ -206,11 +206,11 @@ describe('useOptimizelyUserContext', () => {
 
     const initialRenderCount = capturedRenderCount;
 
-    // Changing isClientReady triggers a store notification,
+    // Triggering a store notification via setState,
     // but since the derived result hasn't changed, useMemo returns
     // the same reference and React bails out
     act(() => {
-      store.setClientReady(true);
+      store.refresh();
     });
 
     expect(capturedRenderCount).toBe(initialRenderCount);

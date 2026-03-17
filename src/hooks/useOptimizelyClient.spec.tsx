@@ -81,12 +81,12 @@ describe('useOptimizelyClient', () => {
 
     // Trigger store state changes that should NOT cause useOptimizelyClient to re-render
     act(() => {
-      store.setClientReady(true);
+      store.setError(new Error('test'));
     });
     expect(capturedRenderCount).toBe(initialRenderCount);
 
     act(() => {
-      store.setError(new Error('test'));
+      store.refresh();
     });
     expect(capturedRenderCount).toBe(initialRenderCount);
   });

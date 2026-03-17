@@ -221,25 +221,6 @@ describe('useDecide', () => {
     expect(result.current.decision).toBe(MOCK_DECISION);
   });
 
-  it('should re-evaluate when setClientReady fire', async () => {
-    const mockUserContext = createMockUserContext();
-    store.setUserContext(mockUserContext);
-    // Client has no config yet
-    const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
-
-    expect(result.current.isLoading).toBe(true);
-
-    // Simulate config becoming available when onReady resolves
-    (mockClient.getOptimizelyConfig as ReturnType<typeof vi.fn>).mockReturnValue({ revision: '1' });
-    await act(async () => {
-      store.setClientReady(true);
-    });
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.decision).toBe(MOCK_DECISION);
-  });
-
   it('should return error from store with isLoading: false', async () => {
     const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
@@ -363,33 +344,6 @@ describe('useDecide', () => {
     expect(result.current.decision).toBeNull();
   });
 
-  it('should re-call decide() when setClientReady fires after sync decision was already served', async () => {
-    // Sync datafile scenario: config + userContext available before onReady
-    mockClient = createMockClient(true);
-    const mockUserContext = createMockUserContext();
-    store.setUserContext(mockUserContext);
-
-    const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
-
-    // Decision already served
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.decision).toBe(MOCK_DECISION);
-    expect(mockUserContext.decide).toHaveBeenCalledTimes(1);
-
-    // onReady() resolves → setClientReady(true) fires → store state changes →
-    // useSyncExternalStore re-renders → useMemo recomputes → decide() called again.
-    // This is a redundant call since config + userContext haven't changed,
-    // but it's a one-time cost per flag per page load.
-    await act(async () => {
-      store.setClientReady(true);
-    });
-
-    expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.decision).toBe(MOCK_DECISION);
-  });
-
   it('should re-evaluate decision when OPTIMIZELY_CONFIG_UPDATE fires from the client', async () => {
     const mockUserContext = createMockUserContext();
     const { wrapper, fireConfigUpdate } = createProviderWrapper(mockUserContext);
@@ -402,6 +356,7 @@ describe('useDecide', () => {
     });
 
     expect(result.current.decision).toBe(MOCK_DECISION);
+
     const callCountBeforeUpdate = (mockUserContext.decide as ReturnType<typeof vi.fn>).mock.calls.length;
 
     // Simulate a new datafile with a different decision

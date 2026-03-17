@@ -154,7 +154,7 @@ describe('OptimizelyProvider', () => {
       expect(mockClient.onReady).toHaveBeenCalledWith({ timeout: 5000 });
     });
 
-    it('should set isClientReady to true when onReady succeeds', async () => {
+    it('should not set error when onReady succeeds', async () => {
       const mockClient = createMockClient({
         onReady: vi.fn().mockResolvedValue(undefined),
       });
@@ -168,13 +168,12 @@ describe('OptimizelyProvider', () => {
 
       await waitFor(() => {
         expect(capturedContext).not.toBeNull();
-        expect(capturedContext!.store.getState().isClientReady).toBe(true);
       });
 
       expect(capturedContext!.store.getState().error).toBeNull();
     });
 
-    it('should set isClientReady to false and set error when onReady rejects', async () => {
+    it('should set error when onReady rejects', async () => {
       const testError = new Error('Client initialization failed');
       const mockClient = createMockClient({
         onReady: vi.fn().mockRejectedValue(testError),
@@ -191,9 +190,6 @@ describe('OptimizelyProvider', () => {
         expect(capturedContext).not.toBeNull();
         expect(capturedContext!.store.getState().error).toBe(testError);
       });
-
-      // Client is NOT ready when onReady rejects
-      expect(capturedContext!.store.getState().isClientReady).toBe(false);
     });
 
     it('should set error when onReady times out (rejects)', async () => {
@@ -213,8 +209,6 @@ describe('OptimizelyProvider', () => {
         expect(capturedContext).not.toBeNull();
         expect(capturedContext!.store.getState().error).toBe(timeoutError);
       });
-
-      expect(capturedContext!.store.getState().isClientReady).toBe(false);
     });
   });
 
@@ -246,7 +240,6 @@ describe('OptimizelyProvider', () => {
 
       await waitFor(() => {
         expect(capturedContext).not.toBeNull();
-        expect(capturedContext!.store.getState().isClientReady).toBe(true);
       });
 
       const store = capturedContext!.store;
@@ -254,7 +247,6 @@ describe('OptimizelyProvider', () => {
       unmount();
 
       // Store should be reset
-      expect(store.getState().isClientReady).toBe(false);
       expect(store.getState().userContext).toBeNull();
       expect(store.getState().error).toBeNull();
     });
@@ -572,8 +564,8 @@ describe('OptimizelyProvider', () => {
         resolveOnReady!();
       });
 
-      // Store was reset on unmount, and onReady resolution should not set isClientReady
-      expect(store.getState().isClientReady).toBe(false);
+      // Store was reset on unmount, onReady resolution should not affect store
+      expect(store.getState().error).toBeNull();
     });
 
     it('should call onReady again when client changes', async () => {

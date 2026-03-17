@@ -31,7 +31,6 @@ export type ForcedDecisionListener = () => void;
  * Initial state for the provider store.
  */
 const initialState: ProviderState = {
-  isClientReady: false,
   userContext: null,
   error: null,
 };
@@ -81,19 +80,6 @@ export class ProviderStateStore {
   }
 
   /**
-   * Set whether the client is ready.
-   * e.g: Called by Provider after client.onReady() resolves.
-   */
-  setClientReady(ready: boolean): void {
-    if (this.state.isClientReady === ready) {
-      return;
-    }
-
-    this.state = { ...this.state, isClientReady: ready };
-    this.notifyListeners();
-  }
-
-  /**
    * Set the current user context.
    * e.g: Called by UserContextManager when user context is created.
    *
@@ -114,7 +100,7 @@ export class ProviderStateStore {
 
   /**
    * Set an error that occurred during initialization.
-   * Setting an error does NOT clear userContext or isClientReady.
+   * Setting an error does NOT clear userContext.
    */
   setError(error: Error | null): void {
     if (this.state.error === error) {
@@ -134,6 +120,16 @@ export class ProviderStateStore {
       ...this.state,
       ...partialState,
     };
+    this.notifyListeners();
+  }
+
+  /**
+   * Signal that external state (e.g. client config) has changed.
+   * Creates a new state reference so useSyncExternalStore triggers
+   * re-renders and hooks re-evaluate decisions.
+   */
+  refresh(): void {
+    this.state = { ...this.state };
     this.notifyListeners();
   }
 
