@@ -15,110 +15,18 @@
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
 import { act, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { OptimizelyContext, ProviderStateStore, OptimizelyProvider } from '../provider/index';
-import { REACT_CLIENT_META } from '../client/index';
+import { ProviderStateStore } from '../provider/index';
 import { useDecide } from './useDecide';
-import type {
-  OptimizelyUserContext,
-  OptimizelyDecision,
-  Client,
-  OptimizelyDecideOption,
-} from '@optimizely/optimizely-sdk';
-import type { OptimizelyContextValue } from '../provider/index';
-
-const MOCK_DECISION: OptimizelyDecision = {
-  variationKey: 'variation_1',
-  enabled: true,
-  variables: { color: 'red' },
-  ruleKey: 'rule_1',
-  flagKey: 'flag_1',
-  userContext: {} as OptimizelyUserContext,
-  reasons: [],
-};
-
-function createMockUserContext(overrides?: Partial<Record<'decide', unknown>>): OptimizelyUserContext {
-  return {
-    getUserId: vi.fn().mockReturnValue('test-user'),
-    getAttributes: vi.fn().mockReturnValue({}),
-    fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
-    decide: vi.fn().mockReturnValue(MOCK_DECISION),
-    decideAll: vi.fn(),
-    decideForKeys: vi.fn(),
-    setForcedDecision: vi.fn().mockReturnValue(true),
-    getForcedDecision: vi.fn(),
-    removeForcedDecision: vi.fn().mockReturnValue(true),
-    removeAllForcedDecisions: vi.fn().mockReturnValue(true),
-    trackEvent: vi.fn(),
-    getOptimizely: vi.fn(),
-    setQualifiedSegments: vi.fn(),
-    getQualifiedSegments: vi.fn().mockReturnValue([]),
-    qualifiedSegments: null,
-    ...overrides,
-  } as unknown as OptimizelyUserContext;
-}
-
-function createMockClient(hasConfig = false): Client {
-  return {
-    getOptimizelyConfig: vi.fn().mockReturnValue(hasConfig ? { revision: '1' } : null),
-    createUserContext: vi.fn(),
-    onReady: vi.fn().mockResolvedValue({ success: true }),
-    notificationCenter: {},
-  } as unknown as Client;
-}
-
-/**
- * Creates a mock client with notification center support and wraps it in OptimizelyProvider.
- * Used for integration-style tests that need the full Provider lifecycle.
- */
-function createProviderWrapper(mockUserContext: OptimizelyUserContext) {
-  let configUpdateCallback: (() => void) | undefined;
-
-  const client = {
-    getOptimizelyConfig: vi.fn().mockReturnValue({ revision: '1' }),
-    createUserContext: vi.fn().mockReturnValue(mockUserContext),
-    onReady: vi.fn().mockResolvedValue(undefined),
-    isOdpIntegrated: vi.fn().mockReturnValue(false),
-    notificationCenter: {
-      addNotificationListener: vi.fn().mockImplementation((type: string, cb: () => void) => {
-        if (type === 'OPTIMIZELY_CONFIG_UPDATE') {
-          configUpdateCallback = cb;
-        }
-        return 1;
-      }),
-      removeNotificationListener: vi.fn(),
-    },
-  } as unknown as Client;
-
-  (client as unknown as Record<symbol, unknown>)[REACT_CLIENT_META] = {
-    hasOdpManager: false,
-    hasVuidManager: false,
-  };
-
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    return (
-      <OptimizelyProvider client={client} user={{ id: 'user-1' }}>
-        {children}
-      </OptimizelyProvider>
-    );
-  }
-
-  return {
-    wrapper: Wrapper,
-    client,
-    fireConfigUpdate: () => configUpdateCallback?.(),
-  };
-}
-
-function createWrapper(store: ProviderStateStore, client: Client) {
-  const contextValue: OptimizelyContextValue = { store, client };
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
-  };
-}
+import {
+  MOCK_DECISION,
+  createMockUserContext,
+  createMockClient,
+  createProviderWrapper,
+  createWrapper,
+} from './testUtils';
+import type { OptimizelyDecision, Client, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
 
 describe('useDecide', () => {
   let store: ProviderStateStore;

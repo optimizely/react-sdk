@@ -21,6 +21,8 @@ import { useRef } from 'react';
  * are shallowly equal. Prevents unnecessary re-renders when consumers
  * pass inline arrays (e.g. `decideOptions: [EXCLUDE_VARIABLES]`).
  */
+export function useStableArray<T>(arr: T[]): T[];
+export function useStableArray<T>(arr: T[] | undefined): T[] | undefined;
 export function useStableArray<T>(arr: T[] | undefined): T[] | undefined {
   const ref = useRef<T[] | undefined>(arr);
 

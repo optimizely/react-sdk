@@ -482,6 +482,76 @@ describe('ProviderStateStore', () => {
       expect(listener).not.toHaveBeenCalled();
     });
 
+    it('subscribeAllForcedDecisions callback fires on any notifyForcedDecision', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+
+      expect(allListener).toHaveBeenCalledTimes(1);
+
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+
+      expect(allListener).toHaveBeenCalledTimes(2);
+    });
+
+    it('subscribeAllForcedDecisions unsubscribe stops notifications', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      const unsubscribe = store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(allListener).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+      allListener.mockClear();
+
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+      expect(allListener).not.toHaveBeenCalled();
+    });
+
+    it('subscribeAllForcedDecisions fires on removeAllForcedDecisions', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+      allListener.mockClear();
+
+      ctx.removeAllForcedDecisions();
+
+      // removeAll notifies per tracked key, each of which fires allListener
+      expect(allListener).toHaveBeenCalledTimes(2);
+    });
+
+    it('reset clears subscribeAllForcedDecisions listeners', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(allListener).toHaveBeenCalledTimes(1);
+      allListener.mockClear();
+
+      store.reset();
+
+      const ctxNew = createMockUserContext();
+      store.setUserContext(ctxNew);
+
+      ctxNew.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v2' });
+      expect(allListener).not.toHaveBeenCalled();
+    });
+
     it('original methods are still called on the underlying context', () => {
       const originalSet = vi.fn().mockReturnValue(true);
       const originalRemove = vi.fn().mockReturnValue(true);

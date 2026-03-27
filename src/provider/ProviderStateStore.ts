@@ -47,12 +47,14 @@ export class ProviderStateStore {
   private state: ProviderState;
   private listeners: Set<StateListener>;
   private forcedDecisionListeners: Map<string, Set<ForcedDecisionListener>>;
+  private allForcedDecisionListeners: Set<ForcedDecisionListener>;
   private notifyScheduled = false;
 
   constructor() {
     this.state = { ...initialState };
     this.listeners = new Set();
     this.forcedDecisionListeners = new Map();
+    this.allForcedDecisionListeners = new Set();
   }
 
   /**
@@ -140,6 +142,7 @@ export class ProviderStateStore {
   reset(): void {
     this.state = { ...initialState };
     this.forcedDecisionListeners.clear();
+    this.allForcedDecisionListeners.clear();
     this.notifyListeners();
   }
 
@@ -167,7 +170,22 @@ export class ProviderStateStore {
   }
 
   /**
+   * Subscribe to forced decision changes for all flagKeys.
+   * Used by hooks like useDecideAll that need to react to any forced decision change.
+   *
+   * @param callback - Called when any forced decision changes
+   * @returns Unsubscribe function
+   */
+  subscribeAllForcedDecisions(callback: ForcedDecisionListener): () => void {
+    this.allForcedDecisionListeners.add(callback);
+    return () => {
+      this.allForcedDecisionListeners.delete(callback);
+    };
+  }
+
+  /**
    * Notify listeners subscribed to a specific flagKey.
+   * Also notifies "all" forced decision listeners.
    * Called internally by wrapped forced decision methods.
    */
   notifyForcedDecision(flagKey: string): void {
@@ -175,6 +193,7 @@ export class ProviderStateStore {
     if (listeners) {
       listeners.forEach((cb) => cb());
     }
+    this.allForcedDecisionListeners.forEach((cb) => cb());
   }
 
   /**
