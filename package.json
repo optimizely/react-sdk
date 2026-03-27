@@ -35,7 +35,7 @@
     "test:coverage": "vitest run --coverage",
     "test:legacy": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
-    "prepare": "husky"
+    "prepare": "npm run build && husky"
   },
   "publishConfig": {
     "access": "public"

@@ -528,8 +528,8 @@ describe('ProviderStateStore', () => {
 
       ctx.removeAllForcedDecisions();
 
-      // removeAll notifies per tracked key, each of which fires allListener
-      expect(allListener).toHaveBeenCalledTimes(2);
+      // removeAll broadcasts once (not once per key)
+      expect(allListener).toHaveBeenCalledTimes(1);
     });
 
     it('reset clears subscribeAllForcedDecisions listeners', () => {

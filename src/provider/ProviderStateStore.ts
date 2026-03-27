@@ -184,15 +184,31 @@ export class ProviderStateStore {
   }
 
   /**
-   * Notify listeners subscribed to a specific flagKey.
-   * Also notifies "all" forced decision listeners.
-   * Called internally by wrapped forced decision methods.
+   * Notify listeners subscribed to a specific flagKey
+   * and broadcast to "all" forced decision listeners.
+   * Called by wrapped setForcedDecision / removeForcedDecision.
    */
   notifyForcedDecision(flagKey: string): void {
+    this.notifyPerKeyForcedDecision(flagKey);
+    this.notifyAllForcedDecisionListeners();
+  }
+
+  /**
+   * Notify only per-key listeners (no broadcast).
+   * Used internally by removeAllForcedDecisions to avoid
+   * firing "all" listeners once per key.
+   */
+  private notifyPerKeyForcedDecision(flagKey: string): void {
     const listeners = this.forcedDecisionListeners.get(flagKey);
     if (listeners) {
       listeners.forEach((cb) => cb());
     }
+  }
+
+  /**
+   * Notify broadcast ("all") forced decision listeners once.
+   */
+  private notifyAllForcedDecisionListeners(): void {
     this.allForcedDecisionListeners.forEach((cb) => cb());
   }
 
@@ -240,7 +256,9 @@ export class ProviderStateStore {
       const result = originalRemoveAll();
       if (result) {
         if (this.state.userContext === ctx) {
-          forcedDecisionFlagKeys.forEach((flagKey) => this.notifyForcedDecision(flagKey));
+          // Notify per-key listeners individually, then broadcast once
+          forcedDecisionFlagKeys.forEach((flagKey) => this.notifyPerKeyForcedDecision(flagKey));
+          this.notifyAllForcedDecisionListeners();
         }
         forcedDecisionFlagKeys.clear();
       }
