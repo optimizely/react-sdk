@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSyncExternalStore } from 'use-sync-external-store/shim';
+import { useEffect, useMemo, useState } from 'react';
 import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
+import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
 
 export interface UseDecideConfig {
@@ -43,12 +43,7 @@ export type UseDecideResult =
 export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
-  // --- General state subscription ---
-  // store.getState() returns a new object on every state change,
-  // so Object.is comparison works naturally.
-  const subscribeState = useCallback((onStoreChange: () => void) => store.subscribe(onStoreChange), [store]);
-  const getStateSnapshot = useCallback(() => store.getState(), [store]);
-  const state = useSyncExternalStore(subscribeState, getStateSnapshot, getStateSnapshot);
+  const state = useProviderState(store);
 
   // --- Forced decision subscription ---
   // Forced decisions don't change store state, so we use a version counter
