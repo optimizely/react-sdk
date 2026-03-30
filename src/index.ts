@@ -29,9 +29,14 @@ export {
 export type * from '@optimizely/optimizely-sdk';
 
 // Provider
-// Todo: Remove OptimizelyContext export in future
 export { OptimizelyProvider } from './provider/index';
 export type { UserInfo, OptimizelyProviderProps } from './provider/index';
 
 // Hooks
-export { useOptimizelyUserContext, useOptimizelyClient, useDecide } from './hooks/index';
+export {
+  useOptimizelyUserContext,
+  useOptimizelyClient,
+  useDecide,
+  useDecideForKeys,
+  useDecideAll,
+} from './hooks/index';

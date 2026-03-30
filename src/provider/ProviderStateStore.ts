@@ -31,7 +31,6 @@ export type ForcedDecisionListener = () => void;
  * Initial state for the provider store.
  */
 const initialState: ProviderState = {
-  isClientReady: false,
   userContext: null,
   error: null,
 };
@@ -48,12 +47,14 @@ export class ProviderStateStore {
   private state: ProviderState;
   private listeners: Set<StateListener>;
   private forcedDecisionListeners: Map<string, Set<ForcedDecisionListener>>;
+  private allForcedDecisionListeners: Set<ForcedDecisionListener>;
   private notifyScheduled = false;
 
   constructor() {
     this.state = { ...initialState };
     this.listeners = new Set();
     this.forcedDecisionListeners = new Map();
+    this.allForcedDecisionListeners = new Set();
   }
 
   /**
@@ -81,19 +82,6 @@ export class ProviderStateStore {
   }
 
   /**
-   * Set whether the client is ready.
-   * e.g: Called by Provider after client.onReady() resolves.
-   */
-  setClientReady(ready: boolean): void {
-    if (this.state.isClientReady === ready) {
-      return;
-    }
-
-    this.state = { ...this.state, isClientReady: ready };
-    this.notifyListeners();
-  }
-
-  /**
    * Set the current user context.
    * e.g: Called by UserContextManager when user context is created.
    *
@@ -114,7 +102,7 @@ export class ProviderStateStore {
 
   /**
    * Set an error that occurred during initialization.
-   * Setting an error does NOT clear userContext or isClientReady.
+   * Setting an error does NOT clear userContext.
    */
   setError(error: Error | null): void {
     if (this.state.error === error) {
@@ -138,12 +126,23 @@ export class ProviderStateStore {
   }
 
   /**
+   * Signal that external state (e.g. client config) has changed.
+   * Creates a new state reference so useSyncExternalStore triggers
+   * re-renders and hooks re-evaluate decisions.
+   */
+  refresh(): void {
+    this.state = { ...this.state };
+    this.notifyListeners();
+  }
+
+  /**
    * Reset store to initial state.
    * Useful for testing or when Provider unmounts.
    */
   reset(): void {
     this.state = { ...initialState };
     this.forcedDecisionListeners.clear();
+    this.allForcedDecisionListeners.clear();
     this.notifyListeners();
   }
 
@@ -171,14 +170,46 @@ export class ProviderStateStore {
   }
 
   /**
-   * Notify listeners subscribed to a specific flagKey.
-   * Called internally by wrapped forced decision methods.
+   * Subscribe to forced decision changes for all flagKeys.
+   * Used by hooks like useDecideAll that need to react to any forced decision change.
+   *
+   * @param callback - Called when any forced decision changes
+   * @returns Unsubscribe function
+   */
+  subscribeAllForcedDecisions(callback: ForcedDecisionListener): () => void {
+    this.allForcedDecisionListeners.add(callback);
+    return () => {
+      this.allForcedDecisionListeners.delete(callback);
+    };
+  }
+
+  /**
+   * Notify listeners subscribed to a specific flagKey
+   * and broadcast to "all" forced decision listeners.
+   * Called by wrapped setForcedDecision / removeForcedDecision.
    */
   notifyForcedDecision(flagKey: string): void {
+    this.notifyPerKeyForcedDecision(flagKey);
+    this.notifyAllForcedDecisionListeners();
+  }
+
+  /**
+   * Notify only per-key listeners (no broadcast).
+   * Used internally by removeAllForcedDecisions to avoid
+   * firing "all" listeners once per key.
+   */
+  private notifyPerKeyForcedDecision(flagKey: string): void {
     const listeners = this.forcedDecisionListeners.get(flagKey);
     if (listeners) {
       listeners.forEach((cb) => cb());
     }
+  }
+
+  /**
+   * Notify broadcast ("all") forced decision listeners once.
+   */
+  private notifyAllForcedDecisionListeners(): void {
+    this.allForcedDecisionListeners.forEach((cb) => cb());
   }
 
   /**
@@ -225,7 +256,9 @@ export class ProviderStateStore {
       const result = originalRemoveAll();
       if (result) {
         if (this.state.userContext === ctx) {
-          forcedDecisionFlagKeys.forEach((flagKey) => this.notifyForcedDecision(flagKey));
+          // Notify per-key listeners individually, then broadcast once
+          forcedDecisionFlagKeys.forEach((flagKey) => this.notifyPerKeyForcedDecision(flagKey));
+          this.notifyAllForcedDecisionListeners();
         }
         forcedDecisionFlagKeys.clear();
       }

@@ -15,66 +15,18 @@
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import React from 'react';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { OptimizelyContext, ProviderStateStore } from '../provider/index';
+import { ProviderStateStore } from '../provider/index';
 import { useDecide } from './useDecide';
-import type {
-  OptimizelyUserContext,
-  OptimizelyDecision,
-  Client,
-  OptimizelyDecideOption,
-} from '@optimizely/optimizely-sdk';
-import type { OptimizelyContextValue } from '../provider/index';
-
-const MOCK_DECISION: OptimizelyDecision = {
-  variationKey: 'variation_1',
-  enabled: true,
-  variables: { color: 'red' },
-  ruleKey: 'rule_1',
-  flagKey: 'flag_1',
-  userContext: {} as OptimizelyUserContext,
-  reasons: [],
-};
-
-function createMockUserContext(overrides?: Partial<Record<'decide', unknown>>): OptimizelyUserContext {
-  return {
-    getUserId: vi.fn().mockReturnValue('test-user'),
-    getAttributes: vi.fn().mockReturnValue({}),
-    fetchQualifiedSegments: vi.fn().mockResolvedValue(true),
-    decide: vi.fn().mockReturnValue(MOCK_DECISION),
-    decideAll: vi.fn(),
-    decideForKeys: vi.fn(),
-    setForcedDecision: vi.fn().mockReturnValue(true),
-    getForcedDecision: vi.fn(),
-    removeForcedDecision: vi.fn().mockReturnValue(true),
-    removeAllForcedDecisions: vi.fn().mockReturnValue(true),
-    trackEvent: vi.fn(),
-    getOptimizely: vi.fn(),
-    setQualifiedSegments: vi.fn(),
-    getQualifiedSegments: vi.fn().mockReturnValue([]),
-    qualifiedSegments: null,
-    ...overrides,
-  } as unknown as OptimizelyUserContext;
-}
-
-function createMockClient(hasConfig = false): Client {
-  return {
-    getOptimizelyConfig: vi.fn().mockReturnValue(hasConfig ? { revision: '1' } : null),
-    createUserContext: vi.fn(),
-    onReady: vi.fn().mockResolvedValue({ success: true }),
-    notificationCenter: {},
-  } as unknown as Client;
-}
-
-function createWrapper(store: ProviderStateStore, client: Client) {
-  const contextValue: OptimizelyContextValue = { store, client };
-
-  return function Wrapper({ children }: { children: React.ReactNode }) {
-    return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
-  };
-}
+import {
+  MOCK_DECISION,
+  createMockUserContext,
+  createMockClient,
+  createProviderWrapper,
+  createWrapper,
+} from './testUtils';
+import type { OptimizelyDecision, Client, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
 
 describe('useDecide', () => {
   let store: ProviderStateStore;
@@ -171,25 +123,6 @@ describe('useDecide', () => {
     const mockUserContext = createMockUserContext();
     await act(async () => {
       store.setUserContext(mockUserContext);
-    });
-
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.decision).toBe(MOCK_DECISION);
-  });
-
-  it('should re-evaluate when setClientReady fire', async () => {
-    const mockUserContext = createMockUserContext();
-    store.setUserContext(mockUserContext);
-    // Client has no config yet
-    const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
-
-    expect(result.current.isLoading).toBe(true);
-
-    // Simulate config becoming available when onReady resolves
-    (mockClient.getOptimizelyConfig as ReturnType<typeof vi.fn>).mockReturnValue({ revision: '1' });
-    await act(async () => {
-      store.setClientReady(true);
     });
 
     expect(result.current.isLoading).toBe(false);
@@ -319,31 +252,37 @@ describe('useDecide', () => {
     expect(result.current.decision).toBeNull();
   });
 
-  it('should re-call decide() when setClientReady fires after sync decision was already served', async () => {
-    // Sync datafile scenario: config + userContext available before onReady
-    mockClient = createMockClient(true);
+  it('should re-evaluate decision when OPTIMIZELY_CONFIG_UPDATE fires from the client', async () => {
     const mockUserContext = createMockUserContext();
-    store.setUserContext(mockUserContext);
+    const { wrapper, fireConfigUpdate } = createProviderWrapper(mockUserContext);
 
-    const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecide('flag_1'), { wrapper });
 
-    // Decision already served
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.decision).toBe(MOCK_DECISION);
-    expect(mockUserContext.decide).toHaveBeenCalledTimes(1);
-
-    // onReady() resolves → setClientReady(true) fires → store state changes →
-    // useSyncExternalStore re-renders → useMemo recomputes → decide() called again.
-    // This is a redundant call since config + userContext haven't changed,
-    // but it's a one-time cost per flag per page load.
-    await act(async () => {
-      store.setClientReady(true);
+    // Wait for Provider's onReady + UserContextManager + queueMicrotask chain to complete
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-    expect(mockUserContext.decide).toHaveBeenCalledTimes(2);
-    expect(result.current.isLoading).toBe(false);
     expect(result.current.decision).toBe(MOCK_DECISION);
+
+    const callCountBeforeUpdate = (mockUserContext.decide as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    // Simulate a new datafile with a different decision
+    const updatedDecision: OptimizelyDecision = {
+      ...MOCK_DECISION,
+      variationKey: 'variation_2',
+      variables: { color: 'blue' },
+    };
+    (mockUserContext.decide as ReturnType<typeof vi.fn>).mockReturnValue(updatedDecision);
+
+    // Fire the config update notification (as the SDK would on datafile poll)
+    await act(async () => {
+      fireConfigUpdate();
+    });
+
+    expect(mockUserContext.decide).toHaveBeenCalledTimes(callCountBeforeUpdate + 1);
+    expect(result.current.decision).toBe(updatedDecision);
+    expect(result.current.isLoading).toBe(false);
   });
 
   describe('forced decision reactivity', () => {

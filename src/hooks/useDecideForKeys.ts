@@ -15,62 +15,57 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/optimizely-sdk';
+import type { OptimizelyDecision } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import type { UseDecideConfig } from './useDecide';
 
-export interface UseDecideConfig {
-  decideOptions?: OptimizelyDecideOption[];
-}
-
-export type UseDecideResult =
-  | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
-  | { isLoading: false; error: null; decision: OptimizelyDecision };
+export type UseDecideMultiResult =
+  | { isLoading: true; error: null; decisions: Record<string, never> }
+  | { isLoading: false; error: Error; decisions: Record<string, never> }
+  | { isLoading: false; error: null; decisions: Record<string, OptimizelyDecision> };
 
 /**
- * Returns a feature flag decision for the given flag key.
+ * Returns feature flag decisions for the given flag keys.
  *
  * Subscribes to `ProviderStateStore` via `useSyncExternalStore` and
- * re-evaluates the decision whenever the store state changes
- * (client ready, user context set, error).
+ * re-evaluates decisions whenever the store state changes
+ * (client ready, user context set, error) or a forced decision
+ * changes for any of the watched keys.
  *
- * @param flagKey - The feature flag key to evaluate
+ * @param flagKeys - The feature flag keys to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
+export function useDecideForKeys(flagKeys: string[], config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
+  const stableKeys = useStableArray(flagKeys);
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
 
-  // --- Forced decision subscription ---
-  // Forced decisions don't change store state, so we use a version counter
-  // to trigger useMemo recomputation. Per-flagKey granularity prevents
-  // unrelated hooks from re-evaluating.
+  // --- Forced decision subscription — per-key with shared version counter ---
   const [fdVersion, setFdVersion] = useState(0);
   useEffect(() => {
-    return store.subscribeForcedDecision(flagKey, () => {
-      setFdVersion((v) => v + 1);
-    });
-  }, [store, flagKey]);
+    const unsubscribes = stableKeys.map((key) => store.subscribeForcedDecision(key, () => setFdVersion((v) => v + 1)));
+    return () => unsubscribes.forEach((unsub) => unsub());
+  }, [store, stableKeys]);
 
-  // --- Derive decision ---
+  // --- Derive decisions ---
   return useMemo(() => {
     void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
     if (error) {
-      return { decision: null, isLoading: false, error };
+      return { decisions: {}, isLoading: false, error };
     }
 
     if (!hasConfig || userContext === null) {
-      return { decision: null, isLoading: true, error: null };
+      return { decisions: {}, isLoading: true, error: null };
     }
 
-    const decision = userContext.decide(flagKey, decideOptions);
-    return { decision, isLoading: false, error: null };
-  }, [fdVersion, state, client, flagKey, decideOptions]);
+    const decisions = userContext.decideForKeys(stableKeys, decideOptions);
+    return { decisions, isLoading: false as const, error: null };
+  }, [fdVersion, state, client, stableKeys, decideOptions]);
 }

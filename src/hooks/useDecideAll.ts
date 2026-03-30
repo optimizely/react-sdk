@@ -15,62 +15,48 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
-
-export interface UseDecideConfig {
-  decideOptions?: OptimizelyDecideOption[];
-}
-
-export type UseDecideResult =
-  | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
-  | { isLoading: false; error: null; decision: OptimizelyDecision };
+import type { UseDecideConfig } from './useDecide';
+import type { UseDecideMultiResult } from './useDecideForKeys';
 
 /**
- * Returns a feature flag decision for the given flag key.
+ * Returns feature flag decisions for all flags.
  *
  * Subscribes to `ProviderStateStore` via `useSyncExternalStore` and
- * re-evaluates the decision whenever the store state changes
- * (client ready, user context set, error).
+ * re-evaluates decisions whenever the store state changes
+ * (client ready, user context set, error) or any forced decision changes.
  *
- * @param flagKey - The feature flag key to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
+export function useDecideAll(config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
 
-  // --- Forced decision subscription ---
-  // Forced decisions don't change store state, so we use a version counter
-  // to trigger useMemo recomputation. Per-flagKey granularity prevents
-  // unrelated hooks from re-evaluating.
+  // --- Forced decision subscription — any flag key ---
   const [fdVersion, setFdVersion] = useState(0);
   useEffect(() => {
-    return store.subscribeForcedDecision(flagKey, () => {
-      setFdVersion((v) => v + 1);
-    });
-  }, [store, flagKey]);
+    return store.subscribeAllForcedDecisions(() => setFdVersion((v) => v + 1));
+  }, [store]);
 
-  // --- Derive decision ---
+  // --- Derive decisions ---
   return useMemo(() => {
     void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
     if (error) {
-      return { decision: null, isLoading: false, error };
+      return { decisions: {} as Record<string, never>, isLoading: false as const, error };
     }
 
     if (!hasConfig || userContext === null) {
-      return { decision: null, isLoading: true, error: null };
+      return { decisions: {} as Record<string, never>, isLoading: true as const, error: null };
     }
 
-    const decision = userContext.decide(flagKey, decideOptions);
-    return { decision, isLoading: false, error: null };
-  }, [fdVersion, state, client, flagKey, decideOptions]);
+    const decisions = userContext.decideAll(decideOptions);
+    return { decisions, isLoading: false as const, error: null };
+  }, [fdVersion, state, client, decideOptions]);
 }

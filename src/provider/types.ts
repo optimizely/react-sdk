@@ -72,11 +72,6 @@ export interface OptimizelyProviderProps {
  */
 export interface ProviderState {
   /**
-   * Whether js onReady() is resolved.
-   */
-  isClientReady: boolean;
-
-  /**
    * The current user context for making decisions.
    * null while initializing or if user creation failed.
    */

@@ -47,7 +47,6 @@ describe('ProviderStateStore', () => {
     it('should have correct initial state', () => {
       const state = store.getState();
 
-      expect(state.isClientReady).toBe(false);
       expect(state.userContext).toBeNull();
       expect(state.error).toBeNull();
     });
@@ -66,13 +65,13 @@ describe('ProviderStateStore', () => {
       const listener = vi.fn();
       store.subscribe(listener);
 
-      store.setClientReady(true);
+      store.setError(new Error('test'));
       await flushMicrotasks();
 
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({
-          isClientReady: true,
+          error: expect.any(Error),
         })
       );
     });
@@ -83,7 +82,7 @@ describe('ProviderStateStore', () => {
       store.subscribe(listener1);
       store.subscribe(listener2);
 
-      store.setClientReady(true);
+      store.setError(new Error('test'));
       await flushMicrotasks();
 
       expect(listener1).toHaveBeenCalledTimes(1);
@@ -95,7 +94,7 @@ describe('ProviderStateStore', () => {
       const unsubscribe = store.subscribe(listener);
 
       unsubscribe();
-      store.setClientReady(true);
+      store.setError(new Error('test'));
       await flushMicrotasks();
 
       expect(listener).not.toHaveBeenCalled();
@@ -108,7 +107,7 @@ describe('ProviderStateStore', () => {
       unsubscribe();
       unsubscribe(); // Second call should not throw
 
-      store.setClientReady(true);
+      store.setError(new Error('test'));
       await flushMicrotasks();
       expect(listener).not.toHaveBeenCalled();
     });
@@ -120,44 +119,12 @@ describe('ProviderStateStore', () => {
       unsubscribe1();
 
       const unsubscribe2 = store.subscribe(listener);
-      store.setClientReady(true);
+      store.setError(new Error('test'));
       await flushMicrotasks();
 
       expect(listener).toHaveBeenCalledTimes(1);
 
       unsubscribe2();
-    });
-  });
-
-  describe('setClientReady', () => {
-    it('should update isClientReady state', () => {
-      store.setClientReady(true);
-
-      expect(store.getState().isClientReady).toBe(true);
-    });
-
-    it('should not notify if value has not changed', async () => {
-      const listener = vi.fn();
-      store.subscribe(listener);
-
-      store.setClientReady(false); // Same as initial value
-      await flushMicrotasks();
-
-      expect(listener).not.toHaveBeenCalled();
-    });
-
-    it('should preserve other state properties', () => {
-      const mockUserContext = createMockUserContext();
-      const mockError = new Error('test');
-
-      store.setUserContext(mockUserContext);
-      store.setError(mockError);
-      store.setClientReady(true);
-
-      const state = store.getState();
-      expect(state.userContext).toBe(mockUserContext);
-      expect(state.error).toBe(mockError);
-      expect(state.isClientReady).toBe(true);
     });
   });
 
@@ -181,14 +148,12 @@ describe('ProviderStateStore', () => {
 
     it('should preserve other state properties', () => {
       const mockError = new Error('test');
-      store.setClientReady(true);
       store.setError(mockError);
 
       const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
       const state = store.getState();
-      expect(state.isClientReady).toBe(true);
       expect(state.error).toBe(mockError);
     });
   });
@@ -227,13 +192,11 @@ describe('ProviderStateStore', () => {
 
     it('should not clear other state when error is set', () => {
       const mockUserContext = createMockUserContext();
-      store.setClientReady(true);
       store.setUserContext(mockUserContext);
 
       store.setError(new Error('test'));
 
       const state = store.getState();
-      expect(state.isClientReady).toBe(true);
       expect(state.userContext).toBe(mockUserContext);
     });
   });
@@ -245,7 +208,6 @@ describe('ProviderStateStore', () => {
 
       const mockUserContext = createMockUserContext();
       store.setState({
-        isClientReady: true,
         userContext: mockUserContext,
       });
       await flushMicrotasks();
@@ -254,7 +216,6 @@ describe('ProviderStateStore', () => {
       expect(listener).toHaveBeenCalledTimes(1);
 
       const state = store.getState();
-      expect(state.isClientReady).toBe(true);
       expect(state.userContext).toBe(mockUserContext);
     });
 
@@ -263,28 +224,27 @@ describe('ProviderStateStore', () => {
       store.subscribe(listener);
 
       const mockUserContext = createMockUserContext();
-      store.setClientReady(true);
       store.setUserContext(mockUserContext);
       store.setError(new Error('test'));
       await flushMicrotasks();
 
-      // Three state changes, but only one notification due to microtask batching
+      // Two state changes, but only one notification due to microtask batching
       expect(listener).toHaveBeenCalledTimes(1);
       expect(listener).toHaveBeenCalledWith(
         expect.objectContaining({
-          isClientReady: true,
           userContext: mockUserContext,
         })
       );
     });
 
     it('should allow partial updates', () => {
-      store.setClientReady(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
 
       store.setState({ error: new Error('test') });
 
       const state = store.getState();
-      expect(state.isClientReady).toBe(true);
+      expect(state.userContext).toBe(mockUserContext);
       expect(state.error).not.toBeNull();
     });
   });
@@ -292,21 +252,19 @@ describe('ProviderStateStore', () => {
   describe('reset', () => {
     it('should reset to initial state', () => {
       const mockUserContext = createMockUserContext();
-      store.setClientReady(true);
       store.setUserContext(mockUserContext);
       store.setError(new Error('test'));
 
       store.reset();
 
       const state = store.getState();
-      expect(state.isClientReady).toBe(false);
       expect(state.userContext).toBeNull();
       expect(state.error).toBeNull();
     });
 
     it('should notify listeners on reset', async () => {
       const listener = vi.fn();
-      store.setClientReady(true);
+      store.setUserContext(createMockUserContext());
       store.subscribe(listener);
 
       store.reset();
@@ -522,6 +480,76 @@ describe('ProviderStateStore', () => {
 
       // Old listener should not be called — it was cleared by reset
       expect(listener).not.toHaveBeenCalled();
+    });
+
+    it('subscribeAllForcedDecisions callback fires on any notifyForcedDecision', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+
+      expect(allListener).toHaveBeenCalledTimes(1);
+
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+
+      expect(allListener).toHaveBeenCalledTimes(2);
+    });
+
+    it('subscribeAllForcedDecisions unsubscribe stops notifications', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      const unsubscribe = store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(allListener).toHaveBeenCalledTimes(1);
+
+      unsubscribe();
+      allListener.mockClear();
+
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+      expect(allListener).not.toHaveBeenCalled();
+    });
+
+    it('subscribeAllForcedDecisions fires on removeAllForcedDecisions', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      ctx.setForcedDecision({ flagKey: 'flag-b' }, { variationKey: 'v2' });
+      allListener.mockClear();
+
+      ctx.removeAllForcedDecisions();
+
+      // removeAll broadcasts once (not once per key)
+      expect(allListener).toHaveBeenCalledTimes(1);
+    });
+
+    it('reset clears subscribeAllForcedDecisions listeners', () => {
+      const ctx = createMockUserContext();
+      const allListener = vi.fn();
+
+      store.subscribeAllForcedDecisions(allListener);
+      store.setUserContext(ctx);
+
+      ctx.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v1' });
+      expect(allListener).toHaveBeenCalledTimes(1);
+      allListener.mockClear();
+
+      store.reset();
+
+      const ctxNew = createMockUserContext();
+      store.setUserContext(ctxNew);
+
+      ctxNew.setForcedDecision({ flagKey: 'flag-a' }, { variationKey: 'v2' });
+      expect(allListener).not.toHaveBeenCalled();
     });
 
     it('original methods are still called on the underlying context', () => {

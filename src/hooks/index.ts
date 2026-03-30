@@ -19,3 +19,6 @@ export { useOptimizelyUserContext } from './useOptimizelyUserContext';
 export type { UseOptimizelyUserContextResult } from './useOptimizelyUserContext';
 export { useDecide } from './useDecide';
 export type { UseDecideConfig, UseDecideResult } from './useDecide';
+export { useDecideForKeys } from './useDecideForKeys';
+export type { UseDecideMultiResult } from './useDecideForKeys';
+export { useDecideAll } from './useDecideAll';
