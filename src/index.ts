@@ -40,4 +40,6 @@ export {
   useDecideForKeys,
   useDecideAll,
   useDecideAsync,
+  useDecideForKeysAsync,
+  useDecideAllAsync,
 } from './hooks/index';

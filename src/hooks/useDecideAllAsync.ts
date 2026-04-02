@@ -21,41 +21,34 @@ import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
 import type { UseDecideConfig } from './useDecide';
-
-export type UseDecideAsyncResult =
-  | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
-  | { isLoading: false; error: null; decision: OptimizelyDecision };
+import type { UseDecideMultiAsyncResult } from './useDecideForKeysAsync';
 
 /**
- * Returns a feature flag decision for the given flag key using the async
- * `decideAsync` API. Required for CMAB (Contextual Multi-Armed Bandit) support.
+ * Returns feature flag decisions for all flags using the async
+ * `decideAllAsync` API. Required for CMAB (Contextual Multi-Armed Bandit) support.
  *
- * Client-side only — `decideAsync` returns a Promise which cannot resolve
+ * Client-side only — `decideAllAsync` returns a Promise which cannot resolve
  * during server render.
  *
- * @param flagKey - The feature flag key to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDecideAsyncResult {
+export function useDecideAllAsync(config?: UseDecideConfig): UseDecideMultiAsyncResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
 
-  // --- Forced decision subscription ---
+  // --- Forced decision subscription — any flag key ---
   const [fdVersion, setFdVersion] = useState(0);
   useEffect(() => {
-    return store.subscribeForcedDecision(flagKey, () => {
-      setFdVersion((v) => v + 1);
-    });
-  }, [store, flagKey]);
+    return store.subscribeAllForcedDecisions(() => setFdVersion((v) => v + 1));
+  }, [store]);
 
   // --- Async decision state ---
   const [asyncState, setAsyncState] = useState<{
-    decision: OptimizelyDecision | null;
+    decisions: Record<string, OptimizelyDecision> | Record<string, never>;
     error: Error | null;
     isLoading: boolean;
-  }>({ decision: null, error: null, isLoading: true });
+  }>({ decisions: {} as Record<string, never>, error: null, isLoading: true });
 
   // --- Async decision effect ---
   useEffect(() => {
@@ -64,13 +57,13 @@ export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDe
 
     // Store-level error — no async call needed
     if (error) {
-      setAsyncState({ decision: null, error, isLoading: false });
+      setAsyncState({ decisions: {} as Record<string, never>, error, isLoading: false });
       return;
     }
 
     // Store not ready — stay in loading
     if (!hasConfig || userContext === null) {
-      setAsyncState({ decision: null, error: null, isLoading: true });
+      setAsyncState({ decisions: {} as Record<string, never>, error: null, isLoading: true });
       return;
     }
 
@@ -80,20 +73,20 @@ export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDe
     // If already in the initial loading state, returns `prev` as-is to
     // skip a redundant re-render on first mount.
     setAsyncState((prev) => {
-      if (prev.isLoading && prev.error === null && prev.decision === null) return prev;
-      return { decision: null, error: null, isLoading: true };
+      if (prev.isLoading && prev.error === null && Object.keys(prev.decisions).length === 0) return prev;
+      return { decisions: {} as Record<string, never>, error: null, isLoading: true };
     });
 
-    userContext.decideAsync(flagKey, decideOptions).then(
-      (decision) => {
+    userContext.decideAllAsync(decideOptions).then(
+      (decisions) => {
         if (!cancelled) {
-          setAsyncState({ decision, error: null, isLoading: false });
+          setAsyncState({ decisions, error: null, isLoading: false });
         }
       },
       (err) => {
         if (!cancelled) {
           setAsyncState({
-            decision: null,
+            decisions: {} as Record<string, never>,
             error: err instanceof Error ? err : new Error(String(err)),
             isLoading: false,
           });
@@ -104,7 +97,7 @@ export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDe
     return () => {
       cancelled = true;
     };
-  }, [state, fdVersion, client, flagKey, decideOptions]);
+  }, [state, fdVersion, client, decideOptions]);
 
-  return asyncState as UseDecideAsyncResult;
+  return asyncState as UseDecideMultiAsyncResult;
 }

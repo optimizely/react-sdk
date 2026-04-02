@@ -18,9 +18,9 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { ProviderStateStore } from '../provider/index';
-import { useDecideAsync } from './useDecideAsync';
+import { useDecideForKeysAsync } from './useDecideForKeysAsync';
 import {
-  MOCK_DECISION,
+  MOCK_DECISIONS,
   createMockUserContext,
   createMockClient,
   createProviderWrapper,
@@ -28,7 +28,7 @@ import {
 } from './testUtils';
 import type { OptimizelyDecision, Client, OptimizelyDecideOption } from '@optimizely/optimizely-sdk';
 
-describe('useDecideAsync', () => {
+describe('useDecideForKeysAsync', () => {
   let store: ProviderStateStore;
   let mockClient: Client;
 
@@ -44,7 +44,7 @@ describe('useDecideAsync', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(() => {
-      renderHook(() => useDecideAsync('flag_1'));
+      renderHook(() => useDecideForKeysAsync(['flag_1']));
     }).toThrow('Optimizely hooks must be used within an <OptimizelyProvider>');
 
     consoleSpy.mockRestore();
@@ -52,17 +52,17 @@ describe('useDecideAsync', () => {
 
   it('should return isLoading: true when no config and no user context', () => {
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
-    expect(result.current.decision).toBeNull();
+    expect(result.current.decisions).toEqual({});
   });
 
   it('should return isLoading: true when config is available but no user context', () => {
     mockClient = createMockClient(true);
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBeNull();
@@ -70,7 +70,7 @@ describe('useDecideAsync', () => {
 
   it('should return error from store with isLoading: false', async () => {
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
 
@@ -81,86 +81,65 @@ describe('useDecideAsync', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(testError);
-    expect(result.current.decision).toBeNull();
+    expect(result.current.decisions).toEqual({});
   });
 
   it('should return isLoading: true while async call is in-flight', () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
-    // Make decideAsync never resolve
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.decision).toBeNull();
+    expect(result.current.decisions).toEqual({});
     expect(result.current.error).toBeNull();
   });
 
-  it('should not trigger a redundant re-render when mounting with store already ready', () => {
-    mockClient = createMockClient(true);
-    const mockUserContext = createMockUserContext();
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
-    store.setUserContext(mockUserContext);
-
-    let renderCount = 0;
-    const wrapper = createWrapper(store, mockClient);
-    renderHook(
-      () => {
-        renderCount++;
-        return useDecideAsync('flag_1');
-      },
-      { wrapper }
-    );
-
-    // Should render once (initial), not twice (initial + redundant setState)
-    expect(renderCount).toBe(1);
-  });
-
-  it('should return decision when async call resolves', async () => {
+  it('should return decisions when async call resolves', async () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.decision).toBe(MOCK_DECISION);
+    expect(result.current.decisions).toEqual(MOCK_DECISIONS);
     expect(result.current.error).toBeNull();
   });
 
-  it('should return error when decideAsync() rejects', async () => {
+  it('should return error when decideForKeysAsync() rejects', async () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
     const asyncError = new Error('CMAB request failed');
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockRejectedValue(asyncError);
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockRejectedValue(asyncError);
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     expect(result.current.error).toBe(asyncError);
-    expect(result.current.decision).toBeNull();
+    expect(result.current.decisions).toEqual({});
   });
 
   it('should wrap non-Error rejection in Error object', async () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockRejectedValue('string error');
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockRejectedValue('string error');
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -168,77 +147,77 @@ describe('useDecideAsync', () => {
 
     expect(result.current.error).toBeInstanceOf(Error);
     expect(result.current.error!.message).toBe('string error');
-    expect(result.current.decision).toBeNull();
+    expect(result.current.decisions).toEqual({});
   });
 
   // --- Race condition tests ---
 
-  it('should discard stale result when flagKey changes before resolve', async () => {
+  it('should discard stale result when flagKeys change before resolve', async () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
 
-    let resolveFirst: (d: OptimizelyDecision) => void;
-    const firstPromise = new Promise<OptimizelyDecision>((resolve) => {
+    let resolveFirst: (d: Record<string, OptimizelyDecision>) => void;
+    const firstPromise = new Promise<Record<string, OptimizelyDecision>>((resolve) => {
       resolveFirst = resolve;
     });
 
-    const decisionForFlag2: OptimizelyDecision = {
-      ...MOCK_DECISION,
-      flagKey: 'flag_2',
-      variationKey: 'variation_2',
+    const flag2Only: Record<string, OptimizelyDecision> = {
+      flag_2: MOCK_DECISIONS['flag_2'],
     };
 
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>)
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>)
       .mockReturnValueOnce(firstPromise)
-      .mockResolvedValueOnce(decisionForFlag2);
+      .mockResolvedValueOnce(flag2Only);
 
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result, rerender } = renderHook(({ flagKey }) => useDecideAsync(flagKey), {
+    const { result, rerender } = renderHook(({ keys }) => useDecideForKeysAsync(keys), {
       wrapper,
-      initialProps: { flagKey: 'flag_1' },
+      initialProps: { keys: ['flag_1'] },
     });
 
-    // Change flagKey before first resolves
-    rerender({ flagKey: 'flag_2' });
+    // Change keys before first resolves
+    rerender({ keys: ['flag_2'] });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.decision).toBe(decisionForFlag2);
+    expect(result.current.decisions).toEqual(flag2Only);
 
     // Now resolve the stale first promise — should be ignored
     await act(async () => {
-      resolveFirst!(MOCK_DECISION);
+      resolveFirst!({ flag_1: MOCK_DECISIONS['flag_1'] });
     });
 
-    // Should still show flag_2's decision
-    expect(result.current.decision).toBe(decisionForFlag2);
+    expect(result.current.decisions).toEqual(flag2Only);
   });
 
   it('should discard stale result when store state changes before resolve', async () => {
     mockClient = createMockClient(true);
     const mockUserContext1 = createMockUserContext();
 
-    let resolveFirst: (d: OptimizelyDecision) => void;
-    const firstPromise = new Promise<OptimizelyDecision>((resolve) => {
+    let resolveFirst: (d: Record<string, OptimizelyDecision>) => void;
+    const firstPromise = new Promise<Record<string, OptimizelyDecision>>((resolve) => {
       resolveFirst = resolve;
     });
 
-    (mockUserContext1.decideAsync as ReturnType<typeof vi.fn>).mockReturnValue(firstPromise);
+    (mockUserContext1.decideForKeysAsync as ReturnType<typeof vi.fn>).mockReturnValue(firstPromise);
     store.setUserContext(mockUserContext1);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
     expect(result.current.isLoading).toBe(true);
 
     // New user context arrives — cancels first async call
-    const updatedDecision: OptimizelyDecision = { ...MOCK_DECISION, variationKey: 'updated' };
+    const updatedDecisions: Record<string, OptimizelyDecision> = {
+      flag_1: { ...MOCK_DECISIONS['flag_1'], variationKey: 'updated' },
+      flag_2: MOCK_DECISIONS['flag_2'],
+    };
     const mockUserContext2 = createMockUserContext();
-    (mockUserContext2.decideAsync as ReturnType<typeof vi.fn>).mockResolvedValue(updatedDecision);
+    (mockUserContext2.decideForKeysAsync as ReturnType<typeof vi.fn>).mockResolvedValue(updatedDecisions);
 
     await act(async () => {
       store.setUserContext(mockUserContext2);
@@ -248,14 +227,14 @@ describe('useDecideAsync', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.decision).toBe(updatedDecision);
+    expect(result.current.decisions).toEqual(updatedDecisions);
 
     // Resolve the stale first promise — should be ignored
     await act(async () => {
-      resolveFirst!(MOCK_DECISION);
+      resolveFirst!(MOCK_DECISIONS);
     });
 
-    expect(result.current.decision).toBe(updatedDecision);
+    expect(result.current.decisions).toEqual(updatedDecisions);
   });
 
   // --- Re-evaluation tests ---
@@ -266,103 +245,107 @@ describe('useDecideAsync', () => {
     store.setUserContext(mockUserContext);
 
     const wrapper = createWrapper(store, mockClient);
-    const { result, rerender } = renderHook(({ options }) => useDecideAsync('flag_1', { decideOptions: options }), {
-      wrapper,
-      initialProps: { options: undefined as OptimizelyDecideOption[] | undefined },
-    });
+    const { result, rerender } = renderHook(
+      ({ options }) => useDecideForKeysAsync(['flag_1'], { decideOptions: options }),
+      {
+        wrapper,
+        initialProps: { options: undefined as OptimizelyDecideOption[] | undefined },
+      }
+    );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
     const newOptions = ['DISABLE_DECISION_EVENT'] as unknown as OptimizelyDecideOption[];
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockClear();
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockClear();
 
     rerender({ options: newOptions });
 
-    expect(mockUserContext.decideAsync).toHaveBeenCalledWith('flag_1', newOptions);
+    expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledWith(['flag_1'], newOptions);
   });
 
   it('should re-fire async call on config update', async () => {
     const mockUserContext = createMockUserContext();
     const { wrapper, fireConfigUpdate } = createProviderWrapper(mockUserContext);
 
-    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+    const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.decision).toBe(MOCK_DECISION);
+    expect(result.current.decisions).toEqual({ flag_1: MOCK_DECISIONS['flag_1'] });
 
-    const callCountBeforeUpdate = (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mock.calls.length;
+    const callCountBeforeUpdate = (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mock.calls.length;
 
-    const updatedDecision: OptimizelyDecision = {
-      ...MOCK_DECISION,
-      variationKey: 'variation_2',
-      variables: { color: 'blue' },
+    const updatedDecisions: Record<string, OptimizelyDecision> = {
+      flag_1: { ...MOCK_DECISIONS['flag_1'], variationKey: 'updated_variation' },
     };
-    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockResolvedValue(updatedDecision);
+    (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockResolvedValue(updatedDecisions);
 
     await act(async () => {
       fireConfigUpdate();
     });
 
-    expect(result.current.decision).toBe(updatedDecision);
-    expect(mockUserContext.decideAsync).toHaveBeenCalledTimes(callCountBeforeUpdate + 1);
+    expect(result.current.decisions).toEqual(updatedDecisions);
+    expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledTimes(callCountBeforeUpdate + 1);
     expect(result.current.isLoading).toBe(false);
   });
 
   // --- Forced decision tests ---
 
   describe('forced decision reactivity', () => {
-    it('should re-fire async call when setForcedDecision is called for the same flagKey', async () => {
+    it('should re-fire async call when setForcedDecision is called for a key in the array', async () => {
       mockClient = createMockClient(true);
       const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
       const wrapper = createWrapper(store, mockClient);
-      const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+      const { result } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      expect(mockUserContext.decideAsync).toHaveBeenCalledTimes(1);
+      expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledTimes(1);
 
-      const forcedDecision: OptimizelyDecision = {
-        ...MOCK_DECISION,
-        variationKey: 'forced_variation',
+      const forcedDecisions: Record<string, OptimizelyDecision> = {
+        flag_1: { ...MOCK_DECISIONS['flag_1'], variationKey: 'forced_variation' },
+        flag_2: MOCK_DECISIONS['flag_2'],
       };
-      (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockResolvedValue(forcedDecision);
+      (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockResolvedValue(forcedDecisions);
 
       await act(async () => {
         mockUserContext.setForcedDecision({ flagKey: 'flag_1' }, { variationKey: 'forced_variation' });
       });
 
-      expect(mockUserContext.decideAsync).toHaveBeenCalledTimes(2);
-      expect(result.current.decision).toBe(forcedDecision);
+      expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledTimes(2);
+
+      await waitFor(() => {
+        expect(result.current.decisions).toEqual(forcedDecisions);
+      });
     });
 
-    it('should NOT re-fire for a different flagKey forced decision', async () => {
+    it('should NOT re-fire for a flagKey NOT in the array', async () => {
       mockClient = createMockClient(true);
       const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
       const wrapper = createWrapper(store, mockClient);
-      const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+      const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
       });
 
-      (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockClear();
+      (mockUserContext.decideForKeysAsync as ReturnType<typeof vi.fn>).mockClear();
 
       act(() => {
         mockUserContext.setForcedDecision({ flagKey: 'flag_2' }, { variationKey: 'v1' });
       });
 
-      expect(mockUserContext.decideAsync).not.toHaveBeenCalled();
+      expect(mockUserContext.decideForKeysAsync).not.toHaveBeenCalled();
     });
 
     it('should re-fire when removeAllForcedDecisions is called', async () => {
@@ -371,7 +354,7 @@ describe('useDecideAsync', () => {
       store.setUserContext(mockUserContext);
 
       const wrapper = createWrapper(store, mockClient);
-      const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+      const { result } = renderHook(() => useDecideForKeysAsync(['flag_1']), { wrapper });
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
@@ -382,32 +365,51 @@ describe('useDecideAsync', () => {
         mockUserContext.setForcedDecision({ flagKey: 'flag_1' }, { variationKey: 'v1' });
       });
 
-      expect(mockUserContext.decideAsync).toHaveBeenCalledTimes(2);
+      expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledTimes(2);
 
       await act(async () => {
         mockUserContext.removeAllForcedDecisions();
       });
 
-      expect(mockUserContext.decideAsync).toHaveBeenCalledTimes(3);
+      expect(mockUserContext.decideForKeysAsync).toHaveBeenCalledTimes(3);
     });
 
-    it('should unsubscribe forced decision listener on unmount', () => {
+    it('should re-subscribe forced decisions when keys change', async () => {
       mockClient = createMockClient(true);
       const mockUserContext = createMockUserContext();
       store.setUserContext(mockUserContext);
 
-      const unsubscribeFdSpy = vi.fn();
-      const subscribeFdSpy = vi.spyOn(store, 'subscribeForcedDecision').mockReturnValue(unsubscribeFdSpy);
+      const subscribeFdSpy = vi.spyOn(store, 'subscribeForcedDecision');
 
       const wrapper = createWrapper(store, mockClient);
-      const { unmount } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+      const { rerender } = renderHook(({ keys }) => useDecideForKeysAsync(keys), {
+        wrapper,
+        initialProps: { keys: ['flag_1'] },
+      });
 
-      expect(subscribeFdSpy).toHaveBeenCalledTimes(1);
       expect(subscribeFdSpy).toHaveBeenCalledWith('flag_1', expect.any(Function));
+
+      rerender({ keys: ['flag_2', 'flag_3'] });
+
+      expect(subscribeFdSpy).toHaveBeenCalledWith('flag_2', expect.any(Function));
+      expect(subscribeFdSpy).toHaveBeenCalledWith('flag_3', expect.any(Function));
+    });
+
+    it('should unsubscribe forced decision listeners on unmount', async () => {
+      mockClient = createMockClient(true);
+      const mockUserContext = createMockUserContext();
+      store.setUserContext(mockUserContext);
+
+      const unsubscribeSpy = vi.fn();
+      vi.spyOn(store, 'subscribeForcedDecision').mockReturnValue(unsubscribeSpy);
+
+      const wrapper = createWrapper(store, mockClient);
+      const { unmount } = renderHook(() => useDecideForKeysAsync(['flag_1', 'flag_2']), { wrapper });
 
       unmount();
 
-      expect(unsubscribeFdSpy).toHaveBeenCalledTimes(1);
+      // One unsubscribe call per key
+      expect(unsubscribeSpy).toHaveBeenCalledTimes(2);
     });
   });
 });
