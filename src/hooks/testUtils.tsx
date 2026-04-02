@@ -48,9 +48,7 @@ export const MOCK_DECISIONS: Record<string, OptimizelyDecision> = {
  * Creates a mock OptimizelyUserContext with all methods stubbed.
  * Override specific methods via the overrides parameter.
  */
-export function createMockUserContext(
-  overrides?: Partial<Record<string, unknown>>,
-): OptimizelyUserContext {
+export function createMockUserContext(overrides?: Partial<Record<string, unknown>>): OptimizelyUserContext {
   return {
     getUserId: vi.fn().mockReturnValue('test-user'),
     getAttributes: vi.fn().mockReturnValue({}),
@@ -65,6 +63,17 @@ export function createMockUserContext(
         }
       }
       return result;
+    }),
+    decideAsync: vi.fn().mockResolvedValue(MOCK_DECISION),
+    decideAllAsync: vi.fn().mockResolvedValue(MOCK_DECISIONS),
+    decideForKeysAsync: vi.fn().mockImplementation((keys: string[]) => {
+      const result: Record<string, OptimizelyDecision> = {};
+      for (const key of keys) {
+        if (MOCK_DECISIONS[key]) {
+          result[key] = MOCK_DECISIONS[key];
+        }
+      }
+      return Promise.resolve(result);
     }),
     setForcedDecision: vi.fn().mockReturnValue(true),
     getForcedDecision: vi.fn(),

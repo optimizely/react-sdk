@@ -22,3 +22,5 @@ export type { UseDecideConfig, UseDecideResult } from './useDecide';
 export { useDecideForKeys } from './useDecideForKeys';
 export type { UseDecideMultiResult } from './useDecideForKeys';
 export { useDecideAll } from './useDecideAll';
+export { useDecideAsync } from './useDecideAsync';
+export type { UseDecideAsyncResult } from './useDecideAsync';
