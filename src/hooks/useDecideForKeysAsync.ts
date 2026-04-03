@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { OptimizelyDecision } from '@optimizely/optimizely-sdk';
+import { useCallback, useEffect, useState } from 'react';
+import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import { useAsyncDecision } from './useAsyncDecision';
 import type { UseDecideConfig } from './useDecide';
 
 export type UseDecideMultiAsyncResult =
   | { isLoading: true; error: null; decisions: Record<string, never> }
   | { isLoading: false; error: Error; decisions: Record<string, never> }
   | { isLoading: false; error: null; decisions: Record<string, OptimizelyDecision> };
+
+const EMPTY_DECISIONS = {} as Record<string, never>;
 
 /**
  * Returns feature flag decisions for the given flag keys using the async
@@ -50,61 +53,12 @@ export function useDecideForKeysAsync(flagKeys: string[], config?: UseDecideConf
     return () => unsubscribes.forEach((unsub) => unsub());
   }, [store, stableKeys]);
 
-  // --- Async decision state ---
-  const [asyncState, setAsyncState] = useState<{
-    decisions: Record<string, OptimizelyDecision> | Record<string, never>;
-    error: Error | null;
-    isLoading: boolean;
-  }>({ decisions: {} as Record<string, never>, error: null, isLoading: true });
+  const execute = useCallback(
+    (uc: OptimizelyUserContext) => uc.decideForKeysAsync(stableKeys, decideOptions),
+    [stableKeys, decideOptions]
+  );
 
-  // --- Async decision effect ---
-  useEffect(() => {
-    const { userContext, error } = state;
-    const hasConfig = client.getOptimizelyConfig() !== null;
+  const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, EMPTY_DECISIONS, execute);
 
-    // Store-level error — no async call needed
-    if (error) {
-      setAsyncState({ decisions: {} as Record<string, never>, error, isLoading: false });
-      return;
-    }
-
-    // Store not ready — stay in loading
-    if (!hasConfig || userContext === null) {
-      setAsyncState({ decisions: {} as Record<string, never>, error: null, isLoading: true });
-      return;
-    }
-
-    // Store is ready — fire async decision
-    let cancelled = false;
-    // Reset to loading before firing the async call.
-    // If already in the initial loading state, returns `prev` as-is to
-    // skip a redundant re-render on first mount.
-    setAsyncState((prev) => {
-      if (prev.isLoading && prev.error === null && Object.keys(prev.decisions).length === 0) return prev;
-      return { decisions: {} as Record<string, never>, error: null, isLoading: true };
-    });
-
-    userContext.decideForKeysAsync(stableKeys, decideOptions).then(
-      (decisions) => {
-        if (!cancelled) {
-          setAsyncState({ decisions, error: null, isLoading: false });
-        }
-      },
-      (err) => {
-        if (!cancelled) {
-          setAsyncState({
-            decisions: {} as Record<string, never>,
-            error: err instanceof Error ? err : new Error(String(err)),
-            isLoading: false,
-          });
-        }
-      }
-    );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state, fdVersion, client, stableKeys, decideOptions]);
-
-  return asyncState as UseDecideMultiAsyncResult;
+  return { decisions: result, error, isLoading } as UseDecideMultiAsyncResult;
 }

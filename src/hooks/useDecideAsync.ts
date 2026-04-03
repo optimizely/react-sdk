@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { OptimizelyDecision } from '@optimizely/optimizely-sdk';
+import { useCallback, useEffect, useState } from 'react';
+import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import { useAsyncDecision } from './useAsyncDecision';
 import type { UseDecideConfig } from './useDecide';
 
 export type UseDecideAsyncResult =
@@ -50,61 +51,12 @@ export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDe
     });
   }, [store, flagKey]);
 
-  // --- Async decision state ---
-  const [asyncState, setAsyncState] = useState<{
-    decision: OptimizelyDecision | null;
-    error: Error | null;
-    isLoading: boolean;
-  }>({ decision: null, error: null, isLoading: true });
+  const execute = useCallback(
+    (uc: OptimizelyUserContext) => uc.decideAsync(flagKey, decideOptions),
+    [flagKey, decideOptions]
+  );
 
-  // --- Async decision effect ---
-  useEffect(() => {
-    const { userContext, error } = state;
-    const hasConfig = client.getOptimizelyConfig() !== null;
+  const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, null, execute);
 
-    // Store-level error — no async call needed
-    if (error) {
-      setAsyncState({ decision: null, error, isLoading: false });
-      return;
-    }
-
-    // Store not ready — stay in loading
-    if (!hasConfig || userContext === null) {
-      setAsyncState({ decision: null, error: null, isLoading: true });
-      return;
-    }
-
-    // Store is ready — fire async decision
-    let cancelled = false;
-    // Reset to loading before firing the async call.
-    // If already in the initial loading state, returns `prev` as-is to
-    // skip a redundant re-render on first mount.
-    setAsyncState((prev) => {
-      if (prev.isLoading && prev.error === null && prev.decision === null) return prev;
-      return { decision: null, error: null, isLoading: true };
-    });
-
-    userContext.decideAsync(flagKey, decideOptions).then(
-      (decision) => {
-        if (!cancelled) {
-          setAsyncState({ decision, error: null, isLoading: false });
-        }
-      },
-      (err) => {
-        if (!cancelled) {
-          setAsyncState({
-            decision: null,
-            error: err instanceof Error ? err : new Error(String(err)),
-            isLoading: false,
-          });
-        }
-      }
-    );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [state, fdVersion, client, flagKey, decideOptions]);
-
-  return asyncState as UseDecideAsyncResult;
+  return { decision: result, error, isLoading } as UseDecideAsyncResult;
 }
