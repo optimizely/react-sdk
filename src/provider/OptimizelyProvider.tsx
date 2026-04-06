@@ -19,15 +19,9 @@ import { NOTIFICATION_TYPES } from '@optimizely/optimizely-sdk';
 
 import { ProviderStateStore } from './ProviderStateStore';
 import { UserContextManager } from '../utils/UserContextManager';
+import { getReactLogger } from '../logger/index';
 import type { OptimizelyProviderProps, OptimizelyContextValue } from './types';
 import type { Client } from '@optimizely/optimizely-sdk';
-
-// TODO: Replace with proper logger when implemented
-const logger = {
-  info: (msg: string) => console.info(`[OptimizelyProvider] ${msg}`),
-  warn: (msg: string) => console.warn(`[OptimizelyProvider] ${msg}`),
-  error: (msg: string) => console.error(`[OptimizelyProvider] ${msg}`),
-};
 
 /**
  * React Context for Optimizely.
@@ -81,7 +75,7 @@ export function OptimizelyProvider({
   // Readiness is derived from userContext + getOptimizelyConfig() by hooks.
   useEffect(() => {
     if (!client) {
-      logger?.error('OptimizelyProvider must be passed an Optimizely client instance');
+      getReactLogger()?.error('OptimizelyProvider must be passed an Optimizely client instance');
       store.setError(new Error('Optimizely client is required'));
       return;
     }
