@@ -27,5 +27,4 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-  createLogger, // This will be removed later with logger implementation changes
 } from '@optimizely/optimizely-sdk';

@@ -23,8 +23,8 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-  createLogger,
 } from './client/index';
+export { createLogger } from './logger/index';
 
 export type * from '@optimizely/optimizely-sdk';
 
