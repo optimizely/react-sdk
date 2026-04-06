@@ -16,6 +16,8 @@
 
 import { createInstance as jsCreateInstance } from '@optimizely/optimizely-sdk';
 import type { Config, Client } from '@optimizely/optimizely-sdk';
+import { getLoggerConfig } from '../logger/loggerConfigRegistry';
+import type { ReactLoggerConfig, ReactLogger } from '../logger/ReactLogger';
 
 export const CLIENT_ENGINE = 'react-sdk';
 export const CLIENT_VERSION = '4.0.0';
@@ -25,6 +27,8 @@ export const REACT_CLIENT_META = Symbol('react-client-meta');
 export interface ReactClientMeta {
   hasOdpManager: boolean;
   hasVuidManager: boolean;
+  loggerConfig?: ReactLoggerConfig;
+  logger?: ReactLogger;
 }
 
 /**
@@ -48,6 +52,7 @@ export function createInstance(config: Config): Client {
   reactClient[REACT_CLIENT_META] = {
     hasOdpManager: !!config.odpManager,
     hasVuidManager: !!config.vuidManager,
+    loggerConfig: config.logger ? getLoggerConfig(config.logger) : undefined,
   } satisfies ReactClientMeta;
 
   return reactClient;

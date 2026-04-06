@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-export { createLogger } from './createLogger';
-export { getReactLogger } from './getReactLogger';
-export { createReactLogger } from './ReactLogger';
-export type { ReactLogger, ReactLoggerConfig } from './ReactLogger';
+import type { ReactLoggerConfig } from './ReactLogger';
+
+// WeakMap keyed by OpaqueLogger objects. Bridges the gap between
+// createLogger() and createInstance() — supports multiple clients with
+// different configs and automatically releases entries when the logger is GC'd.
+const registry = new WeakMap<object, ReactLoggerConfig>();
+
+export function storeLoggerConfig(logger: object, config: ReactLoggerConfig): void {
+  registry.set(logger, config);
+}
+
+export function getLoggerConfig(logger: object): ReactLoggerConfig | undefined {
+  return registry.get(logger);
+}
