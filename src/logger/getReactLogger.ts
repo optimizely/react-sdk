@@ -17,23 +17,14 @@
 import type { Client } from '@optimizely/optimizely-sdk';
 import { REACT_CLIENT_META } from '../client/createInstance';
 import type { ReactClientMeta } from '../client/createInstance';
-import { createReactLogger } from './ReactLogger';
+import type { ReactLogger } from './ReactLogger';
 
 /**
- * Returns the cached ReactLogger instance for the given client.
- * Creates it lazily on first call; subsequent calls return the same instance.
- * Returns undefined if the client has no logger config (e.g., logger was
- * not created via the React SDK's createLogger wrapper).
+ * Returns the ReactLogger instance for the given client, or undefined
+ * if the client has no logger (e.g., logger was not created via the
+ * React SDK's createLogger wrapper).
  */
-export function getReactLogger(client: Client) {
+export function getReactLogger(client: Client): ReactLogger | undefined {
   const meta = (client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META];
-
-  if (meta.logger) return meta.logger;
-
-  if (meta.loggerConfig) {
-    meta.logger = createReactLogger(meta.loggerConfig);
-    return meta.logger;
-  }
-
-  return undefined;
+  return meta.logger;
 }

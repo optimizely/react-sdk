@@ -16,7 +16,9 @@
 
 import { createLogger as jsCreateLogger, LogLevel, DEBUG, INFO, WARN, ERROR } from '@optimizely/optimizely-sdk';
 import type { LoggerConfig, OpaqueLevelPreset } from '@optimizely/optimizely-sdk';
-import { storeLoggerConfig } from './loggerConfigRegistry';
+import { createReactLogger } from './ReactLogger';
+
+export const REACT_LOGGER = Symbol('react-logger');
 
 function resolveLogLevel(preset: OpaqueLevelPreset): LogLevel {
   if (preset === DEBUG) return LogLevel.Debug;
@@ -28,11 +30,10 @@ function resolveLogLevel(preset: OpaqueLevelPreset): LogLevel {
 
 export function createLogger(config: LoggerConfig) {
   const opaqueLogger = jsCreateLogger(config);
-
-  storeLoggerConfig(opaqueLogger, {
+  const reactLogger = createReactLogger({
     logLevel: resolveLogLevel(config.level),
     logHandler: config.logHandler,
   });
-
+  (opaqueLogger as Record<symbol, unknown>)[REACT_LOGGER] = reactLogger;
   return opaqueLogger;
 }

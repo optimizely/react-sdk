@@ -29,8 +29,7 @@ export interface ReactLoggerConfig {
   logHandler?: LogHandler;
 }
 
-const LOG_PREFIX = '[ReactSDK]';
-
+const LOG_PREFIX = '[OPTIMIZELY - REACT]';
 const defaultLogHandler: LogHandler = {
   log(level: LogLevel, message: string): void {
     switch (level) {
@@ -56,16 +55,16 @@ export function createReactLogger(config: ReactLoggerConfig): ReactLogger {
 
   return {
     debug: (msg) => {
-      if (level <= LogLevel.Debug) handler.log(LogLevel.Debug, `${LOG_PREFIX} ${msg}`);
+      if (level <= LogLevel.Debug) handler.log(LogLevel.Debug, `${LOG_PREFIX} - DEBUG ${msg}`);
     },
     info: (msg) => {
-      if (level <= LogLevel.Info) handler.log(LogLevel.Info, `${LOG_PREFIX} ${msg}`);
+      if (level <= LogLevel.Info) handler.log(LogLevel.Info, `${LOG_PREFIX} - INFO ${msg}`);
     },
     warn: (msg) => {
-      if (level <= LogLevel.Warn) handler.log(LogLevel.Warn, `${LOG_PREFIX} ${msg}`);
+      if (level <= LogLevel.Warn) handler.log(LogLevel.Warn, `${LOG_PREFIX} - WARN ${msg}`);
     },
     error: (msg) => {
-      if (level <= LogLevel.Error) handler.log(LogLevel.Error, `${LOG_PREFIX} ${msg}`);
+      if (level <= LogLevel.Error) handler.log(LogLevel.Error, `${LOG_PREFIX} - ERROR ${msg}`);
     },
   };
 }

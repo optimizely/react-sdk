@@ -24,7 +24,7 @@ export {
   createVuidManager,
   createErrorNotifier,
 } from './client/index';
-export { createLogger } from './logger/index';
+export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger/index';
 
 export type * from '@optimizely/optimizely-sdk';
 

@@ -16,10 +16,9 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { DEBUG, INFO, WARN, ERROR, LogLevel } from '@optimizely/optimizely-sdk';
-import type { LoggerConfig, LogHandler } from '@optimizely/optimizely-sdk';
-import { storeLoggerConfig, getLoggerConfig } from './loggerConfigRegistry';
+import type { LogHandler } from '@optimizely/optimizely-sdk';
 import { createReactLogger } from './ReactLogger';
-import type { ReactLoggerConfig } from './ReactLogger';
+import type { ReactLogger } from './ReactLogger';
 
 const mockOpaqueLogger = vi.hoisted(() => ({ __opaque: true }));
 
@@ -31,7 +30,7 @@ vi.mock('@optimizely/optimizely-sdk', async (importOriginal) => {
   };
 });
 
-import { createLogger } from './createLogger';
+import { createLogger, REACT_LOGGER } from './createLogger';
 
 describe('createLogger', () => {
   beforeEach(() => {
@@ -39,58 +38,49 @@ describe('createLogger', () => {
   });
 
   it('should return the opaque logger from the JS SDK', () => {
-    const config: LoggerConfig = { level: INFO };
-    const result = createLogger(config);
+    const result = createLogger({ level: INFO });
     expect(result).toBe(mockOpaqueLogger);
   });
 
-  it('should store the resolved config in the registry', () => {
+  it('should attach a ReactLogger via the REACT_LOGGER symbol', () => {
     const mockHandler: LogHandler = { log: vi.fn() };
-    createLogger({ level: INFO, logHandler: mockHandler });
+    const result = createLogger({ level: INFO, logHandler: mockHandler });
 
-    const storedConfig = getLoggerConfig(mockOpaqueLogger);
-    expect(storedConfig).toBeDefined();
-    expect(storedConfig!.logLevel).toBe(LogLevel.Info);
-    expect(storedConfig!.logHandler).toBe(mockHandler);
+    const reactLogger = (result as Record<symbol, unknown>)[REACT_LOGGER] as ReactLogger;
+    expect(reactLogger).toBeDefined();
+    expect(reactLogger.debug).toBeTypeOf('function');
+    expect(reactLogger.info).toBeTypeOf('function');
+    expect(reactLogger.warn).toBeTypeOf('function');
+    expect(reactLogger.error).toBeTypeOf('function');
+  });
+
+  it('should create a ReactLogger that uses the provided logHandler', () => {
+    const mockHandler: LogHandler = { log: vi.fn() };
+    const result = createLogger({ level: INFO, logHandler: mockHandler });
+
+    const reactLogger = (result as Record<symbol, unknown>)[REACT_LOGGER] as ReactLogger;
+    reactLogger.info('hello');
+
+    expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Info, '[OPTIMIZELY - REACT] - INFO hello');
   });
 
   describe('log level resolution', () => {
     it.each([
-      { preset: DEBUG, expected: LogLevel.Debug, name: 'DEBUG' },
-      { preset: INFO, expected: LogLevel.Info, name: 'INFO' },
-      { preset: WARN, expected: LogLevel.Warn, name: 'WARN' },
-      { preset: ERROR, expected: LogLevel.Error, name: 'ERROR' },
-    ])('should resolve $name preset to LogLevel.$name', ({ preset, expected }) => {
-      createLogger({ level: preset });
-      const storedConfig = getLoggerConfig(mockOpaqueLogger);
-      expect(storedConfig!.logLevel).toBe(expected);
+      { preset: DEBUG, expectedCalls: 4, name: 'DEBUG' },
+      { preset: INFO, expectedCalls: 3, name: 'INFO' },
+      { preset: WARN, expectedCalls: 2, name: 'WARN' },
+      { preset: ERROR, expectedCalls: 1, name: 'ERROR' },
+    ])('should resolve $name preset correctly', ({ preset, expectedCalls }) => {
+      const mockHandler: LogHandler = { log: vi.fn() };
+      const result = createLogger({ level: preset, logHandler: mockHandler });
+
+      const reactLogger = (result as Record<symbol, unknown>)[REACT_LOGGER] as ReactLogger;
+      reactLogger.debug('d');
+      reactLogger.info('i');
+      reactLogger.warn('w');
+      reactLogger.error('e');
+      expect(mockHandler.log).toHaveBeenCalledTimes(expectedCalls);
     });
-  });
-});
-
-describe('loggerConfigRegistry', () => {
-  it('should return undefined for unknown logger objects', () => {
-    expect(getLoggerConfig({})).toBeUndefined();
-  });
-
-  it('should store and retrieve config for a given logger', () => {
-    const logger = {};
-    const config: ReactLoggerConfig = { logLevel: LogLevel.Warn };
-    storeLoggerConfig(logger, config);
-    expect(getLoggerConfig(logger)).toBe(config);
-  });
-
-  it('should support multiple loggers with different configs', () => {
-    const logger1 = {};
-    const logger2 = {};
-    const config1: ReactLoggerConfig = { logLevel: LogLevel.Debug };
-    const config2: ReactLoggerConfig = { logLevel: LogLevel.Error };
-
-    storeLoggerConfig(logger1, config1);
-    storeLoggerConfig(logger2, config2);
-
-    expect(getLoggerConfig(logger1)).toBe(config1);
-    expect(getLoggerConfig(logger2)).toBe(config2);
   });
 });
 
@@ -106,8 +96,8 @@ describe('createReactLogger', () => {
       logger.error('should appear');
 
       expect(mockHandler.log).toHaveBeenCalledTimes(2);
-      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Warn, '[ReactSDK] should appear');
-      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Error, '[ReactSDK] should appear');
+      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Warn, '[OPTIMIZELY - REACT] - WARN should appear');
+      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Error, '[OPTIMIZELY - REACT] - ERROR should appear');
     });
 
     it('should allow all messages when level is Debug', () => {
@@ -132,7 +122,7 @@ describe('createReactLogger', () => {
       logger.error('e');
 
       expect(mockHandler.log).toHaveBeenCalledTimes(1);
-      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Error, '[ReactSDK] e');
+      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Error, '[OPTIMIZELY - REACT] - ERROR e');
     });
   });
 
@@ -143,7 +133,7 @@ describe('createReactLogger', () => {
 
       logger.info('hello');
 
-      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Info, '[ReactSDK] hello');
+      expect(mockHandler.log).toHaveBeenCalledWith(LogLevel.Info, '[OPTIMIZELY - REACT] - INFO hello');
     });
 
     it('should use default console handler when logHandler is not provided', () => {
@@ -152,13 +142,13 @@ describe('createReactLogger', () => {
 
       logger.info('hello');
 
-      expect(consoleSpy).toHaveBeenCalledWith('[ReactSDK] hello');
+      expect(consoleSpy).toHaveBeenCalledWith('[OPTIMIZELY - REACT] - INFO hello');
       consoleSpy.mockRestore();
     });
   });
 
   describe('message prefix', () => {
-    it('should prepend [ReactSDK] to all messages', () => {
+    it('should prepend [OPTIMIZELY - REACT] to all messages', () => {
       const mockHandler: LogHandler = { log: vi.fn() };
       const logger = createReactLogger({ logLevel: LogLevel.Debug, logHandler: mockHandler });
 
@@ -168,7 +158,7 @@ describe('createReactLogger', () => {
       logger.error('test');
 
       for (const call of (mockHandler.log as ReturnType<typeof vi.fn>).mock.calls) {
-        expect(call[1]).toMatch(/^\[ReactSDK\] /);
+        expect(call[1]).toMatch(/^\[OPTIMIZELY - REACT\] - (DEBUG|INFO|WARN|ERROR) /);
       }
     });
   });

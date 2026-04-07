@@ -18,3 +18,4 @@ export { createLogger } from './createLogger';
 export { getReactLogger } from './getReactLogger';
 export { createReactLogger } from './ReactLogger';
 export type { ReactLogger, ReactLoggerConfig } from './ReactLogger';
+export { ERROR, DEBUG, WARN, INFO } from '@optimizely/optimizely-sdk';
