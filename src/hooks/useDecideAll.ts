@@ -19,8 +19,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
-import type { UseDecideConfig } from './useDecide';
-import type { UseDecideMultiResult } from './useDecideForKeys';
+import type { UseDecideConfig, UseDecideMultiResult } from './types';
 
 /**
  * Returns feature flag decisions for all flags.

@@ -15,20 +15,10 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
-import type { OptimizelyDecideOption, OptimizelyDecision } from '@optimizely/optimizely-sdk';
-
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
-
-export interface UseDecideConfig {
-  decideOptions?: OptimizelyDecideOption[];
-}
-
-export type UseDecideResult =
-  | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
-  | { isLoading: false; error: null; decision: OptimizelyDecision };
+import type { UseDecideConfig, UseDecideResult } from './types';
 
 /**
  * Returns a feature flag decision for the given flag key.

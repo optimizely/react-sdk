@@ -15,18 +15,13 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
 import { useAsyncDecision } from './useAsyncDecision';
-import type { UseDecideConfig } from './useDecide';
-
-export type UseDecideAsyncResult =
-  | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
-  | { isLoading: false; error: null; decision: OptimizelyDecision };
+import type { UseDecideConfig, UseDecideResult } from './types';
 
 /**
  * Returns a feature flag decision for the given flag key using the async
@@ -38,7 +33,7 @@ export type UseDecideAsyncResult =
  * @param flagKey - The feature flag key to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDecideAsyncResult {
+export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDecideResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
@@ -58,5 +53,5 @@ export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDe
 
   const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, null, execute);
 
-  return { decision: result, error, isLoading } as UseDecideAsyncResult;
+  return { decision: result, error, isLoading } as UseDecideResult;
 }

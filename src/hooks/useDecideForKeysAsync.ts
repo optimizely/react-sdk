@@ -15,18 +15,13 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
-import type { OptimizelyDecision, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
 import { useAsyncDecision } from './useAsyncDecision';
-import type { UseDecideConfig } from './useDecide';
-
-export type UseDecideMultiAsyncResult =
-  | { isLoading: true; error: null; decisions: Record<string, never> }
-  | { isLoading: false; error: Error; decisions: Record<string, never> }
-  | { isLoading: false; error: null; decisions: Record<string, OptimizelyDecision> };
+import type { UseDecideConfig, UseDecideMultiResult } from './types';
 
 const EMPTY_DECISIONS = {} as Record<string, never>;
 
@@ -40,7 +35,7 @@ const EMPTY_DECISIONS = {} as Record<string, never>;
  * @param flagKeys - The feature flag keys to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideForKeysAsync(flagKeys: string[], config?: UseDecideConfig): UseDecideMultiAsyncResult {
+export function useDecideForKeysAsync(flagKeys: string[], config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
   const stableKeys = useStableArray(flagKeys);
   const decideOptions = useStableArray(config?.decideOptions);
@@ -60,5 +55,5 @@ export function useDecideForKeysAsync(flagKeys: string[], config?: UseDecideConf
 
   const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, EMPTY_DECISIONS, execute);
 
-  return { decisions: result, error, isLoading } as UseDecideMultiAsyncResult;
+  return { decisions: result, error, isLoading } as UseDecideMultiResult;
 }

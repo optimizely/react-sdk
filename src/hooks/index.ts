@@ -17,13 +17,10 @@
 export { useOptimizelyClient } from './useOptimizelyClient';
 export { useOptimizelyUserContext } from './useOptimizelyUserContext';
 export type { UseOptimizelyUserContextResult } from './useOptimizelyUserContext';
+export type { UseDecideConfig, UseDecideResult, UseDecideMultiResult } from './types';
 export { useDecide } from './useDecide';
-export type { UseDecideConfig, UseDecideResult } from './useDecide';
 export { useDecideForKeys } from './useDecideForKeys';
-export type { UseDecideMultiResult } from './useDecideForKeys';
 export { useDecideAll } from './useDecideAll';
 export { useDecideAsync } from './useDecideAsync';
-export type { UseDecideAsyncResult } from './useDecideAsync';
 export { useDecideForKeysAsync } from './useDecideForKeysAsync';
-export type { UseDecideMultiAsyncResult } from './useDecideForKeysAsync';
 export { useDecideAllAsync } from './useDecideAllAsync';

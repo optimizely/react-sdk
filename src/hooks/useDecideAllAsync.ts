@@ -21,8 +21,7 @@ import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
 import { useAsyncDecision } from './useAsyncDecision';
-import type { UseDecideConfig } from './useDecide';
-import type { UseDecideMultiAsyncResult } from './useDecideForKeysAsync';
+import type { UseDecideConfig, UseDecideMultiResult } from './types';
 
 const EMPTY_DECISIONS = {} as Record<string, never>;
 
@@ -35,7 +34,7 @@ const EMPTY_DECISIONS = {} as Record<string, never>;
  *
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideAllAsync(config?: UseDecideConfig): UseDecideMultiAsyncResult {
+export function useDecideAllAsync(config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
@@ -50,5 +49,5 @@ export function useDecideAllAsync(config?: UseDecideConfig): UseDecideMultiAsync
 
   const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, EMPTY_DECISIONS, execute);
 
-  return { decisions: result, error, isLoading } as UseDecideMultiAsyncResult;
+  return { decisions: result, error, isLoading } as UseDecideMultiResult;
 }

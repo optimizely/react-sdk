@@ -62,21 +62,19 @@ export function useAsyncDecision<TResult>(
       return;
     }
 
-    // Store not ready — stay in loading
+    // Ensure loading state (skip if already loading to avoid re-render)
+    setAsyncState((prev) => {
+      if (prev.isLoading) return prev;
+      return { result: emptyResult, error: null, isLoading: true };
+    });
+
+    // Store not ready — wait for config/user context
     if (!hasConfig || userContext === null) {
-      setAsyncState({ result: emptyResult, error: null, isLoading: true });
       return;
     }
 
     // Store is ready — fire async decision
     let cancelled = false;
-    // Reset to loading before firing the async call.
-    // If already in the initial loading state, returns `prev` as-is to
-    // skip a redundant re-render on first mount.
-    setAsyncState((prev) => {
-      if (prev.isLoading && prev.error === null && prev.result === emptyResult) return prev;
-      return { result: emptyResult, error: null, isLoading: true };
-    });
 
     execute(userContext).then(
       (result) => {
