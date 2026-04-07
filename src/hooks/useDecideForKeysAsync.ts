@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import { useAsyncDecision } from './useAsyncDecision';
 import type { UseDecideConfig, UseDecideMultiResult } from './types';
 
+const EMPTY_DECISIONS = {} as Record<string, never>;
+
 /**
- * Returns feature flag decisions for the given flag keys.
+ * Returns feature flag decisions for the given flag keys using the async
+ * `decideForKeysAsync` API. Required for CMAB (Contextual Multi-Armed Bandit) support.
  *
- * Subscribes to `ProviderStateStore` via `useSyncExternalStore` and
- * re-evaluates decisions whenever the store state changes
- * (client ready, user context set, error) or a forced decision
- * changes for any of the watched keys.
+ * Client-side only — `decideForKeysAsync` returns a Promise which cannot resolve
+ * during server render.
  *
  * @param flagKeys - The feature flag keys to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideForKeys(flagKeys: string[], config?: UseDecideConfig): UseDecideMultiResult {
+export function useDecideForKeysAsync(flagKeys: string[], config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
   const stableKeys = useStableArray(flagKeys);
   const decideOptions = useStableArray(config?.decideOptions);
@@ -44,21 +48,12 @@ export function useDecideForKeys(flagKeys: string[], config?: UseDecideConfig): 
     return () => unsubscribes.forEach((unsub) => unsub());
   }, [store, stableKeys]);
 
-  // --- Derive decisions ---
-  return useMemo(() => {
-    void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
-    const { userContext, error } = state;
-    const hasConfig = client.getOptimizelyConfig() !== null;
+  const execute = useCallback(
+    (uc: OptimizelyUserContext) => uc.decideForKeysAsync(stableKeys, decideOptions),
+    [stableKeys, decideOptions]
+  );
 
-    if (error) {
-      return { decisions: {}, isLoading: false, error };
-    }
+  const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, EMPTY_DECISIONS, execute);
 
-    if (!hasConfig || userContext === null) {
-      return { decisions: {}, isLoading: true, error: null };
-    }
-
-    const decisions = userContext.decideForKeys(stableKeys, decideOptions);
-    return { decisions, isLoading: false as const, error: null };
-  }, [fdVersion, state, client, stableKeys, decideOptions]);
+  return { decisions: result, error, isLoading } as UseDecideMultiResult;
 }

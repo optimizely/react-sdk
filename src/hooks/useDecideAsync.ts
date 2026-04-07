@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
+
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import { useAsyncDecision } from './useAsyncDecision';
 import type { UseDecideConfig, UseDecideResult } from './types';
 
 /**
- * Returns a feature flag decision for the given flag key.
+ * Returns a feature flag decision for the given flag key using the async
+ * `decideAsync` API. Required for CMAB (Contextual Multi-Armed Bandit) support.
  *
- * Subscribes to `ProviderStateStore` via `useSyncExternalStore` and
- * re-evaluates the decision whenever the store state changes
- * (client ready, user context set, error).
+ * Client-side only — `decideAsync` returns a Promise which cannot resolve
+ * during server render.
  *
  * @param flagKey - The feature flag key to evaluate
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideResult {
+export function useDecideAsync(flagKey: string, config?: UseDecideConfig): UseDecideResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
 
   // --- Forced decision subscription ---
-  // Forced decisions don't change store state, so we use a version counter
-  // to trigger useMemo recomputation. Per-flagKey granularity prevents
-  // unrelated hooks from re-evaluating.
   const [fdVersion, setFdVersion] = useState(0);
   useEffect(() => {
     return store.subscribeForcedDecision(flagKey, () => {
@@ -46,21 +46,12 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
     });
   }, [store, flagKey]);
 
-  // --- Derive decision ---
-  return useMemo(() => {
-    void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
-    const { userContext, error } = state;
-    const hasConfig = client.getOptimizelyConfig() !== null;
+  const execute = useCallback(
+    (uc: OptimizelyUserContext) => uc.decideAsync(flagKey, decideOptions),
+    [flagKey, decideOptions]
+  );
 
-    if (error) {
-      return { decision: null, isLoading: false, error };
-    }
+  const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, null, execute);
 
-    if (!hasConfig || userContext === null) {
-      return { decision: null, isLoading: true, error: null };
-    }
-
-    const decision = userContext.decide(flagKey, decideOptions);
-    return { decision, isLoading: false, error: null };
-  }, [fdVersion, state, client, flagKey, decideOptions]);
+  return { decision: result, error, isLoading } as UseDecideResult;
 }
