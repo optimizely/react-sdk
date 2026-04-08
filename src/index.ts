@@ -45,4 +45,4 @@ export {
 } from './hooks/index';
 
 // Helpers
-export { getQualifiedSegments } from './utils/index';
+export { getQualifiedSegments, type QualifiedSegmentsResult } from './utils/index';

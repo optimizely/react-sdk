@@ -83,6 +83,11 @@ function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
   return JSON.stringify({ query });
 }
 
+export interface QualifiedSegmentsResult {
+  segments: string[];
+  error: Error | null;
+}
+
 /**
  * Fetches qualified ODP segments for a user given a datafile and user ID.
  *
@@ -94,13 +99,12 @@ function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
  *
  * @param userId - The user ID to fetch qualified segments for
  * @param datafile - The Optimizely datafile (JSON object or string)
- * @returns Array of qualified segment names, empty array if no segments configured,
- *          or null if ODP is not integrated or the fetch fails.
+ * @returns Object with `segments` (qualified segment names) and `error` (null on success).
  *
  * @example
  * ```ts
- * const segments = await getQualifiedSegments('user-123', datafile);
- * if (segments) {
+ * const { segments, error } = await getQualifiedSegments('user-123', datafile);
+ * if (!error) {
  *   console.log('Qualified segments:', segments);
  * }
  * ```
@@ -108,19 +112,19 @@ function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
 export async function getQualifiedSegments(
   userId: string,
   datafile: string | Record<string, any>
-): Promise<string[] | null> {
+): Promise<QualifiedSegmentsResult> {
   let datafileObj: any;
 
   if (typeof datafile === 'string') {
     try {
       datafileObj = JSON.parse(datafile);
     } catch {
-      return null;
+      return { segments: [], error: new Error('Invalid datafile: failed to parse JSON string') };
     }
   } else if (typeof datafile === 'object' && datafile !== null) {
     datafileObj = datafile;
   } else {
-    return null;
+    return { segments: [], error: new Error('Invalid datafile: expected a JSON string or object') };
   }
 
   // Extract ODP integration config from datafile
@@ -132,7 +136,7 @@ export async function getQualifiedSegments(
   const apiHost = odpIntegration?.host;
 
   if (!apiKey || !apiHost) {
-    return null;
+    return { segments: [], error: new Error('ODP integration not found or missing publicKey/host') };
   }
 
   // Collect all ODP segments from audience conditions
@@ -155,7 +159,7 @@ export async function getQualifiedSegments(
 
   const segmentsToCheck = Array.from(allSegments);
   if (segmentsToCheck.length === 0) {
-    return [];
+    return { segments: [], error: null };
   }
 
   const endpoint = `${apiHost}/v3/graphql`;
@@ -172,22 +176,25 @@ export async function getQualifiedSegments(
     });
 
     if (!response.ok) {
-      return null;
+      return { segments: [], error: new Error(`ODP request failed with status ${response.status}`) };
     }
 
     const json = await response.json();
 
     if (json.errors?.length > 0) {
-      return null;
+      return { segments: [], error: new Error(`ODP GraphQL error: ${json.errors[0].message}`) };
     }
 
     const edges = json?.data?.customer?.audiences?.edges;
     if (!edges) {
-      return null;
+      return { segments: [], error: new Error('ODP response missing audience edges') };
     }
 
-    return edges.filter((edge: any) => edge.node.state === QUALIFIED).map((edge: any) => edge.node.name);
-  } catch {
-    return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const segments = edges.filter((edge: any) => edge.node.state === QUALIFIED).map((edge: any) => edge.node.name);
+
+    return { segments, error: null };
+  } catch (e) {
+    return { segments: [], error: e instanceof Error ? e : new Error('ODP request failed') };
   }
 }

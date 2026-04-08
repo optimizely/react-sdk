@@ -48,28 +48,38 @@ describe('getQualifiedSegments', () => {
     vi.unstubAllGlobals();
   });
 
-  it('returns null when datafile is invalid or missing ODP integration', async () => {
+  it('returns error when datafile is invalid or missing ODP integration', async () => {
     // undefined datafile
     // @ts-ignore
-    expect(await utils.getQualifiedSegments('user-1')).toBeNull();
+    let result = await utils.getQualifiedSegments('user-1');
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('Invalid datafile: expected a JSON string or object');
+
     // invalid JSON string
-    expect(await utils.getQualifiedSegments('user-1', '{bad json')).toBeNull();
+    result = await utils.getQualifiedSegments('user-1', '{bad json');
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('Invalid datafile: failed to parse JSON string');
+
     // no ODP integration
-    expect(await utils.getQualifiedSegments('user-1', { integrations: [] })).toBeNull();
+    result = await utils.getQualifiedSegments('user-1', { integrations: [] });
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('ODP integration not found or missing publicKey/host');
+
     // ODP integration missing publicKey
-    expect(
-      await utils.getQualifiedSegments('user-1', {
-        integrations: [{ key: 'odp', host: 'https://odp.example.com' }],
-      })
-    ).toBeNull();
+    result = await utils.getQualifiedSegments('user-1', {
+      integrations: [{ key: 'odp', host: 'https://odp.example.com' }],
+    });
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('ODP integration not found or missing publicKey/host');
   });
 
-  it('returns empty array when ODP is integrated but no segment conditions exist', async () => {
+  it('returns empty array with no error when ODP is integrated but no segment conditions exist', async () => {
     const fetchSpy = vi.spyOn(global, 'fetch');
     const datafile = makeDatafile({ typedAudiences: [], audiences: [] });
     const result = await utils.getQualifiedSegments('user-1', datafile);
 
-    expect(result).toEqual([]);
+    expect(result.segments).toEqual([]);
+    expect(result.error).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -86,7 +96,8 @@ describe('getQualifiedSegments', () => {
 
     const result = await utils.getQualifiedSegments('user-1', makeDatafile());
 
-    expect(result).toEqual(['seg1']);
+    expect(result.segments).toEqual(['seg1']);
+    expect(result.error).toBeNull();
     expect(global.fetch).toHaveBeenCalledWith('https://odp.example.com/v3/graphql', {
       method: 'POST',
       headers: {
@@ -97,16 +108,18 @@ describe('getQualifiedSegments', () => {
     });
   });
 
-  it('returns null when fetch fails or response is not ok', async () => {
+  it('returns error when fetch fails or response is not ok', async () => {
     // network error
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
-
-    expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+    let result = await utils.getQualifiedSegments('user-1', makeDatafile());
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('network error');
 
     // non-200 response
     mockFetchResponse({}, false);
-
-    expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+    result = await utils.getQualifiedSegments('user-1', makeDatafile());
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toContain('ODP request failed with status');
   });
 
   it('skips audiences with malformed conditions string without throwing', async () => {
@@ -125,18 +138,21 @@ describe('getQualifiedSegments', () => {
     });
 
     const result = await utils.getQualifiedSegments('user-1', datafile);
-    expect(result).toEqual(['seg1']);
+    expect(result.segments).toEqual(['seg1']);
+    expect(result.error).toBeNull();
   });
 
-  it('returns null when response contains GraphQL errors or missing edges', async () => {
+  it('returns error when response contains GraphQL errors or missing edges', async () => {
     // GraphQL errors
     mockFetchResponse({ errors: [{ message: 'something went wrong' }] });
-
-    expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+    let result = await utils.getQualifiedSegments('user-1', makeDatafile());
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('ODP GraphQL error: something went wrong');
 
     // missing edges path
     mockFetchResponse({ data: {} });
-
-    expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+    result = await utils.getQualifiedSegments('user-1', makeDatafile());
+    expect(result.segments).toEqual([]);
+    expect(result.error?.message).toBe('ODP response missing audience edges');
   });
 });
