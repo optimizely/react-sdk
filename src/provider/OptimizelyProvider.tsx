@@ -74,7 +74,7 @@ export function OptimizelyProvider({
   // Readiness is derived from userContext + getOptimizelyConfig() by hooks.
   useEffect(() => {
     if (!client) {
-      console.error('[ReactSDK] OptimizelyProvider must be passed an Optimizely client instance');
+      console.error('[OPTIMIZELY - REACT] OptimizelyProvider must be passed an Optimizely client instance');
       store.setError(new Error('Optimizely client is required'));
       return;
     }
