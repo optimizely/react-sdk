@@ -43,3 +43,6 @@ export {
   useDecideForKeysAsync,
   useDecideAllAsync,
 } from './hooks/index';
+
+// Helpers
+export { getQualifiedSegments } from './utils/index';
