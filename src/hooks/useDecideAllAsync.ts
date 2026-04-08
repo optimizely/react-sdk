@@ -14,23 +14,27 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
+import { useAsyncDecision } from './useAsyncDecision';
 import type { UseDecideConfig, UseDecideMultiResult } from './types';
 
+const EMPTY_DECISIONS = {} as Record<string, never>;
+
 /**
- * Returns feature flag decisions for all flags.
+ * Returns feature flag decisions for all flags using the async
+ * `decideAllAsync` API. Required for CMAB (Contextual Multi-Armed Bandit) support.
  *
- * Subscribes to `ProviderStateStore` via `useSyncExternalStore` and
- * re-evaluates decisions whenever the store state changes
- * (client ready, user context set, error) or any forced decision changes.
+ * Client-side only — `decideAllAsync` returns a Promise which cannot resolve
+ * during server render.
  *
  * @param config - Optional configuration (decideOptions)
  */
-export function useDecideAll(config?: UseDecideConfig): UseDecideMultiResult {
+export function useDecideAllAsync(config?: UseDecideConfig): UseDecideMultiResult {
   const { store, client } = useOptimizelyContext();
   const decideOptions = useStableArray(config?.decideOptions);
   const state = useProviderState(store);
@@ -41,21 +45,9 @@ export function useDecideAll(config?: UseDecideConfig): UseDecideMultiResult {
     return store.subscribeAllForcedDecisions(() => setFdVersion((v) => v + 1));
   }, [store]);
 
-  // --- Derive decisions ---
-  return useMemo(() => {
-    void fdVersion; // referenced to satisfy exhaustive-deps; triggers recomputation on forced decision changes
-    const { userContext, error } = state;
-    const hasConfig = client.getOptimizelyConfig() !== null;
+  const execute = useCallback((uc: OptimizelyUserContext) => uc.decideAllAsync(decideOptions), [decideOptions]);
 
-    if (error) {
-      return { decisions: {} as Record<string, never>, isLoading: false as const, error };
-    }
+  const { result, error, isLoading } = useAsyncDecision(state, client, fdVersion, EMPTY_DECISIONS, execute);
 
-    if (!hasConfig || userContext === null) {
-      return { decisions: {} as Record<string, never>, isLoading: true as const, error: null };
-    }
-
-    const decisions = userContext.decideAll(decideOptions);
-    return { decisions, isLoading: false as const, error: null };
-  }, [fdVersion, state, client, decideOptions]);
+  return { decisions: result, error, isLoading } as UseDecideMultiResult;
 }
