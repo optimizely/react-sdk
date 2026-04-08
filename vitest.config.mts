@@ -12,13 +12,14 @@ export default defineConfig({
       'src/provider/**/*.spec.{ts,tsx}',
       'src/utils/**/*.spec.{ts,tsx}',
       'src/hooks/**/*.spec.{ts,tsx}',
+      'src/logger/**/*.spec.{ts,tsx}',
       // Add more paths as migration progresses
     ],
     coverage: {
       provider: 'v8',
       reporter: ['text-summary', 'lcov'],
       reportsDirectory: './coverage',
-      include: ['src/client/**', 'src/provider/**', 'src/utils/**', 'src/hooks/**'],
+      include: ['src/client/**', 'src/provider/**', 'src/utils/**', 'src/hooks/**', 'src/logger/**'],
     },
   },
 });
