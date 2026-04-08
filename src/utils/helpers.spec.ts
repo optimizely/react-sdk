@@ -34,14 +34,18 @@ describe('getQualifiedSegments', () => {
   });
 
   const mockFetchResponse = (body: any, ok = true) => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok,
-      json: () => Promise.resolve(body),
-    });
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok,
+        json: () => Promise.resolve(body),
+      })
+    );
   };
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('returns null when datafile is invalid or missing ODP integration', async () => {
@@ -95,7 +99,7 @@ describe('getQualifiedSegments', () => {
 
   it('returns null when fetch fails or response is not ok', async () => {
     // network error
-    global.fetch = vi.fn().mockRejectedValue(new Error('network error'));
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('network error')));
 
     expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
 
@@ -103,6 +107,25 @@ describe('getQualifiedSegments', () => {
     mockFetchResponse({}, false);
 
     expect(await utils.getQualifiedSegments('user-1', makeDatafile())).toBeNull();
+  });
+
+  it('skips audiences with malformed conditions string without throwing', async () => {
+    mockFetchResponse({
+      data: {
+        customer: {
+          audiences: {
+            edges: [{ node: { name: 'seg1', state: 'qualified' } }],
+          },
+        },
+      },
+    });
+
+    const datafile = makeDatafile({
+      typedAudiences: [{ conditions: '{bad json' }, { conditions: ['or', { match: 'qualified', value: 'seg1' }] }],
+    });
+
+    const result = await utils.getQualifiedSegments('user-1', datafile);
+    expect(result).toEqual(['seg1']);
   });
 
   it('returns null when response contains GraphQL errors or missing edges', async () => {

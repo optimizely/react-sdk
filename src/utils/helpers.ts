@@ -62,18 +62,13 @@ const QUALIFIED = 'qualified';
  * Looks for conditions with `match: 'qualified'` and collects their values.
  */
 function extractSegmentsFromConditions(condition: any): string[] {
-  if (typeof condition === 'string') {
-    return [];
-  }
-
   if (Array.isArray(condition)) {
-    const segments: string[] = [];
-    condition.forEach((c) => segments.push(...extractSegmentsFromConditions(c)));
-    return segments;
+    return condition.flatMap(extractSegmentsFromConditions);
   }
 
-  if (condition && typeof condition === 'object' && condition['match'] === 'qualified') {
-    return [condition['value']];
+  if (condition && typeof condition === 'object' && condition['match'] === QUALIFIED) {
+    const value = condition['value'];
+    return typeof value === 'string' && value.length > 0 ? [value] : [];
   }
 
   return [];
@@ -83,8 +78,9 @@ function extractSegmentsFromConditions(condition: any): string[] {
  * Builds the GraphQL query payload for fetching audience segments from ODP.
  */
 function buildGraphQLQuery(userId: string, segmentsToCheck: string[]): string {
-  const segmentsList = segmentsToCheck.map((s) => `\\"${s}\\"`).join(',');
-  return `{"query" : "query {customer(fs_user_id : \\"${userId}\\") {audiences(subset: [${segmentsList}]) {edges {node {name state}}}}}"}`;
+  const segmentsList = segmentsToCheck.map((s) => `"${s}"`).join(',');
+  const query = `query {customer(fs_user_id : "${userId}") {audiences(subset: [${segmentsList}]) {edges {node {name state}}}}}`;
+  return JSON.stringify({ query });
 }
 
 /**
@@ -121,29 +117,21 @@ export async function getQualifiedSegments(
     } catch {
       return null;
     }
-  } else if (typeof datafile === 'object') {
+  } else if (typeof datafile === 'object' && datafile !== null) {
     datafileObj = datafile;
   } else {
     return null;
   }
 
   // Extract ODP integration config from datafile
-  let apiKey = '';
-  let apiHost = '';
-  let odpIntegrated = false;
+  const odpIntegration = Array.isArray(datafileObj.integrations)
+    ? datafileObj.integrations.find((i: Record<string, unknown>) => i.key === 'odp')
+    : undefined;
 
-  if (Array.isArray(datafileObj.integrations)) {
-    for (const integration of datafileObj.integrations) {
-      if (integration.key === 'odp') {
-        odpIntegrated = true;
-        apiKey = integration.publicKey || '';
-        apiHost = integration.host || '';
-        break;
-      }
-    }
-  }
+  const apiKey = odpIntegration?.publicKey;
+  const apiHost = odpIntegration?.host;
 
-  if (!odpIntegrated || !apiKey || !apiHost) {
+  if (!apiKey || !apiHost) {
     return null;
   }
 
@@ -153,8 +141,14 @@ export async function getQualifiedSegments(
 
   for (const audience of audiences) {
     if (audience.conditions) {
-      const conditions =
-        typeof audience.conditions === 'string' ? JSON.parse(audience.conditions) : audience.conditions;
+      let conditions = audience.conditions;
+      if (typeof conditions === 'string') {
+        try {
+          conditions = JSON.parse(conditions);
+        } catch {
+          continue;
+        }
+      }
       extractSegmentsFromConditions(conditions).forEach((s) => allSegments.add(s));
     }
   }
