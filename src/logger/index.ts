@@ -14,17 +14,8 @@
  * limitations under the License.
  */
 
-export { createInstance, REACT_CLIENT_META } from './createInstance';
-export type { ReactClientMeta } from './createInstance';
-
-export type * from '@optimizely/optimizely-sdk';
-
-export {
-  createPollingProjectConfigManager,
-  createStaticProjectConfigManager,
-  createBatchEventProcessor,
-  createForwardingEventProcessor,
-  createOdpManager,
-  createVuidManager,
-  createErrorNotifier,
-} from '@optimizely/optimizely-sdk';
+export { createLogger } from './createLogger';
+export { getReactLogger } from './getReactLogger';
+export { createReactLogger } from './ReactLogger';
+export type { ReactLogger, ReactLoggerConfig } from './ReactLogger';
+export { ERROR, DEBUG, WARN, INFO } from '@optimizely/optimizely-sdk';
