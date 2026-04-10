@@ -9,6 +9,11 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "react-server": {
+        "types": "./dist/server.d.ts",
+        "import": "./dist/server.es.min.mjs",
+        "default": "./dist/server.es.min.mjs"
+      },
       "types": "./dist/index.d.ts",
       "import": "./dist/react-sdk.es.min.mjs",
       "default": "./dist/react-sdk.es.min.mjs"
