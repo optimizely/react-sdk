@@ -40,7 +40,7 @@
     "access": "public"
   },
   "lint-staged": {
-    "src/**/*.{js,ts,tsx}": "echo 'Skipping lint-staged (temporarily disabled for v6 migration)'"
+    "src/**/*.{js,ts,tsx}": "eslint --fix"
   },
   "dependencies": {
     "@optimizely/optimizely-sdk": "^6.3.0",
