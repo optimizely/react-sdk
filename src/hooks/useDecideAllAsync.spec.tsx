@@ -17,7 +17,7 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { act, waitFor } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
-import { ProviderStateStore } from '../provider/index';
+import { ProviderStateStore } from '../provider';
 import { useDecideAllAsync } from './useDecideAllAsync';
 import {
   MOCK_DECISIONS,

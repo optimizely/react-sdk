@@ -15,8 +15,8 @@
  */
 
 import { useContext } from 'react';
-import { OptimizelyContext } from '../provider/index';
-import type { OptimizelyContextValue } from '../provider/index';
+import { OptimizelyContext } from '../provider';
+import type { OptimizelyContextValue } from '../provider';
 
 /**
  * Returns the Optimizely context value from the nearest `<OptimizelyProvider>`.

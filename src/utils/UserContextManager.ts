@@ -15,9 +15,9 @@
  */
 
 import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-import { REACT_CLIENT_META } from '../client/index';
-import type { ReactClientMeta } from '../client/index';
-import type { UserInfo } from '../provider/index';
+import { REACT_CLIENT_META } from '../client';
+import type { ReactClientMeta } from '../client';
+import type { UserInfo } from '../provider';
 import { areSegmentsEqual, areUsersEqual } from './helpers';
 
 export interface UserContextManagerConfig {
