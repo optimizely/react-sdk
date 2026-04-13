@@ -33,7 +33,6 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:legacy": "jest --silent",
     "prepublishOnly": "npm run test && npm run build",
     "prepare": "npm run build && husky"
   },
@@ -57,7 +56,6 @@
     "@testing-library/jest-dom": "^6.4.8",
     "@testing-library/react": "^14.3.0",
     "@types/hoist-non-react-statics": "^3.3.5",
-    "@types/jest": "^30.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@types/use-sync-external-store": "^1.5.0",
@@ -71,14 +69,11 @@
     "eslint-plugin-react-hooks": "^4.6.2",
     "happy-dom": "^20.4.0",
     "husky": "^9.0.0",
-    "jest": "^30.0.0",
-    "jest-environment-jsdom": "^30.0.0",
     "lint-staged": "^15.0.0",
     "prettier": "^3.3.3",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "rollup": "^4.55.1",
-    "ts-jest": "^29.2.3",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }
