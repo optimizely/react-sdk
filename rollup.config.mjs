@@ -22,13 +22,28 @@ const { dependencies, peerDependencies } = pkg;
 const externalDeps = [...Object.keys(dependencies || {}), ...Object.keys(peerDependencies || {}), 'crypto'];
 const external = (id) => externalDeps.some((dep) => id === dep || id.startsWith(dep + '/'));
 
-export default {
-  input: '.build/index.js',
+const shared = {
   external,
   plugins: [resolve({ browser: true }), terser()],
-  output: {
-    file: 'dist/react-sdk.es.min.mjs',
-    format: 'es',
-    sourcemap: true,
-  },
 };
+
+export default [
+  {
+    ...shared,
+    input: '.build/index.js',
+    output: {
+      file: 'dist/react-sdk.es.min.mjs',
+      format: 'es',
+      sourcemap: true,
+    },
+  },
+  {
+    ...shared,
+    input: '.build/server.js',
+    output: {
+      file: 'dist/server.es.min.mjs',
+      format: 'es',
+      sourcemap: true,
+    },
+  },
+];
