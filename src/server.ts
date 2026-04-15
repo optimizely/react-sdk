@@ -41,6 +41,3 @@ export { getQualifiedSegments, type QualifiedSegmentsResult } from './utils/help
 
 // Types from JS SDK
 export type * from '@optimizely/optimizely-sdk';
-
-// UserInfo type (type-only, safe for server)
-export type { UserInfo } from './provider/types';
