@@ -22,7 +22,7 @@ import { useOptimizelyContext } from './useOptimizelyContext';
 
 export type UseOptimizelyUserContextResult =
   | { isLoading: true; error: null; userContext: null }
-  | { isLoading: false; error: Error; userContext: null }
+  | { isLoading: false; error: Error; userContext: OptimizelyUserContext | null }
   | { isLoading: false; error: null; userContext: OptimizelyUserContext };
 
 /**
@@ -42,14 +42,14 @@ export function useOptimizelyUserContext(): UseOptimizelyUserContextResult {
   return useMemo(() => {
     const { userContext, error } = state;
 
+    if (userContext !== null) {
+      return { userContext, isLoading: false, error };
+    }
+
     if (error) {
       return { userContext: null, isLoading: false, error };
     }
 
-    if (userContext === null) {
-      return { userContext: null, isLoading: true, error: null };
-    }
-
-    return { userContext, isLoading: false, error: null };
+    return { userContext: null, isLoading: true, error: null };
   }, [state]);
 }

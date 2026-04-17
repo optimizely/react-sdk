@@ -52,15 +52,15 @@ export function useDecide(flagKey: string, config?: UseDecideConfig): UseDecideR
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
+    if (hasConfig && userContext !== null) {
+      const decision = userContext.decide(flagKey, decideOptions);
+      return { decision, isLoading: false, error };
+    }
+
     if (error) {
       return { decision: null, isLoading: false, error };
     }
 
-    if (!hasConfig || userContext === null) {
-      return { decision: null, isLoading: true, error: null };
-    }
-
-    const decision = userContext.decide(flagKey, decideOptions);
-    return { decision, isLoading: false, error: null };
+    return { decision: null, isLoading: true, error: null };
   }, [fdVersion, state, client, flagKey, decideOptions]);
 }

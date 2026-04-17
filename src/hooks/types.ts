@@ -22,10 +22,10 @@ export interface UseDecideConfig {
 
 export type UseDecideResult =
   | { isLoading: true; error: null; decision: null }
-  | { isLoading: false; error: Error; decision: null }
+  | { isLoading: false; error: Error; decision: OptimizelyDecision | null }
   | { isLoading: false; error: null; decision: OptimizelyDecision };
 
 export type UseDecideMultiResult =
   | { isLoading: true; error: null; decisions: Record<string, never> }
-  | { isLoading: false; error: Error; decisions: Record<string, never> }
+  | { isLoading: false; error: Error; decisions: Record<string, OptimizelyDecision> }
   | { isLoading: false; error: null; decisions: Record<string, OptimizelyDecision> };

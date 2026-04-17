@@ -15,6 +15,8 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import type { OptimizelyDecision } from '@optimizely/optimizely-sdk';
+
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
 import { useStableArray } from './useStableArray';
@@ -50,15 +52,15 @@ export function useDecideForKeys(flagKeys: string[], config?: UseDecideConfig): 
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
+    if (hasConfig && userContext !== null) {
+      const decisions = userContext.decideForKeys(stableKeys, decideOptions);
+      return { decisions, isLoading: false as const, error };
+    }
+
     if (error) {
-      return { decisions: {}, isLoading: false, error };
+      return { decisions: {} as Record<string, OptimizelyDecision>, isLoading: false as const, error };
     }
 
-    if (!hasConfig || userContext === null) {
-      return { decisions: {}, isLoading: true, error: null };
-    }
-
-    const decisions = userContext.decideForKeys(stableKeys, decideOptions);
-    return { decisions, isLoading: false as const, error: null };
+    return { decisions: {} as Record<string, never>, isLoading: true as const, error: null };
   }, [fdVersion, state, client, stableKeys, decideOptions]);
 }

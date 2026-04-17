@@ -15,6 +15,7 @@
  */
 
 import { useEffect, useMemo, useState } from 'react';
+import type { OptimizelyDecision } from '@optimizely/optimizely-sdk';
 
 import { useOptimizelyContext } from './useOptimizelyContext';
 import { useProviderState } from './useProviderState';
@@ -47,15 +48,15 @@ export function useDecideAll(config?: UseDecideConfig): UseDecideMultiResult {
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
+    if (hasConfig && userContext !== null) {
+      const decisions = userContext.decideAll(decideOptions);
+      return { decisions, isLoading: false as const, error };
+    }
+
     if (error) {
-      return { decisions: {} as Record<string, never>, isLoading: false as const, error };
+      return { decisions: {} as Record<string, OptimizelyDecision>, isLoading: false as const, error };
     }
 
-    if (!hasConfig || userContext === null) {
-      return { decisions: {} as Record<string, never>, isLoading: true as const, error: null };
-    }
-
-    const decisions = userContext.decideAll(decideOptions);
-    return { decisions, isLoading: false as const, error: null };
+    return { decisions: {} as Record<string, never>, isLoading: true as const, error: null };
   }, [fdVersion, state, client, decideOptions]);
 }

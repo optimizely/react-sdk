@@ -150,7 +150,7 @@ describe('useOptimizelyUserContext', () => {
     expect(result.current.userContext).toBeNull();
   });
 
-  it('should return error with isLoading: false when store has error', async () => {
+  it('should return error with isLoading: false when store has error and no user context', async () => {
     const wrapper = createWrapper(store);
     const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
 
@@ -164,6 +164,27 @@ describe('useOptimizelyUserContext', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(testError);
     expect(result.current.userContext).toBeNull();
+  });
+
+  it('should return stale user context alongside error when user context was already set', async () => {
+    const mockUserContext = createMockUserContext();
+    store.setUserContext(mockUserContext);
+
+    const wrapper = createWrapper(store);
+    const { result } = renderHook(() => useOptimizelyUserContext(), { wrapper });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.userContext).toBe(mockUserContext);
+    expect(result.current.error).toBeNull();
+
+    const testError = new Error('CDN datafile fetch failed');
+    await act(async () => {
+      store.setError(testError);
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(testError);
+    expect(result.current.userContext).toBe(mockUserContext);
   });
 
   it('should unsubscribe from store on unmount', () => {

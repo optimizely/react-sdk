@@ -56,9 +56,16 @@ export function useAsyncDecision<TResult>(
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
 
-    // Store-level error — no async call needed
-    if (error) {
-      setAsyncState({ result: emptyResult, error, isLoading: false });
+    // No decision possible — surface store error or stay loading
+    if (!hasConfig || userContext === null) {
+      if (error) {
+        setAsyncState({ result: emptyResult, error, isLoading: false });
+      } else {
+        setAsyncState((prev) => {
+          if (prev.isLoading) return prev;
+          return { result: emptyResult, error: null, isLoading: true };
+        });
+      }
       return;
     }
 
@@ -68,18 +75,13 @@ export function useAsyncDecision<TResult>(
       return { result: emptyResult, error: null, isLoading: true };
     });
 
-    // Store not ready — wait for config/user context
-    if (!hasConfig || userContext === null) {
-      return;
-    }
-
-    // Store is ready — fire async decision
+    // Config + userContext available — fire async decision even if store has error
     let cancelled = false;
 
     execute(userContext).then(
       (result) => {
         if (!cancelled) {
-          setAsyncState({ result, error: null, isLoading: false });
+          setAsyncState({ result, error, isLoading: false });
         }
       },
       (err) => {

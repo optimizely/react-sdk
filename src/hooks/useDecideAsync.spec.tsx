@@ -68,7 +68,7 @@ describe('useDecideAsync', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('should return error from store with isLoading: false', async () => {
+  it('should return error from store with isLoading: false when no decision is possible', async () => {
     const wrapper = createWrapper(store, mockClient);
     const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
 
@@ -82,6 +82,34 @@ describe('useDecideAsync', () => {
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(testError);
     expect(result.current.decision).toBeNull();
+  });
+
+  it('should return stale decision alongside error when config and user context are available', async () => {
+    mockClient = createMockClient(true);
+    const mockUserContext = createMockUserContext();
+    store.setUserContext(mockUserContext);
+
+    const wrapper = createWrapper(store, mockClient);
+    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.decision).toBe(MOCK_DECISION);
+    expect(result.current.error).toBeNull();
+
+    const testError = new Error('CDN datafile fetch failed');
+    await act(async () => {
+      store.setError(testError);
+    });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.error).toBe(testError);
+    expect(result.current.decision).toBe(MOCK_DECISION);
   });
 
   it('should return isLoading: true while async call is in-flight', () => {
