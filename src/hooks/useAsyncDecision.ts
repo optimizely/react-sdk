@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import type { Client } from '@optimizely/optimizely-sdk';
@@ -52,6 +52,8 @@ export function useAsyncDecision<TResult>(
     isLoading: true,
   });
 
+  const prevUserContextRef = useRef<OptimizelyUserContext | null>(null);
+
   useEffect(() => {
     const { userContext, error } = state;
     const hasConfig = client.getOptimizelyConfig() !== null;
@@ -69,10 +71,12 @@ export function useAsyncDecision<TResult>(
       return;
     }
 
-    // Ensure loading state (skip if already loading to avoid re-render)
+    const userContextChanged = userContext !== prevUserContextRef.current;
+    prevUserContextRef.current = userContext;
+
     setAsyncState((prev) => {
       if (prev.isLoading) return prev;
-      return { result: emptyResult, error: null, isLoading: true };
+      return { result: userContextChanged ? emptyResult : prev.result, error: null, isLoading: true };
     });
 
     // Config + userContext available — fire async decision even if store has error

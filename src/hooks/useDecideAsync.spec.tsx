@@ -112,6 +112,32 @@ describe('useDecideAsync', () => {
     expect(result.current.decision).toBe(MOCK_DECISION);
   });
 
+  it('should preserve previous decision during re-execute when only store error changes', async () => {
+    mockClient = createMockClient(true);
+    const mockUserContext = createMockUserContext();
+    store.setUserContext(mockUserContext);
+
+    const wrapper = createWrapper(store, mockClient);
+    const { result } = renderHook(() => useDecideAsync('flag_1'), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.decision).toBe(MOCK_DECISION);
+
+    // Make next async call hang so we can observe intermediate state
+    (mockUserContext.decideAsync as ReturnType<typeof vi.fn>).mockReturnValue(new Promise(() => {}));
+
+    const testError = new Error('CDN refresh failed');
+    await act(async () => {
+      store.setError(testError);
+    });
+
+    // Should be loading but still have the previous decision, not null
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.decision).toBe(MOCK_DECISION);
+  });
+
   it('should return isLoading: true while async call is in-flight', () => {
     mockClient = createMockClient(true);
     const mockUserContext = createMockUserContext();
