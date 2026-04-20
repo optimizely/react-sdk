@@ -40,6 +40,24 @@ v4 is a ground-up rewrite with a fundamentally different architecture:
 
 ---
 
+## Installation
+
+```bash
+npm install @optimizely/react-sdk@4
+```
+
+### Breaking environment changes
+
+| | v3 | v4 |
+|--|----|----|
+| Module format | ESM + CommonJS | **ESM only** (`import` / `default` — no `require` entry point) |
+| Node.js | >=14.0.0 | **>=18.0.0** |
+| React peer dependency | >=16.8.0 | >=16.8.0 (unchanged) |
+
+If your project uses CommonJS (`require()`), you will need to switch to ESM imports or configure your bundler to handle ESM dependencies.
+
+---
+
 ## Underlying JS SDK changes (v5 to v6)
 
 React SDK v4 upgrades the underlying `@optimizely/optimizely-sdk` from v5 to v6. This brings several behavioral changes that affect React SDK usage. For full details, see the [JavaScript SDK Migration Guide](https://github.com/optimizely/javascript-sdk/blob/master/MIGRATION.md).
@@ -429,9 +447,17 @@ Methods like `activate()`, `getVariation()`, `isFeatureEnabled()`, `getFeatureVa
 The following v3-specific wrapper methods are removed:
 - `setUser()` / `onUserUpdate()` — User is managed by `<OptimizelyProvider>` props.
 
-### Utilities
+### Context exports
+- `OptimizelyContext` — Use `useOptimizelyClient` or `useOptimizelyUserContext` hooks.
+- `OptimizelyContextConsumer` — Use hooks instead of the context consumer.
+- `OptimizelyContextProvider` — Internal; use `<OptimizelyProvider>` directly.
+
+### Others
 - `logOnlyEventDispatcher` — To disable event dispatching, simply don't pass an `eventProcessor` to `createInstance` (event processing is opt-in in v4).
-- `OptimizelyContext` (v3 context) — Use `useOptimizelyClient` or `useOptimizelyUserContext` hooks.
+- `setLogger` / `setLogLevel` — Replaced by `createLogger()` factory (see [Logger](#logger)).
+- `logging` — No longer needed; use `createLogger()`.
+- `errorHandler` — No longer needed; use `createErrorNotifier()`.
+- `enums` — Removed.
 
 ---
 
