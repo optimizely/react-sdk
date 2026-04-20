@@ -21,7 +21,6 @@
  * as it does not use any client-only React APIs (createContext, hooks, etc.).
  */
 
-// Client creation
 export {
   createInstance,
   createPollingProjectConfigManager,
@@ -31,6 +30,13 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
+  OptimizelyDecideOption,
+  LogLevel,
+  NOTIFICATION_TYPES,
+  DECISION_NOTIFICATION_TYPES,
+  DECISION_SOURCES,
+  eventDispatcher,
+  getSendBeaconEventDispatcher,
 } from './client/index';
 
 // Logger

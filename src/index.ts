@@ -23,6 +23,13 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
+  OptimizelyDecideOption,
+  LogLevel,
+  NOTIFICATION_TYPES,
+  DECISION_NOTIFICATION_TYPES,
+  DECISION_SOURCES,
+  eventDispatcher,
+  getSendBeaconEventDispatcher,
 } from './client';
 export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger';
 
