@@ -231,7 +231,7 @@ const optimizely = createInstance({
 | `userId` | _(removed)_ | Deprecated in v3, removed in v4. Use `user` instead. |
 | `userAttributes` | _(removed)_ | Deprecated in v3, removed in v4. Use `user` instead. |
 | _(new)_ | `skipSegments` | Skips ODP segment fetching. Default `false`. |
-| _(new)_ | `qualifiedSegments` | Pre-fetched ODP segments for the user. |
+| `qualifiedSegments` | `qualifiedSegments` | Pre-fetched ODP segments for the user. Same behavior in both versions. |
 
 ### Async user loading
 
@@ -576,15 +576,35 @@ const optimizely = createInstance({
 
 ### ODP segments during SSR
 
-ODP audience segments require async I/O, which is not available during synchronous server rendering. If your audience conditions depend on ODP segments, you can pre-fetch them server-side using `getQualifiedSegments` and pass them to the Provider:
+ODP audience segments require async I/O, which is not available during synchronous server rendering. If your audience conditions depend on ODP segments, you can pre-fetch them server-side using `getQualifiedSegments` and pass them to the Provider.
+
+`getQualifiedSegments` is available in both v3 and v4, but the return type has changed:
 
 ```ts
+// v3
+import { getQualifiedSegments } from '@optimizely/react-sdk';
+
+const segments = await getQualifiedSegments(userId, datafile);
+// segments: string[] | null
+
+// v4
 import { getQualifiedSegments } from '@optimizely/react-sdk';
 
 const { segments, error } = await getQualifiedSegments(userId, datafile);
+// returns QualifiedSegmentsResult { segments: string[], error: Error | null }
 ```
 
 ```jsx
+// v3
+<OptimizelyProvider
+  optimizely={optimizely}
+  user={{ id: 'user-123' }}
+  qualifiedSegments={segments}
+>
+  <App />
+</OptimizelyProvider>
+
+// v4
 <OptimizelyProvider
   client={optimizely}
   user={{ id: 'user-123' }}
@@ -595,8 +615,8 @@ const { segments, error } = await getQualifiedSegments(userId, datafile);
 </OptimizelyProvider>
 ```
 
-- `qualifiedSegments` — Pass pre-fetched segments so the Provider can create the user context synchronously with segments already set.
-- `skipSegments` — When `true`, skips the Provider's background ODP segment fetch. Use this on the server to avoid unnecessary async work.
+- `qualifiedSegments` — Pass pre-fetched segments so the Provider can create the user context synchronously with segments already set. Available in both v3 and v4.
+- `skipSegments` — *(New in v4)* When `true`, skips the Provider's background ODP segment fetch. Use this on the server to avoid unnecessary async work.
 
 ---
 
@@ -642,7 +662,7 @@ export default async function ServerComponent() {
 | `UseDecideMultiResult` | Return type of `useDecideForKeys` / `useDecideAll` |
 | `OptimizelyProviderProps` | Props for `<OptimizelyProvider>` |
 | `UserInfo` | `{ id?: string; attributes?: UserAttributes }` |
-| `QualifiedSegmentsResult` | Return type of `getQualifiedSegments` |
+| `QualifiedSegmentsResult` | Return type of `getQualifiedSegments` — `{ segments: string[], error: Error \| null }` (replaces `string[] \| null` from v3) |
 
 ### Return type changes
 
