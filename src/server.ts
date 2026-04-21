@@ -35,12 +35,10 @@ export {
   NOTIFICATION_TYPES,
   DECISION_NOTIFICATION_TYPES,
   DECISION_SOURCES,
-  eventDispatcher,
-  getSendBeaconEventDispatcher,
-} from './client/index';
+} from './client';
 
 // Logger
-export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger/index';
+export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger';
 
 // Helpers
 export { getQualifiedSegments, type QualifiedSegmentsResult } from './utils/helpers';
