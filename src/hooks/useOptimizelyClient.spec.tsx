@@ -19,9 +19,9 @@ import React, { useRef } from 'react';
 import { render, screen, act } from '@testing-library/react';
 import { renderHook } from '@testing-library/react';
 import { useOptimizelyClient } from './useOptimizelyClient';
-import { OptimizelyProvider, ProviderStateStore, OptimizelyContext } from '../provider/index';
-import { createInstance, createStaticProjectConfigManager } from '../client/index';
-import type { OptimizelyContextValue } from '../provider/index';
+import { OptimizelyProvider, ProviderStateStore, OptimizelyContext } from '../provider';
+import { createInstance, createStaticProjectConfigManager } from '../client';
+import type { OptimizelyContextValue } from '../provider';
 
 function createClient() {
   return createInstance({

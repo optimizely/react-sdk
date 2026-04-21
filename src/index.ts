@@ -23,14 +23,21 @@ export {
   createOdpManager,
   createVuidManager,
   createErrorNotifier,
-} from './client/index';
-export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger/index';
+  OptimizelyDecideOption,
+  LogLevel,
+  NOTIFICATION_TYPES,
+  DECISION_NOTIFICATION_TYPES,
+  DECISION_SOURCES,
+  eventDispatcher,
+  getSendBeaconEventDispatcher,
+} from './client';
+export { createLogger, DEBUG, ERROR, WARN, INFO } from './logger';
 
 export type * from '@optimizely/optimizely-sdk';
 
 // Provider
-export { OptimizelyProvider } from './provider/index';
-export type { UserInfo, OptimizelyProviderProps } from './provider/index';
+export { OptimizelyProvider } from './provider';
+export type { UserInfo, OptimizelyProviderProps } from './provider';
 
 // Hooks
 export {
@@ -42,7 +49,7 @@ export {
   useDecideAsync,
   useDecideForKeysAsync,
   useDecideAllAsync,
-} from './hooks/index';
+} from './hooks';
 
 // Helpers
-export { getQualifiedSegments, type QualifiedSegmentsResult } from './utils/index';
+export { getQualifiedSegments, type QualifiedSegmentsResult } from './utils';
