@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import type { OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import type { Client } from '@optimizely/optimizely-sdk';
-import type { ProviderState } from '../provider/index';
+import type { ProviderState } from '../provider';
 
 interface AsyncState<TResult> {
   result: TResult;

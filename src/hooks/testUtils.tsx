@@ -16,10 +16,10 @@
 
 import { vi } from 'vitest';
 import React from 'react';
-import { OptimizelyContext, ProviderStateStore, OptimizelyProvider } from '../provider/index';
-import { REACT_CLIENT_META } from '../client/index';
+import { OptimizelyContext, ProviderStateStore, OptimizelyProvider } from '../provider';
+import { REACT_CLIENT_META } from '../client';
 import type { OptimizelyUserContext, OptimizelyDecision, Client } from '@optimizely/optimizely-sdk';
-import type { OptimizelyContextValue } from '../provider/index';
+import type { OptimizelyContextValue } from '../provider';
 
 export const MOCK_DECISION: OptimizelyDecision = {
   variationKey: 'variation_1',

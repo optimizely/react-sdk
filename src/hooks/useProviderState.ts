@@ -16,8 +16,8 @@
 
 import { useCallback } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
-import type { ProviderState } from '../provider/index';
-import type { ProviderStateStore } from '../provider/index';
+import type { ProviderState } from '../provider';
+import type { ProviderStateStore } from '../provider';
 
 /**
  * Subscribes to the `ProviderStateStore` via `useSyncExternalStore`

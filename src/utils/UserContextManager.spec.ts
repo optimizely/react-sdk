@@ -16,8 +16,8 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-import { REACT_CLIENT_META } from '../client/index';
-import type { ReactClientMeta } from '../client/index';
+import { REACT_CLIENT_META } from '../client';
+import type { ReactClientMeta } from '../client';
 import { UserContextManager } from './UserContextManager';
 
 // --- Helpers ---

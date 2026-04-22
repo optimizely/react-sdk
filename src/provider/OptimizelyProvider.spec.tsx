@@ -20,8 +20,8 @@ import { render, waitFor, screen } from '@testing-library/react';
 import type { Client as OptimizelyClient, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
-import { REACT_CLIENT_META } from '../client/index';
-import type { ReactClientMeta } from '../client/index';
+import { REACT_CLIENT_META } from '../client';
+import type { ReactClientMeta } from '../client';
 import type { OptimizelyContextValue } from './types';
 
 /**
