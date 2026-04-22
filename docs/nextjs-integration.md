@@ -48,7 +48,7 @@ Create a module-level SDK instance with a polling config manager and use a notif
 
 ```ts
 // src/data/getDatafile.ts
-import { createInstance, createPollingProjectConfigManager } from '@optimizely/react-sdk';
+import { createInstance, createPollingProjectConfigManager, NOTIFICATION_TYPES } from '@optimizely/react-sdk';
 
 const pollingInstance = createInstance({
   projectConfigManager: createPollingProjectConfigManager({
@@ -386,7 +386,7 @@ For statically generated pages, the SDK cannot make decisions during the build b
 
 ```tsx
 'use client';
-import { useState } from '@optimizely/react-sdk';
+import { useState } from 'react';
 import {
   OptimizelyProvider,
   createInstance,
@@ -404,7 +404,7 @@ export function App() {
   );
 
   return (
-    <OptimizelyProvider client={optimizely} user={{ id: 'user123' }}>
+    <OptimizelyProvider client={client} user={{ id: 'user123' }}>
       <FeatureBanner />
     </OptimizelyProvider>
   );
