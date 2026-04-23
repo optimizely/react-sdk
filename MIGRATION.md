@@ -11,7 +11,7 @@ This guide covers breaking changes and how to update your code when upgrading fr
   - [useDecision to useDecide](#usedecision-to-usedecide)
   - [useExperiment (removed)](#useexperiment-removed)
   - [useFeature (removed)](#usefeature-removed)
-  - [useTrackEvent (removed)](#usetrackEvent-removed)
+  - [useTrackEvent (removed)](#usetrackevent-removed)
   - [New hooks](#new-hooks)
 - [Accessing the client directly](#accessing-the-client-directly)
 - [Removed APIs](#removed-apis)

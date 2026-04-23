@@ -221,7 +221,7 @@ _props_
 | `qualifiedSegments` | `string[]` | No | Pre-fetched ODP audience segments for the user. Use [`getQualifiedSegments`](#getqualifiedsegments) to obtain these segments server-side. |
 | `skipSegments` | `boolean` | No | When `true`, skips background ODP segment fetching. Default: `false`. |
 
-> **Note:** `<OptimizelyProvider>` requires user data. If user information must be fetched asynchronously, resolve the promise before rendering the Provider.
+> **Note:** Unless VUID is enabled, `<OptimizelyProvider>` requires user data. If user information must be fetched asynchronously, resolve the promise before rendering the Provider.
 
 ### Readiness
 

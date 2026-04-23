@@ -145,8 +145,9 @@ The layout fetches the datafile, sets `globalThis` for the server render, and in
 // src/app/layout.tsx
 import { getDatafile } from '@/data/getDatafile';
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const datafile = await getDatafile();
+  const serialized = JSON.stringify(datafile ?? '');
   // Set on globalThis so the provider module can read it during server rendering
   globalThis.__OPTIMIZELY_DATAFILE__ = datafile ?? '';
 
@@ -155,7 +156,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${datafile};`,
+            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${serialized};`,
           }}
         />
       </head>
@@ -175,12 +176,13 @@ import Document, { Html, Head, Main, NextScript } from 'next/document';
 import { getDatafile } from '@/data/getDatafile';
 
 export default function MyDocument({ datafile }: { datafile: string }) {
+  const serialized = JSON.stringify(datafile ?? '');
   return (
     <Html>
       <Head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${datafile};`,
+            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${serialized};`,
           }}
         />
       </Head>
