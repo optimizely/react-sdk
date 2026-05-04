@@ -228,7 +228,7 @@ describe('OptimizelyProvider', () => {
   });
 
   describe('cleanup', () => {
-    it('should reset store on unmount', async () => {
+    it('should not reset store on unmount (store is GCd with component tree)', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -246,8 +246,10 @@ describe('OptimizelyProvider', () => {
 
       unmount();
 
-      // Store should be reset
-      expect(store.getState().userContext).toBeNull();
+      // Store state is preserved — on real unmount, the store is
+      // garbage collected with the component tree. Eagerly resetting
+      // breaks React 18+ StrictMode (effect cleanup destroys state
+      // that the render body set, and no re-render restores it).
       expect(store.getState().error).toBeNull();
     });
   });
@@ -391,7 +393,7 @@ describe('OptimizelyProvider', () => {
       expect(mockClient2.createUserContext).toHaveBeenCalledWith('user-1', undefined);
     });
 
-    it('should dispose manager on unmount', async () => {
+    it('should preserve store state on unmount (no eager reset)', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -406,8 +408,9 @@ describe('OptimizelyProvider', () => {
 
       unmount();
 
-      // Store should be reset after unmount
-      expect(capturedContext!.store.getState().userContext).toBeNull();
+      // Store state is preserved after unmount — no eager reset.
+      // The store is garbage collected with the component tree.
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
     });
 
     it('should recreate user context when only attributes change (same id)', async () => {
