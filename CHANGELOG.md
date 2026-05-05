@@ -1,15 +1,17 @@
 # Changelog
 
-## [3.4.0] - Mar 9, 2026 
+## [3.5.0]
+May 4, 2026
 
 ### New Features
-- Add a server-safe bundle that is automatically resolved when imported in React Server Components, excluding client-only React APIs ([#318](https://github.com/optimizely/react-sdk/pull/318))
-- Add `qualifiedSegments` prop to `OptimizelyProvider` for passing pre-fetched ODP segments, enabling synchronous ODP-based decisions during SSR ([#318](https://github.com/optimizely/react-sdk/pull/318))
-- Add `getQualifiedSegments` utility for fetching ODP audience segments server-side ([#318](https://github.com/optimizely/react-sdk/pull/318))
 
-### Enhancements
-- Improve `useExperiment`, `useFeature`, and `useDecision` hooks to compute decisions when config and user context (including segments) are available, without waiting for `onReady` ([#318](https://github.com/optimizely/react-sdk/pull/318))
-- Add comprehensive server-side rendering integration guide covering SSR, SSG, and App Router patterns ([#318](https://github.com/optimizely/react-sdk/pull/318))
+**Feature Rollout**: Added support for Feature Rollouts, a new experiment type 
+combining Targeted Delivery simplicity with A/B test measurement capabilities. 
+Feature Rollouts enable progressive rollouts with full impact analytics, metric tracking, 
+and confidence intervals. 
+See [Feature Rollout docs](https://support.optimizely.com/hc/en-us/articles/45552846481037-Run-Feature-Rollouts-in-Feature-Experimentation) for more information.
+
+- testapp update ([#323](https://github.com/optimizely/react-sdk/pull/323))
 
 ## [3.3.1] - Dec 8, 2025 
 
