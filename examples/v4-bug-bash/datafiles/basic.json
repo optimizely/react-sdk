@@ -1,0 +1,333 @@
+{
+  "accountId": "5935064",
+  "projectId": "5754337679376384",
+  "revision": "16",
+  "attributes": [
+    {
+      "id": "5790759673135104",
+      "key": "ho"
+    },
+    {
+      "id": "6692286730338304",
+      "key": "all"
+    }
+  ],
+  "audiences": [
+    {
+      "name": "ho_5_aud",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "5009953358872576"
+    },
+    {
+      "name": "ho_4_aud",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "5211055723380736"
+    },
+    {
+      "name": "ho_3_aud",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "6291686540705792"
+    },
+    {
+      "name": "ho_6_aud",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "6650043243954176"
+    },
+    {
+      "id": "$opt_dummy_audience",
+      "name": "Optimizely-Generated Audience for Backwards Compatibility",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]"
+    }
+  ],
+  "version": "4",
+  "events": [
+    {
+      "id": "4963885359300608",
+      "experimentIds": [],
+      "key": "event_1"
+    }
+  ],
+  "integrations": [],
+  "holdouts": [
+    {
+      "id": "1656259",
+      "key": "holdout_3",
+      "status": "Running",
+      "variations": [
+        {
+          "id": "$opt_dummy_variation_id",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "$opt_dummy_variation_id",
+          "endOfRange": 1000
+        }
+      ],
+      "audienceIds": ["6291686540705792"],
+      "audienceConditions": ["or", "6291686540705792"]
+    },
+    {
+      "id": "1656260",
+      "key": "holdout_4",
+      "status": "Running",
+      "variations": [
+        {
+          "id": "$opt_dummy_variation_id",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "$opt_dummy_variation_id",
+          "endOfRange": 5000
+        }
+      ],
+      "audienceIds": ["5211055723380736"],
+      "audienceConditions": ["or", "5211055723380736"]
+    },
+    {
+      "id": "1656266",
+      "key": "holdout_5",
+      "status": "Running",
+      "variations": [
+        {
+          "id": "$opt_dummy_variation_id",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "$opt_dummy_variation_id",
+          "endOfRange": 2000
+        }
+      ],
+      "audienceIds": ["5009953358872576"],
+      "audienceConditions": ["or", "5009953358872576"]
+    },
+    {
+      "id": "1656272",
+      "key": "holdout_6",
+      "status": "Running",
+      "variations": [
+        {
+          "id": "$opt_dummy_variation_id",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "$opt_dummy_variation_id",
+          "endOfRange": 4000
+        }
+      ],
+      "audienceIds": ["6650043243954176"],
+      "audienceConditions": ["or", "6650043243954176"]
+    }
+  ],
+  "anonymizeIP": false,
+  "botFiltering": false,
+  "typedAudiences": [
+    {
+      "name": "ho_5_aud",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "ho",
+              "type": "custom_attribute",
+              "value": 5
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "le",
+              "name": "all",
+              "type": "custom_attribute",
+              "value": 5
+            }
+          ]
+        ]
+      ],
+      "id": "5009953358872576"
+    },
+    {
+      "name": "ho_4_aud",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "ho",
+              "type": "custom_attribute",
+              "value": 4
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "le",
+              "name": "all",
+              "type": "custom_attribute",
+              "value": 4
+            }
+          ]
+        ]
+      ],
+      "id": "5211055723380736"
+    },
+    {
+      "name": "ho_3_aud",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "ho",
+              "type": "custom_attribute",
+              "value": 3
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "le",
+              "name": "all",
+              "type": "custom_attribute",
+              "value": 3
+            }
+          ]
+        ]
+      ],
+      "id": "6291686540705792"
+    },
+    {
+      "name": "ho_6_aud",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "ho",
+              "type": "custom_attribute",
+              "value": 6
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "le",
+              "name": "all",
+              "type": "custom_attribute",
+              "value": 6
+            }
+          ]
+        ]
+      ],
+      "id": "6650043243954176"
+    }
+  ],
+  "variables": [],
+  "environmentKey": "production",
+  "sdkKey": "RHqLfEuNChEvSDAaemi5i",
+  "featureFlags": [
+    {
+      "id": "490876",
+      "key": "flag_1",
+      "rolloutId": "rollout-490876-741763388721595",
+      "experimentIds": [],
+      "variables": []
+    },
+    {
+      "id": "490881",
+      "key": "flag_2",
+      "rolloutId": "rollout-490881-741763388721595",
+      "experimentIds": [],
+      "variables": []
+    }
+  ],
+  "rollouts": [
+    {
+      "id": "rollout-490876-741763388721595",
+      "experiments": [
+        {
+          "id": "default-rollout-490876-741763388721595",
+          "key": "default-rollout-490876-741763388721595",
+          "status": "Running",
+          "layerId": "rollout-490876-741763388721595",
+          "variations": [
+            {
+              "id": "1559778",
+              "key": "var_1",
+              "featureEnabled": true,
+              "variables": []
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "1559778",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    },
+    {
+      "id": "rollout-490881-741763388721595",
+      "experiments": [
+        {
+          "id": "default-rollout-490881-741763388721595",
+          "key": "default-rollout-490881-741763388721595",
+          "status": "Running",
+          "layerId": "rollout-490881-741763388721595",
+          "variations": [
+            {
+              "id": "1559781",
+              "key": "var_2",
+              "featureEnabled": true,
+              "variables": []
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "1559781",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    }
+  ],
+  "experiments": [],
+  "groups": [],
+  "region": "US"
+}

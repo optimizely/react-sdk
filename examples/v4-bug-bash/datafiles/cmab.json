@@ -1,0 +1,72 @@
+{
+  "accountId": "5935064",
+  "projectId": "6284249284739072",
+  "revision": "13",
+  "attributes": [
+    { "id": "5546322279792640", "key": "hello" },
+    { "id": "5774061125500928", "key": "world" }
+  ],
+  "audiences": [
+    {
+      "id": "$opt_dummy_audience",
+      "name": "Optimizely-Generated Audience for Backwards Compatibility",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]"
+    }
+  ],
+  "version": "4",
+  "events": [{ "id": "5877955092545536", "experimentIds": [], "key": "cmab_event" }],
+  "integrations": [],
+  "holdouts": [],
+  "anonymizeIP": false,
+  "botFiltering": false,
+  "typedAudiences": [],
+  "variables": [],
+  "environmentKey": "production",
+  "sdkKey": "M2FtWzpByUB8aQE7jos8w",
+  "featureFlags": [
+    {
+      "id": "482845",
+      "key": "cmab_test",
+      "rolloutId": "rollout-482845-421760959159346",
+      "experimentIds": ["9300002824535"],
+      "variables": []
+    }
+  ],
+  "rollouts": [
+    {
+      "id": "rollout-482845-421760959159346",
+      "experiments": [
+        {
+          "id": "default-rollout-482845-421760959159346",
+          "key": "default-rollout-482845-421760959159346",
+          "status": "Running",
+          "layerId": "rollout-482845-421760959159346",
+          "variations": [{ "id": "1532762", "key": "off", "featureEnabled": false, "variables": [] }],
+          "trafficAllocation": [{ "entityId": "1532762", "endOfRange": 10000 }],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    }
+  ],
+  "experiments": [
+    {
+      "id": "9300002824535",
+      "key": "cmab_rule_4",
+      "status": "Running",
+      "layerId": "9300002078821",
+      "variations": [
+        { "id": "1532762", "key": "off", "featureEnabled": false, "variables": [] },
+        { "id": "1532763", "key": "on", "featureEnabled": true, "variables": [] }
+      ],
+      "trafficAllocation": [],
+      "forcedVariations": {},
+      "audienceIds": [],
+      "audienceConditions": [],
+      "cmab": { "attributeIds": ["5546322279792640", "5774061125500928"], "trafficAllocation": 10000 }
+    }
+  ],
+  "groups": [],
+  "region": "US"
+}

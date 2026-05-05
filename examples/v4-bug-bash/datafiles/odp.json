@@ -1,0 +1,1685 @@
+{
+  "accountId": "12133785640",
+  "projectId": "22575900370",
+  "revision": "16762",
+  "attributes": [
+    {
+      "id": "22572230316",
+      "key": "age"
+    },
+    {
+      "id": "22576350357",
+      "key": "email"
+    },
+    {
+      "id": "22603830153",
+      "key": "country"
+    },
+    {
+      "id": "22653203061",
+      "key": "phone_os"
+    },
+    {
+      "id": "22657952077",
+      "key": "laptop_os"
+    },
+    {
+      "id": "22685490463",
+      "key": "laptop_os_version"
+    }
+  ],
+  "audiences": [
+    {
+      "name": "Customer Information",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "22725221898"
+    },
+    {
+      "name": "audience2",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "23905180126"
+    },
+    {
+      "name": "atsbugbashsegmenthaspurchased",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "25238050405"
+    },
+    {
+      "name": "atsbugbashsegmentgender",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "25253570323"
+    },
+    {
+      "name": "atsbugbashsegmentdob",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "25253680454"
+    },
+    {
+      "name": "Pre-built",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]",
+      "id": "25365210387"
+    },
+    {
+      "id": "$opt_dummy_audience",
+      "name": "Optimizely-Generated Audience for Backwards Compatibility",
+      "conditions": "[\"or\", {\"match\": \"exact\", \"name\": \"$opt_dummy_attribute\", \"type\": \"custom_attribute\", \"value\": \"$opt_dummy_value\"}]"
+    }
+  ],
+  "version": "4",
+  "events": [
+    {
+      "id": "22584140467",
+      "experimentIds": ["9300000140310", "9300000514713", "9300000408660", "9300000386811"],
+      "key": "myevent"
+    }
+  ],
+  "integrations": [
+    {
+      "key": "odp",
+      "publicKey": "ax6UV2223fD-jpOXID0BMg",
+      "host": "https://api.zaius.com",
+      "pixelUrl": "https://jumbe.zaius.com"
+    }
+  ],
+  "holdouts": [],
+  "anonymizeIP": true,
+  "botFiltering": false,
+  "typedAudiences": [
+    {
+      "name": "Customer Information",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "laptop_os",
+              "type": "custom_attribute",
+              "value": "mac"
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmentdob"
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmentgender"
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmenthaspurchased"
+            }
+          ]
+        ]
+      ],
+      "id": "22725221898"
+    },
+    {
+      "name": "audience2",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "substring",
+              "name": "laptop_os_version",
+              "type": "custom_attribute",
+              "value": "10"
+            }
+          ],
+          [
+            "or",
+            {
+              "match": "exact",
+              "name": "laptop_os_version",
+              "type": "custom_attribute",
+              "value": true
+            }
+          ]
+        ]
+      ],
+      "id": "23905180126"
+    },
+    {
+      "name": "atsbugbashsegmenthaspurchased",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmenthaspurchased"
+            }
+          ]
+        ]
+      ],
+      "id": "25238050405"
+    },
+    {
+      "name": "atsbugbashsegmentgender",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmentgender"
+            }
+          ]
+        ]
+      ],
+      "id": "25253570323"
+    },
+    {
+      "name": "atsbugbashsegmentdob",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "atsbugbashsegmentdob"
+            }
+          ]
+        ]
+      ],
+      "id": "25253680454"
+    },
+    {
+      "name": "Pre-built",
+      "conditions": [
+        "and",
+        [
+          "or",
+          [
+            "or",
+            {
+              "match": "qualified",
+              "name": "odp.audiences",
+              "type": "third_party_dimension",
+              "value": "email_engaged"
+            }
+          ]
+        ]
+      ],
+      "id": "25365210387"
+    }
+  ],
+  "variables": [],
+  "environmentKey": "production",
+  "sdkKey": "TbrfRLeKvLyWGusqANoeR",
+  "featureFlags": [
+    {
+      "id": "34902",
+      "key": "flag1",
+      "rolloutId": "rollout-34902-22583870382",
+      "experimentIds": ["9300000140310"],
+      "variables": [
+        {
+          "id": "33641",
+          "key": "sort_method",
+          "type": "string",
+          "defaultValue": "alphabetical"
+        }
+      ]
+    },
+    {
+      "id": "34903",
+      "key": "flag2",
+      "rolloutId": "rollout-34903-22583870382",
+      "experimentIds": [],
+      "variables": []
+    },
+    {
+      "id": "106654",
+      "key": "flag3",
+      "rolloutId": "rollout-106654-22583870382",
+      "experimentIds": ["9300000386811", "9300000408660"],
+      "variables": [
+        {
+          "id": "33744",
+          "key": "sort_method",
+          "type": "string",
+          "defaultValue": "popular_first"
+        }
+      ]
+    },
+    {
+      "id": "124045",
+      "key": "flagxx",
+      "rolloutId": "rollout-124045-22583870382",
+      "experimentIds": ["9300000514713"],
+      "variables": []
+    }
+  ],
+  "rollouts": [
+    {
+      "id": "rollout-34902-22583870382",
+      "experiments": [
+        {
+          "id": "default-rollout-34902-22583870382",
+          "key": "default-rollout-34902-22583870382",
+          "status": "Running",
+          "layerId": "rollout-34902-22583870382",
+          "variations": [
+            {
+              "id": "104112",
+              "key": "off",
+              "featureEnabled": false,
+              "variables": [
+                {
+                  "id": "33641",
+                  "value": "alphabetical"
+                }
+              ]
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "104112",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    },
+    {
+      "id": "rollout-34903-22583870382",
+      "experiments": [
+        {
+          "id": "default-rollout-34903-22583870382",
+          "key": "default-rollout-34903-22583870382",
+          "status": "Running",
+          "layerId": "rollout-34903-22583870382",
+          "variations": [
+            {
+              "id": "104115",
+              "key": "off",
+              "featureEnabled": false,
+              "variables": []
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "104115",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    },
+    {
+      "id": "rollout-106654-22583870382",
+      "experiments": [
+        {
+          "id": "9300000408661",
+          "key": "rollout1",
+          "status": "Running",
+          "layerId": "9300000328809",
+          "variations": [
+            {
+              "id": "335841",
+              "key": "on",
+              "featureEnabled": true,
+              "variables": [
+                {
+                  "id": "33744",
+                  "value": "popular_first"
+                }
+              ]
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "335841",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": ["$opt_dummy_audience"],
+          "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]]
+        },
+        {
+          "id": "default-rollout-106654-22583870382",
+          "key": "default-rollout-106654-22583870382",
+          "status": "Running",
+          "layerId": "rollout-106654-22583870382",
+          "variations": [
+            {
+              "id": "335840",
+              "key": "off",
+              "featureEnabled": false,
+              "variables": [
+                {
+                  "id": "33744",
+                  "value": "popular_first"
+                }
+              ]
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "335840",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    },
+    {
+      "id": "rollout-124045-22583870382",
+      "experiments": [
+        {
+          "id": "default-rollout-124045-22583870382",
+          "key": "default-rollout-124045-22583870382",
+          "status": "Running",
+          "layerId": "rollout-124045-22583870382",
+          "variations": [
+            {
+              "id": "390324",
+              "key": "off",
+              "featureEnabled": false,
+              "variables": []
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "390324",
+              "endOfRange": 10000
+            }
+          ],
+          "forcedVariations": {},
+          "audienceIds": [],
+          "audienceConditions": []
+        }
+      ]
+    }
+  ],
+  "experiments": [
+    {
+      "id": "9300000140310",
+      "key": "flag1_experiment",
+      "status": "Running",
+      "layerId": "9300000106815",
+      "variations": [
+        {
+          "id": "104125",
+          "key": "variation_a",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33641",
+              "value": "alphabetical"
+            }
+          ]
+        },
+        {
+          "id": "104126",
+          "key": "variation_b",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33641",
+              "value": "popular_first"
+            }
+          ]
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "104125",
+          "endOfRange": 1000
+        },
+        {
+          "entityId": "104125",
+          "endOfRange": 3900
+        },
+        {
+          "entityId": "104125",
+          "endOfRange": 4550
+        },
+        {
+          "entityId": "104125",
+          "endOfRange": 4650
+        },
+        {
+          "entityId": "104125",
+          "endOfRange": 4700
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 4800
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 4900
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 5000
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 5700
+        },
+        {
+          "entityId": "104125",
+          "endOfRange": 6000
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 8700
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9400
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9450
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9550
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9650
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9700
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9800
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 9900
+        },
+        {
+          "entityId": "104126",
+          "endOfRange": 10000
+        }
+      ],
+      "forcedVariations": {},
+      "audienceIds": ["22725221898", "25253570323", "25238050405"],
+      "audienceConditions": ["or", "22725221898", "25253570323", "25238050405"]
+    },
+    {
+      "id": "9300000386811",
+      "key": "mab",
+      "status": "Running",
+      "layerId": "9300000309431",
+      "variations": [
+        {
+          "id": "335850",
+          "key": "variation_1",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33744",
+              "value": "popular_first"
+            }
+          ]
+        },
+        {
+          "id": "335851",
+          "key": "variation_2",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33744",
+              "value": "alphabetically"
+            }
+          ]
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "335850",
+          "endOfRange": 3810
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4135
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4162
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4168
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4905
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4916
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4938
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4945
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4954
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4965
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4974
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4983
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4988
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4993
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 4998
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 5000
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 8482
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8505
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8596
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8613
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8617
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8657
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8661
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 8672
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9206
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9416
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9428
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9454
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9477
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9481
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9513
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9526
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9538
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9554
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9572
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9574
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9581
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9585
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9586
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9592
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9598
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9603
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9606
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9610
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9617
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9623
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9631
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9633
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9639
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9644
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9656
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9658
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9664
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9666
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9667
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9699
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9715
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9725
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9726
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9734
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9743
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9751
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9752
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9767
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9769
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9777
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9784
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9791
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9795
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9796
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9798
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9799
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9807
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9808
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9810
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9812
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9813
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9816
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9817
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9818
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9822
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9823
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9824
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9825
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9827
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9830
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9832
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9833
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9834
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9835
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9837
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9838
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9839
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9840
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9841
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9842
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9843
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9844
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9845
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9846
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9847
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9848
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9849
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9850
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9851
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9852
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9853
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9854
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9855
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9856
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9857
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9858
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9859
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9860
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9861
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9862
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9863
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9864
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9865
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9866
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9867
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9868
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9869
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9870
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9871
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9872
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9873
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9874
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9875
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9876
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9877
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9878
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9879
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9880
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9881
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9882
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9883
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9884
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9885
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9886
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9887
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9888
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9889
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9890
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9891
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9892
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9893
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9894
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9895
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9896
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9897
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9898
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9899
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9900
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9901
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9902
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9903
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9904
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9905
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9906
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9907
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9908
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9909
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9910
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9911
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9912
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9913
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9914
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9915
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9916
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9917
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9918
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9919
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9920
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9921
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9922
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9923
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9924
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9925
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9926
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9927
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9928
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9929
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9930
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9931
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9932
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9933
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9934
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9935
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9936
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9937
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9938
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9939
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9940
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9941
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9942
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9943
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9944
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9945
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9946
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9947
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9948
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9949
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9950
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9951
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9952
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9953
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9954
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9955
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9956
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9957
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9958
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9959
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9960
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9961
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9962
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9963
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9964
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9965
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9966
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9967
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9968
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9969
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9970
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9971
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9972
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9973
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9974
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9975
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9976
+        },
+        {
+          "entityId": "335850",
+          "endOfRange": 9977
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9978
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9979
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9980
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9981
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9982
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9983
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9984
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9985
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9986
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9987
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9988
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9989
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9990
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9991
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9992
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9993
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9994
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9995
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9996
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9997
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9998
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 9999
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 10000
+        }
+      ],
+      "forcedVariations": {},
+      "audienceIds": ["$opt_dummy_audience"],
+      "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]]
+    },
+    {
+      "id": "9300000408660",
+      "key": "ab1",
+      "status": "Running",
+      "layerId": "9300000328808",
+      "variations": [
+        {
+          "id": "335850",
+          "key": "variation_1",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33744",
+              "value": "popular_first"
+            }
+          ]
+        },
+        {
+          "id": "335851",
+          "key": "variation_2",
+          "featureEnabled": true,
+          "variables": [
+            {
+              "id": "33744",
+              "value": "alphabetically"
+            }
+          ]
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "335850",
+          "endOfRange": 5000
+        },
+        {
+          "entityId": "335851",
+          "endOfRange": 10000
+        }
+      ],
+      "forcedVariations": {},
+      "audienceIds": ["$opt_dummy_audience"],
+      "audienceConditions": [
+        "or",
+        "25253570323",
+        "25365210387",
+        ["and", "25238050405", "25253680454", ["not", "22725221898"]]
+      ]
+    },
+    {
+      "id": "9300000514713",
+      "key": "abtestxx",
+      "status": "Running",
+      "layerId": "9300000413093",
+      "variations": [
+        {
+          "id": "390324",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        },
+        {
+          "id": "390325",
+          "key": "on",
+          "featureEnabled": true,
+          "variables": []
+        }
+      ],
+      "trafficAllocation": [
+        {
+          "entityId": "390324",
+          "endOfRange": 5000
+        },
+        {
+          "entityId": "390325",
+          "endOfRange": 10000
+        }
+      ],
+      "forcedVariations": {},
+      "audienceIds": ["23905180126"],
+      "audienceConditions": ["or", "23905180126"]
+    }
+  ],
+  "groups": [],
+  "region": "US"
+}

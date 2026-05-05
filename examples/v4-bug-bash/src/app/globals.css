@@ -1,0 +1,250 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #fafafa;
+  --fg: #111;
+  --muted: #666;
+  --border: #e0e0e0;
+  --accent: #0070f3;
+  --accent-hover: #005bb5;
+  --nav-width: 260px;
+  --success: #16a34a;
+  --warning: #d97706;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+}
+
+/* Layout */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--nav-width);
+  padding: 2rem;
+  max-width: 900px;
+}
+
+/* Nav */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--nav-width);
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  padding: 1rem;
+  background: #fff;
+}
+
+.nav-logo {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  margin-bottom: 1.5rem;
+}
+
+.nav-section {
+  margin-bottom: 1.25rem;
+}
+
+.nav-section-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+
+.nav-list {
+  list-style: none;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--fg);
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.nav-link:hover {
+  background: #f0f0f0;
+}
+
+.nav-link-active {
+  background: #e8f0fe;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Dashboard */
+.dashboard {
+  max-width: 800px;
+}
+
+.dashboard h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard p {
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
+
+.dashboard-section {
+  margin-bottom: 2rem;
+}
+
+.dashboard-section h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
+}
+
+.dashboard-card {
+  display: block;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--fg);
+  font-size: 0.88rem;
+  transition: border-color 0.15s;
+}
+
+.dashboard-card:hover {
+  border-color: var(--accent);
+}
+
+/* Scenario pages */
+.scenario {
+  max-width: 800px;
+}
+
+.scenario-title {
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.scenario-description {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.scenario-content {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  background: #fff;
+}
+
+/* Decision display */
+.decision-display {
+  font-size: 0.88rem;
+}
+
+.decision-display > div {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.decision-display > div:last-child {
+  border-bottom: none;
+}
+
+.decision-display pre {
+  background: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  margin-top: 0.25rem;
+}
+
+.decision-display ul {
+  margin-top: 0.25rem;
+  padding-left: 1.5rem;
+}
+
+.decision-display li {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Decision table */
+.decision-table .decision-entry {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.decision-table .decision-entry:last-child {
+  border-bottom: none;
+}
+
+.decision-table .decision-entry h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent);
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.btn:hover {
+  background: #f0f0f0;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
