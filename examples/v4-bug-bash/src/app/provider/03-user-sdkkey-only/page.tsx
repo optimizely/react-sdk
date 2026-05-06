@@ -17,10 +17,10 @@ export default function Page() {
 
   return (
     <ScenarioLayout
-      title="03 — User + SDK Key Only"
+      title="03 — User + SDK Key Only (Holdout)"
       description="Polling config manager with SDK key only, no datafile. First render shows loading, then decision after datafile is fetched from CDN."
     >
-      <OptimizelyProvider client={client} user={{ id: 'user-03' }}>
+      <OptimizelyProvider client={client} user={{ id: 'user-03', attributes: { ho: 4 } }}>
         <Decision />
       </OptimizelyProvider>
     </ScenarioLayout>

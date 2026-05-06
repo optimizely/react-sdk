@@ -19,18 +19,18 @@ export default function Page() {
   return (
     <ScenarioLayout
       title="07 — Multiple Providers"
-      description="Two OptimizelyProvider wrappers sharing the same client with different timeouts. Both should render decisions."
+      description="Two OptimizelyProvider wrappers sharing the same client. Provider A gets normal rollout, Provider B is held out."
     >
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
-          <h3>Provider A (timeout=100)</h3>
-          <OptimizelyProvider client={client} user={{ id: 'user-07-a' }} timeout={100}>
+          <h3>Provider A (normal user)</h3>
+          <OptimizelyProvider client={client} user={{ id: 'user-07-a' }}>
             <Decision prefix="decision-a" />
           </OptimizelyProvider>
         </div>
         <div>
-          <h3>Provider B (timeout=5000)</h3>
-          <OptimizelyProvider client={client} user={{ id: 'user-07-b' }} timeout={5000}>
+          <h3>Provider B (holdout user)</h3>
+          <OptimizelyProvider client={client} user={{ id: 'user-12', attributes: { ho: 4 } }}>
             <Decision prefix="decision-b" />
           </OptimizelyProvider>
         </div>

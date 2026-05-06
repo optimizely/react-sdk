@@ -9,7 +9,7 @@ const SECTIONS = [
     links: [
       { href: '/provider/01-user-datafile', label: '01 User + Datafile' },
       { href: '/provider/02-user-datafile-sdkkey', label: '02 User + Datafile + SDK Key' },
-      { href: '/provider/03-user-sdkkey-only', label: '03 User + SDK Key Only' },
+      { href: '/provider/03-user-sdkkey-only', label: '03 User + SDK Key + Holdout' },
       { href: '/provider/04-odp-skip-segments', label: '04 ODP Skip Segments' },
       { href: '/provider/05-odp-qualified-segments', label: '05 ODP Qualified Segments' },
       { href: '/provider/06-odp-fetch-segments', label: '06 ODP Fetch Segments' },
