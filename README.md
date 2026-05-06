@@ -4,245 +4,369 @@ This repository houses the React SDK for use with Optimizely Feature Experimenta
 
 Optimizely Feature Experimentation is an A/B testing and feature management tool for product development teams that enables you to experiment at every step. Using Optimizely Feature Experimentation allows for every feature on your roadmap to be an opportunity to discover hidden insights. Learn more at [Optimizely.com](https://www.optimizely.com/products/experiment/feature-experimentation/), or see the [developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/introduction).
 
-Optimizely Rollouts is [free feature flags](https://www.optimizely.com/free-feature-flagging/) for development teams. You can easily roll out and roll back features in any application without code deploys, mitigating risk for every feature on your roadmap.
+## Table of Contents
+
+- [Get Started](#get-started)
+- [Installation](#installation)
+- [Quick Example](#quick-example)
+- [Usage](#usage)
+  - [Client Creation](#client-creation)
+  - [`<OptimizelyProvider>`](#optimizelyprovider)
+  - [Readiness](#readiness)
+  - [Hooks](#hooks)
+  - [Event Tracking](#event-tracking)
+  - [Forced Decisions](#forced-decisions)
+  - [Logging](#logging)
+- [Server-Side Rendering](#server-side-rendering)
+  - [`getQualifiedSegments`](#getqualifiedsegments)
+  - [React Server Components](#react-server-components)
+  - [Next.js Integration](#nextjs-integration)
+  - [Limitations](#limitations)
+- [Migrating from v3](#migrating-from-v3)
+- [Additional Code](#additional-code)
+- [Contributing](#contributing)
 
 ## Get Started
 
-Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
+Refer to the [React SDK's developer documentation](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-react-sdk) for detailed instructions on getting started with using the SDK.
 
 For React Native, review the [React Native developer documentation](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-native-sdk).
 
 ### Features
 
-- Automatic datafile downloading
-- User ID + attributes memoization
-- Render blocking until datafile is ready via a React API
-- Optimizely timeout (only block rendering up to the number of milliseconds you specify)
-- Library of React components and hooks to use with [feature flags](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/create-feature-flags)
+- Modular, tree-shakeable architecture built on the JS SDK v6
+- Automatic datafile polling and hook re-evaluation on config changes
+- User context managed by the Provider
+- Async decision hooks for CMAB and async User Profile Service lookups
+- Server-safe entry point for React Server Components
+- Pre-built hooks for single-flag, multi-flag, and all-flag decisions
 
 ### Compatibility
 
-The React SDK is compatible with `React 16.8.0 +`
+| Requirement | Version |
+| --- | --- |
+| React | >= 16.8.0 |
+| Node.js | >= 18.0.0 |
+| Module format | ESM only |
 
-### Example
-
-```jsx
-import { createInstance, OptimizelyProvider, useDecision } from '@optimizely/react-sdk';
-
-const optimizelyClient = createInstance({
-  sdkKey: 'your-optimizely-sdk-key',
-});
-
-function MyComponent() {
-  const [decision] = useDecision('sort-algorithm');
-  return (
-    <React.Fragment>
-      <SearchComponent algorithm={decision.variables.algorithm} />
-      {decision.variationKey === 'relevant_first' && <RelevantFirstList />}
-      {decision.variationKey === 'recent_first' && <RecentFirstList />}
-    </React.Fragment>
-  );
-}
-
-class App extends React.Component {
-  render() {
-    return (
-      <OptimizelyProvider
-        optimizely={optimizelyClient}
-        timeout={500}
-        user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
-      >
-        <MyComponent />
-      </OptimizelyProvider>
-    );
-  }
-}
-```
-
-### Install the SDK
+## Installation
 
 ```
 npm install @optimizely/react-sdk
 ```
 
-For **React Native**, installation instruction is bit different. Check out the
+For **React Native**, the installation is slightly different. Check out the:
 
 - [Official Installation guide](https://docs.developers.optimizely.com/feature-experimentation/docs/install-sdk-reactnative)
 - [Expo React Native Sample App](https://github.com/optimizely/expo-react-native-sdk-sample)
 
-## Use the React SDK
+## Quick Example
 
-### Initialization
+```jsx
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  OptimizelyProvider,
+  useDecide,
+} from '@optimizely/react-sdk';
 
-## `createInstance`
+const optimizelyClient = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-optimizely-sdk-key',
+  }),
+  eventProcessor: createBatchEventProcessor(),
+});
 
-The `ReactSDKClient` client created via `createInstance` is the programmatic API to evaluating features and experiments and tracking events. The `ReactSDKClient` is what powers the rest of the ReactSDK internally.
+function MyComponent() {
+  const { decision, isLoading, error } = useDecide('sort-algorithm');
+
+  if (isLoading || error) return null;
+
+  return (
+    <>
+      {decision.variationKey === 'relevant_first' && <RelevantFirstList />}
+      {decision.variationKey === 'recent_first' && <RecentFirstList />}
+    </>
+  );
+}
+
+
+function App() {
+  return (
+    <OptimizelyProvider
+      client={optimizelyClient}
+      timeout={500}
+      user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
+    >
+      <MyComponent />
+    </OptimizelyProvider>
+  );
+}
+```
+
+## Usage
+
+### Client Creation
+
+#### `createInstance`
+
+Creates an Optimizely `Client` instance that powers the Provider and hooks. The client does not hold user state — user management is handled by `<OptimizelyProvider>`.
+
+> **Important:** You must use `createInstance` from `@optimizely/react-sdk`, not from `@optimizely/optimizely-sdk`. A client created directly from the JS SDK will not work correctly with `<OptimizelyProvider>` and hooks.
 
 _arguments_
 
-- `config : object` Object with SDK configuration parameters. This has the same format as the object passed to the `createInstance` method of the core `@optimizely/javascript-sdk` module. For details on this object, see the following pages from the developer docs:
-  - [Instantiate](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/initialize-sdk-react)
-  - [JavaScript: Client-side Datafile Management](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/javascript-client-side-implementation)
+- `config : object` — Configuration object with the following fields:
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `projectConfigManager` | `OpaqueConfigManager` | Yes | Manages the datafile. Create with `createPollingProjectConfigManager` or `createStaticProjectConfigManager`. |
+| `eventProcessor` | `OpaqueEventProcessor` | No | Processes and dispatches events. Create with `createBatchEventProcessor` or `createForwardingEventProcessor`. |
+| `jsonSchemaValidator` | `{ validate(jsonObject: unknown): boolean }` | No | Custom validator for datafile schema validation. |
+| `logger` | `OpaqueLogger` | No | Logger instance. Create with `createLogger`. |
+| `errorNotifier` | `OpaqueErrorNotifier` | No | Error notification handler. Create with `createErrorNotifier`. |
+| `userProfileService` | `UserProfileService` | No | Synchronous user profile service for sticky bucketing. |
+| `userProfileServiceAsync` | `UserProfileServiceAsync` | No | Asynchronous user profile service for sticky bucketing. |
+| `defaultDecideOptions` | `OptimizelyDecideOption[]` | No | Default options applied to all decide calls. |
+| `clientEngine` | `string` | No | Custom client engine identifier. |
+| `clientVersion` | `string` | No | Custom client version identifier. |
+| `odpManager` | `OpaqueOdpManager` | No | ODP manager for audience segments and events. Create with `createOdpManager`. |
+| `vuidManager` | `OpaqueVuidManager` | No | Visitor UID manager. Create with `createVuidManager`. |
+| `disposable` | `boolean` | No | When `true`, marks the client as single-use for SSR. |
+| `cmab` | `object` | No | CMAB cache configuration: `cacheSize` (number), `cacheTtl` (number, ms), `cache` (custom cache instance). |
+
+> For detailed configuration options for each factory (polling intervals, custom event dispatchers, ODP, VUID etc.), see the [JavaScript SDK initialization guide](https://docs.developers.optimizely.com/feature-experimentation/docs/initialize-the-javascript-sdk).
 
 _returns_
 
-- A `ReactSDKClient` instance.
+- A `Client` instance.
 
 ```jsx
-import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+} from '@optimizely/react-sdk';
 
 const optimizely = createInstance({
-  datafile: window.optimizelyDatafile,
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-optimizely-sdk-key',
+    datafile: window.optimizelyDatafile, // optional: use as initial datafile while polling
+    autoUpdate: true,
+  }),
 });
 ```
 
-## `<OptimizelyProvider>`
+#### Config manager factories
 
-Required at the root level. Leverages React’s `Context` API to allow access to the `ReactSDKClient` to the `useDecision` hook.
+| Factory | Use case |
+| --- | --- |
+| `createPollingProjectConfigManager({ sdkKey, datafile?, autoUpdate? })` | Fetches and polls for datafile updates. `sdkKey` is required. |
+| `createStaticProjectConfigManager({ datafile })` | Uses a fixed datafile with no polling. |
+
+#### Event processor factories
+
+| Factory | Use case |
+| --- | --- |
+| `createBatchEventProcessor({ batchSize?, flushInterval? })` | Batches events before dispatching. |
+| `createForwardingEventProcessor()` | Forwards each event immediately. |
+
+> **Note:** Event processing is opt-in. If no `eventProcessor` is passed to `createInstance`, no events are dispatched.
+
+#### Other configurable modules
+
+| Factory | Use case |
+| --- | --- |
+| `createOdpManager()` | Enables ODP integration (audience segments, events). |
+| `createVuidManager()` | Enables visitor UID tracking. |
+| `createErrorNotifier()` | Configures error notification. |
+| `createLogger({ logLevel })` | Creates a logger instance (see [Logging](#logging)). |
+
+#### Full client creation example
+
+```jsx
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  createOdpManager,
+  createLogger,
+  DEBUG,
+} from '@optimizely/react-sdk';
+
+const optimizely = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-sdk-key',
+  }),
+  eventProcessor: createBatchEventProcessor({
+    batchSize: 10,
+    flushInterval: 2000,
+  }),
+  odpManager: createOdpManager(),
+  logger: createLogger({ logLevel: DEBUG }),
+});
+```
+
+### `<OptimizelyProvider>`
+
+Required at the root level. Leverages React's `Context` API to provide the Optimizely client and user context to hooks.
 
 _props_
 
 | Prop | Type | Required | Description |
 | --- | --- | --- | --- |
-| `optimizely` | `ReactSDKClient` | Yes | Instance created from `createInstance` |
-| `user` | `{ id: string; attributes?: { [key: string]: any } }` \| `Promise` | No | User info object — `id` and `attributes` will be passed to the SDK for every feature flag, A/B test, or `track` call. Can also be a `Promise` for the same kind of object. |
-| `timeout` | `number` | No | The amount of time for `useDecision` to return `null` flag Decision while waiting for the SDK instance to become ready, before resolving. |
-| `isServerSide` | `boolean` | No | Must pass `true` for server side rendering. |
-| `userId` | `string` | No | **Deprecated, prefer `user` instead.** Another way to provide user id. The `user` prop takes precedence when both are provided. |
-| `userAttributes` | `object` | No | **Deprecated, prefer `user` instead.** Another way to provide user attributes. The `user` prop takes precedence when both are provided. |
-| `qualifiedSegments` | `string[] \| null` | No | Pre-fetched ODP audience segments for the user. Useful during SSR where async segment fetching is unavailable. Use [`getQualifiedSegments`](#getqualifiedsegments) to obtain these segments server-side. |
+| `client` | `Client` | Yes | Instance created from `createInstance`. |
+| `user` | `{ id?: string; attributes?: UserAttributes }` | No | User info object — `id` and `attributes` will be used to create the user context for all decisions and event tracking. |
+| `timeout` | `number` | No | Maximum time (in milliseconds) to wait for the SDK to become ready before hooks resolve with a loading state. Default: `30000`. |
+| `qualifiedSegments` | `string[]` | No | Pre-fetched ODP audience segments for the user. Use [`getQualifiedSegments`](#getqualifiedsegments) to obtain these segments server-side. |
+| `skipSegments` | `boolean` | No | When `true`, skips background ODP segment fetching. Default: `false`. |
+
+> **Note:** Unless VUID is enabled, `<OptimizelyProvider>` requires user data. If user information must be fetched asynchronously, resolve the promise before rendering the Provider.
 
 ### Readiness
 
 Before rendering real content, both the datafile and the user must be available to the SDK.
 
-#### Load the datafile synchronously
+#### With datafile
 
-Synchronous loading is the preferred method to ensure that Optimizely is always ready and doesn't add any delay or asynchronous complexity to your application. When initializing with both the SDK key and datafile, the SDK will use the given datafile to start, then download the latest version of the datafile in the background.
+Use `createStaticProjectConfigManager` to initialize with a pre-fetched datafile. The SDK is ready immediately with no network requests.
+
+The `datafile` parameter accepts either a valid JSON string or a parsed datafile object.
 
 ```jsx
-import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
+import {
+  OptimizelyProvider,
+  createInstance,
+  createStaticProjectConfigManager,
+  createForwardingEventProcessor,
+} from '@optimizely/react-sdk';
 
+// Using a JSON string (e.g., fetched server-side and injected into the page)
 const optimizelyClient = createInstance({
-  datafile: window.optimizelyDatafile,
-  sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
+  projectConfigManager: createStaticProjectConfigManager({
+    datafile: '{"version": "4", "flags": ...}',
+  }),
+  eventProcessor: createForwardingEventProcessor(),
 });
 
-class AppWrapper extends React.Component {
-  render() {
-    return (
-      <OptimizelyProvider optimizely={optimizelyClient} user={{ id: window.userId }}>
-        <App />
-      </OptimizelyProvider>
-    );
-  }
+// Using a parsed object
+const optimizelyClient = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({
+    datafile: {"version": "4", "flags": ...},
+  }),
+  eventProcessor: createForwardingEventProcessor(),
+});
+
+function AppWrapper() {
+  return (
+    <OptimizelyProvider client={optimizelyClient} user={{ id: window.userId }}>
+      <App />
+    </OptimizelyProvider>
+  );
 }
 ```
 
-#### Load the datafile asynchronously
+#### With SDK key
 
-If you don't have the datafile downloaded, the `ReactSDKClient` can fetch the datafile for you. However, instead of waiting for the datafile to fetch before you render your app, you can immediately render your app and provide a `timeout` option to `<OptimizelyProvider optimizely={optimizely} timeout={200}>`. The `useDecision` hook returns `isClientReady` and `didTimeout`. You can use these to block rendering of component until the datafile loads or the timeout is over.
+Use `createPollingProjectConfigManager` with an `sdkKey` to have the SDK fetch and poll for the datafile. Provide a `timeout` option to `<OptimizelyProvider>` so hooks can distinguish between the loading state and actual decisions. Hooks return `isLoading: true` while waiting and resolve once the SDK is ready or the timeout expires.
 
 ```jsx
-import { OptimizelyProvider, createInstance, useDecision } from '@optimizely/react-sdk';
+import {
+  OptimizelyProvider,
+  createInstance,
+  createPollingProjectConfigManager,
+  createForwardingEventProcessor,
+  useDecide,
+} from '@optimizely/react-sdk';
 
 const optimizelyClient = createInstance({
-  sdkKey: 'your-optimizely-sdk-key', // Optimizely environment key
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-optimizely-sdk-key',
+  }),
+  eventProcessor: createForwardingEventProcessor(),
 });
 
 function MyComponent() {
-  const [decision, isClientReady, didTimeout] = useDecision('the-flag');
+  const { decision, isLoading, error } = useDecide('the-flag');
+
+  if (isLoading) return null;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return <div>{decision.enabled ? 'Feature On' : 'Feature Off'}</div>;
+}
+
+function App() {
   return (
-    <React.Fragment>
-      {isClientReady && <div>The Component</div>}
-      {didTimeout && <div>Default Component</div>}
-      {/* If client is not ready and time out has not occured yet, do not render anything */}
-    </React.Fragment>
+    <OptimizelyProvider
+      client={optimizelyClient}
+      timeout={500}
+      user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
+    >
+      <MyComponent />
+    </OptimizelyProvider>
   );
 }
-
-class App extends React.Component {
-  render() {
-    return (
-      <OptimizelyProvider
-        optimizely={optimizelyClient}
-        timeout={500}
-        user={{ id: window.userId, attributes: { plan_type: 'bronze' } }}
-      >
-        <MyComponent />
-      </OptimizelyProvider>
-    );
-  }
-}
 ```
 
-#### Set user asynchronously
+#### With both SDK key and datafile
 
-If user information is synchronously available, it can be provided as the `user` object prop, as in prior examples. But, if user information must be fetched asynchronously, the `user` prop can be a `Promise` for a `user` object with the same properties (`id` and `attributes`):
+You can provide both an `sdkKey` and a `datafile` to `createPollingProjectConfigManager`. The SDK uses the given datafile immediately, then fetches and polls for updates in the background.
 
 ```jsx
-import { OptimizelyProvider, createInstance } from '@optimizely/react-sdk';
-import { fetchUser } from './user';
+import {
+  OptimizelyProvider,
+  createInstance,
+  createPollingProjectConfigManager,
+  createForwardingEventProcessor,
+} from '@optimizely/react-sdk';
 
-const optimizely = createInstance({
-  datafile: window.optimizelyDatafile,
+const optimizelyClient = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-optimizely-sdk-key',
+    datafile: window.optimizelyDatafile,
+  }),
+  eventProcessor: createForwardingEventProcessor(),
 });
 
-const userPromise = fetchUser(); // fetchUser returns a Promise for an object with { id, attributes }
-
-class AppWrapper extends React.Component {
-  render() {
-    return (
-      <OptimizelyProvider optimizely={optimizely} user={userPromise}>
-        <App />
-      </OptimizelyProvider>
-    );
-  }
+function AppWrapper() {
+  return (
+    <OptimizelyProvider client={optimizelyClient} user={{ id: window.userId }}>
+      <App />
+    </OptimizelyProvider>
+  );
 }
 ```
 
-## `useDecision` Hook
+### Hooks
 
-A [React Hook](https://react.dev/learn/state-a-components-memory#meet-your-first-hook) to retrieve the decision result for a flag key, optionally auto updating that decision based on underlying user or datafile changes.
+#### `useDecide`
+
+The primary hook for retrieving a feature flag decision. Automatically re-evaluates when the underlying datafile changes.
 
 _arguments_
 
-- `flagKey : string` The key of the feature flag.
-- `options : Object`
-  - `autoUpdate : boolean` (optional) If true, this hook will update the flag decision in response to datafile or user changes. Default: `false`.
-  - `timeout : number` (optional) Client timeout as described in the `OptimizelyProvider` section. Overrides any timeout set on the ancestor `OptimizelyProvider`.
-  - `decideOption: OptimizelyDecideOption[]` (optional) Array of OptimizelyDecideOption enums.
-- `overrides : Object`
-  - `overrideUserId : string` (optional) Override the userId to be used to obtain the decision result for this hook.
-  - `overrideAttributes : optimizely.UserAttributes` (optional) Override the user attributes to be used to obtain the decision result for this hook.
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flagKey` | `string` | Yes | The key of the feature flag. |
+| `config` | `object` | No | Configuration object. |
+| `config.decideOptions` | `OptimizelyDecideOption[]` | No | Array of decide options. |
 
-_returns_
+_returns_ `{ decision, isLoading, error }`
 
-- `Array` of:
-
-  - `decision : OptimizelyDecision` - Decision result for the flag key.
-  - `clientReady : boolean` - Whether or not the underlying `ReactSDKClient` instance is ready or not.
-  - `didTimeout : boolean` - Whether or not the underlying `ReactSDKClient` became ready within the allowed `timeout` range.
-
-  _Note: `clientReady` can be true even if `didTimeout` is also true. This indicates that the client became ready *after* the timeout period._
-
-### Render something if flag is enabled
+| Field | Type | Description |
+| --- | --- | --- |
+| `decision` | `OptimizelyDecision \| null` | The decision result. `null` while loading or on error. |
+| `isLoading` | `boolean` | `true` while waiting for the SDK to become ready. |
+| `error` | `Error \| null` | Error object if the decision failed, otherwise `null`. |
 
 ```jsx
-import { useEffect } from 'react';
-import { useDecision } from '@optimizely/react-sdk';
+import { useDecide } from '@optimizely/react-sdk';
 
 function LoginComponent() {
-  const [decision, clientReady] = useDecision(
-    'login-flag',
-    { autoUpdate: true },
-    {
-      /* (Optional) User overrides */
-    }
-  );
-  useEffect(() => {
-    document.title = decision.enabled ? 'login-new' : 'login-default';
-  }, [decision.enabled]);
+  const { decision, isLoading, error } = useDecide('login-flag');
+
+  if (isLoading) return <Loading />;
+  if (error) return <Error error={error} />;
 
   return (
     <p>
@@ -252,205 +376,280 @@ function LoginComponent() {
 }
 ```
 
-## `withOptimizely`
+#### `useDecideForKeys`
 
-Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the higher-order component (HoC) `withOptimizely`.
-
-_arguments_
-
-- `Component : React.Component` Component which will be enhanced with the following props:
-  - `optimizely : ReactSDKClient` The client object which was passed to the `OptimizelyProvider`
-  - `optimizelyReadyTimeout : number | undefined` The timeout which was passed to the `OptimizelyProvider`
-  - `isServerSide : boolean` Value that was passed to the `OptimizelyProvider`
-
-_returns_
-
-- A wrapped component with additional props as described above
-
-### Example
-
-```jsx
-import { withOptimizely } from '@optimizely/react-sdk';
-
-class MyComp extends React.Component {
-  constructor(props) {
-    super(props);
-    const { optimizely } = this.props;
-    const decision = optimizely.decide('feat1');
-
-    this.state = {
-      decision.enabled,
-      decision.variables,
-    };
-  }
-
-  render() {}
-}
-
-const WrappedMyComponent = withOptimizely(MyComp);
-```
-
-**_Note:_** The `optimizely` client object provided via `withOptimizely` is automatically associated with the `user` prop passed to the ancestor `OptimizelyProvider` - the `id` and `attributes` from that `user` object will be automatically forwarded to all appropriate SDK method calls. So, there is no need to pass the `userId` or `attributes` arguments when calling methods of the `optimizely` client object, unless you wish to use _different_ `userId` or `attributes` than those given to `OptimizelyProvider`.
-
-## `useContext`
-
-Any component under the `<OptimizelyProvider>` can access the Optimizely `ReactSDKClient` via the `OptimizelyContext` with `useContext`.
+Retrieve decisions for multiple flag keys in a single call.
 
 _arguments_
 
-- `OptimizelyContext : React.Context<OptimizelyContextInterface>` The Optimizely context initialized in a parent component (or App).
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `flagKeys` | `string[]` | Yes | Array of flag keys. |
+| `config` | `object` | No | Configuration object. |
+| `config.decideOptions` | `OptimizelyDecideOption[]` | No | Array of decide options. |
 
-_returns_
+_returns_ `{ decisions, isLoading, error }`
 
-- Wrapped object:
-  - `optimizely : ReactSDKClient` The client object which was passed to the `OptimizelyProvider`
-  - `isServerSide : boolean` Value that was passed to the `OptimizelyProvider`
-  - `timeout : number | undefined` The timeout which was passed to the `OptimizelyProvider`
-
-### Example
+| Field | Type | Description |
+| --- | --- | --- |
+| `decisions` | `{ [key: string]: OptimizelyDecision } \| null` | Map of flag keys to their decisions. `null` while loading or on error. |
+| `isLoading` | `boolean` | `true` while waiting for the SDK to become ready. |
+| `error` | `Error \| null` | Error object if the decisions failed, otherwise `null`. |
 
 ```jsx
-import React, { useContext } from 'react';
-import { OptimizelyContext } from '@optimizely/react-sdk';
+import { useDecideForKeys } from '@optimizely/react-sdk';
 
-function MyComponent() {
-  const { optimizely, isServerSide, timeout } = useContext(OptimizelyContext);
-  const decision = optimizely.decide('my-feature');
-  const onClick = () => {
-    optimizely.track('signup-clicked');
-    // rest of your click handling code
-  };
+function Dashboard() {
+  const { decisions, isLoading } = useDecideForKeys(['flag-a', 'flag-b']);
+
+  if (isLoading) return <Loading />;
+
   return (
     <>
-      {decision.enabled && <p>My feature is enabled</p>}
-      {!decision.enabled && <p>My feature is disabled</p>}
-      {decision.variationKey === 'control-variation' && <p>Current Variation</p>}
-      {decision.variationKey === 'experimental-variation' && <p>Better Variation</p>}
-      <button onClick={onClick}>Sign Up!</button>
+      {decisions['flag-a']?.enabled && <FeatureA />}
+      {decisions['flag-b']?.enabled && <FeatureB />}
     </>
   );
 }
 ```
 
-### Tracking
+#### `useDecideAll`
 
-Use the built-in `useTrackEvent` hook to access the `track` method of optimizely instance
+Retrieve decisions for all active (unarchived) flags.
+
+_arguments_
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `config` | `object` | No | Configuration object. |
+| `config.decideOptions` | `OptimizelyDecideOption[]` | No | Array of decide options. |
+
+_returns_ `{ decisions, isLoading, error }`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `decisions` | `{ [key: string]: OptimizelyDecision } \| null` | Map of flag keys to their decisions. `null` while loading or on error. |
+| `isLoading` | `boolean` | `true` while waiting for the SDK to become ready. |
+| `error` | `Error \| null` | Error object if the decisions failed, otherwise `null`. |
+
+#### Async decision hooks
+
+Async variants call the underlying async SDK methods (`decideAsync`, `decideForKeysAsync`, `decideAllAsync`). Use these when your setup involves asynchronous operations such as CMAB (Contextual Multi-Armed Bandit) decisions or async User Profile Service lookups.
+
+| Hook | Description |
+| --- | --- |
+| `useDecideAsync(flagKey, config?)` | Async variant of `useDecide` |
+| `useDecideForKeysAsync(flagKeys[], config?)` | Async variant of `useDecideForKeys` |
+| `useDecideAllAsync(config?)` | Async variant of `useDecideAll` |
+
+These hooks have the same return types as their synchronous counterparts.
 
 ```jsx
-import { useTrackEvent } from '@optimizely/react-sdk';
+import { useDecideAsync } from '@optimizely/react-sdk';
 
-function SignupButton() {
-  const [track, clientReady, didTimeout] = useTrackEvent();
+function MyComponent() {
+  const { decision, isLoading, error } = useDecideAsync('flag-key');
+
+  if (isLoading) return <Loading />;
+  if (error) return <Error error={error} />;
+
+  return decision.enabled ? <NewFeature /> : <Default />;
+}
+```
+
+#### `useOptimizelyClient`
+
+Returns the Optimizely `Client` instance from context for direct SDK access.
+
+```jsx
+import { useOptimizelyClient } from '@optimizely/react-sdk';
+
+function MyComponent() {
+  const client = useOptimizelyClient();
+  // Use client methods directly
+}
+```
+
+#### `useOptimizelyUserContext`
+
+Returns the current user context, which can be used for event tracking and forced decisions.
+
+_returns_
+
+- `{ userContext, isLoading, error }` — Where `userContext` is an Optimizely `UserContext` object.
+
+```jsx
+import { useOptimizelyUserContext } from '@optimizely/react-sdk';
+
+function MyComponent() {
+  const { userContext } = useOptimizelyUserContext();
 
   const handleClick = () => {
-    if (clientReady) {
-      track('signup-clicked');
-    }
+    userContext?.trackEvent('button-clicked', { revenue: 100 });
+  };
+
+  return <button onClick={handleClick}>Click me</button>;
+}
+```
+
+### Event Tracking
+
+Use the `useOptimizelyUserContext` hook to track events:
+
+```jsx
+import { useOptimizelyUserContext } from '@optimizely/react-sdk';
+
+function SignupButton() {
+  const { userContext } = useOptimizelyUserContext();
+
+  const handleClick = () => {
+    userContext?.trackEvent('signup-clicked');
   };
 
   return <button onClick={handleClick}>Signup</button>;
 }
 ```
 
-Or you can use the `withOptimizely` HoC.
+### Forced Decisions
+
+Forced decisions are set on the `userContext` object:
 
 ```jsx
-import { withOptimizely } from '@optimizely/react-sdk';
+import { useOptimizelyUserContext } from '@optimizely/react-sdk';
 
-class SignupButton extends React.Component {
-  onClick = () => {
-    const { optimizely } = this.props;
-    optimizely.track('signup-clicked');
-    // rest of click handler
-  };
+function MyComponent() {
+  const { userContext } = useOptimizelyUserContext();
 
-  render() {
-    <button onClick={this.onClick}>Signup</button>;
-  }
+  // Set a forced decision
+  userContext?.setForcedDecision(
+    { flagKey: 'flag-1', ruleKey: 'rule-1' },
+    { variationKey: 'variation-a' }
+  );
+
+  // Remove a forced decision
+  userContext?.removeForcedDecision({ flagKey: 'flag-1', ruleKey: 'rule-1' });
+
+  // Remove all forced decisions
+  userContext?.removeAllForcedDecisions();
 }
-
-const WrappedSignupButton = withOptimizely(SignupButton);
 ```
 
-**_Note:_** As mentioned above, the `optimizely` client object provided via `withOptimizely` is automatically associated with the `user` prop passed to the ancestor `OptimizelyProvider.` There is no need to pass `userId` or `attributes` arguments when calling `track`, unless you wish to use _different_ `userId` or `attributes` than those given to `OptimizelyProvider`.
+Hooks that use the affected flag key automatically re-render when forced decisions change.
 
-## `ReactSDKClient`
+### Logging
 
-The following type definitions are used in the `ReactSDKClient` interface:
-
-- `UserAttributes : { [name: string]: any }`
-- `User : { id: string | null, attributes: userAttributes }`
-- `VariableValuesObject : { [key: string]: any }`
-- `EventTags : { [key: string]: string | number | boolean; }`
-
-`ReactSDKClient` instances have the methods/properties listed below. Note that in general, the API largely matches that of the core `@optimizely/optimizely-sdk` client instance, which is documented on the [Optimizely Feature Experimentation developer docs site](https://docs.developers.optimizely.com/experimentation/v4.0.0-full-stack/docs/welcome). The major exception is that, for most methods, user id & attributes are **_optional_** arguments. `ReactSDKClient` has a current user. This user's id & attributes are automatically applied to all method calls, and overrides can be provided as arguments to these method calls if desired.
-
-| Method / Property | Signature | Description |
-| --- | --- | --- |
-| `onReady` | `(opts?: { timeout?: number }): Promise<onReadyResult>` | Returns a Promise that fulfills with an `onReadyResult` object representing the initialization process. The instance is ready when it has fetched a datafile and a user is available (via `setUser` being called with an object, or a Promise passed to `setUser` becoming fulfilled). If the `timeout` period happens before the client instance is ready, the `onReadyResult` object will contain an additional key, `dataReadyPromise`, which can be used to determine when, if ever, the instance does become ready. |
-| `user` | `User` | The current user associated with this client instance. |
-| `setUser` | `(userInfo: User \| Promise<User>, qualifiedSegments?: string[]): Promise<void>` | Call this to update the current user. Optionally pass `qualifiedSegments` to set pre-fetched ODP audience segments on the user context. |
-| `onUserUpdate` | `(handler: (userInfo: User) => void): () => void` | Subscribe a callback to be called when this instance's current user changes. Returns a function that will unsubscribe the callback. |
-| `decide` | `(key: string, options?: OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: UserAttributes): OptimizelyDecision` | Returns a decision result for a flag key for a user. The decision result is returned in an `OptimizelyDecision` object, and contains all data required to deliver the flag rule. |
-| `decideAll` | `(options?: OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: UserAttributes): { [key: string]: OptimizelyDecision }` | Returns decisions for all active (unarchived) flags for a user. |
-| `decideForKeys` | `(keys: string[], options?: OptimizelyDecideOption[], overrideUserId?: string, overrideAttributes?: UserAttributes): { [key: string]: OptimizelyDecision }` | Returns an object of decision results mapped by flag keys. |
-| `activate` | `(experimentKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): string \| null` | Activate an experiment, and return the variation for the given user. |
-| `getVariation` | `(experimentKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): string \| null` | Return the variation for the given experiment and user. |
-| `getFeatureVariables` | `(featureKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): VariableValuesObject` | **Deprecated since 2.1.0.** Decide and return variable values for the given feature and user. Use `getAllFeatureVariables` instead. |
-| `getFeatureVariableString` | `(featureKey: string, variableKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): string \| null` | Decide and return the variable value for the given feature, variable, and user. |
-| `getFeatureVariableInteger` | `(featureKey: string, variableKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): number \| null` | Decide and return the variable value for the given feature, variable, and user. |
-| `getFeatureVariableBoolean` | `(featureKey: string, variableKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): boolean \| null` | Decide and return the variable value for the given feature, variable, and user. |
-| `getFeatureVariableDouble` | `(featureKey: string, variableKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): number \| null` | Decide and return the variable value for the given feature, variable, and user. |
-| `isFeatureEnabled` | `(featureKey: string, overrideUserId?: string, overrideAttributes?: UserAttributes): boolean` | Return the enabled status for the given feature and user. |
-| `getEnabledFeatures` | `(overrideUserId?: string, overrideAttributes?: UserAttributes): Array<string>` | Return the keys of all features enabled for the given user. |
-| `track` | `(eventKey: string, overrideUserId?: string \| EventTags, overrideAttributes?: UserAttributes, eventTags?: EventTags): void` | Track an event to the Optimizely results backend. |
-| `setForcedVariation` | `(experiment: string, overrideUserIdOrVariationKey: string, variationKey?: string \| null): boolean` | Set a forced variation for the given experiment, variation, and user. **Note:** triggers a re-render of all `useExperiment` hooks and `OptimizelyExperiment` components using that client. |
-| `getForcedVariation` | `(experiment: string, overrideUserId?: string): string \| null` | Get the forced variation for the given experiment, variation, and user. |
-
-## Rollout or experiment a feature user-by-user
-
-To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/feature-experimentation/docs/run-a-beta) using the React code samples.
-
-## Server Side Rendering
-
-The React SDK supports server-side rendering (SSR). Pre-fetch the datafile and pass it to `createInstance` so decisions are available synchronously. Server-side instances are short-lived (created per request), so configure them to avoid unnecessary background work:
+Logging is disabled by default. Pass a `logger` to `createInstance` to enable it:
 
 ```jsx
-import { createInstance, OptimizelyProvider, OptimizelyDecideOption, useDecision } from '@optimizely/react-sdk';
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+  createLogger,
+  DEBUG,
+} from '@optimizely/react-sdk';
 
-function App() {
+const optimizely = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey: 'your-sdk-key' }),
+  logger: createLogger({ logLevel: DEBUG }),
+});
+```
+
+Log level constants `DEBUG`, `INFO`, `WARN`, and `ERROR` are exported for convenience.
+
+## Server-Side Rendering
+
+The React SDK supports server-side rendering (SSR). A pre-fetched datafile is required for SSR — without one, the SDK cannot make decisions during server rendering.
+
+#### Per-request client
+
+Create a client inside the component with a pre-fetched datafile. Use `useState` with a lazy initializer to create the instance once. On the server, use `createStaticProjectConfigManager` with `disposable: true` so the instance can be garbage collected without explicitly calling `close()`. On the client, use `createPollingProjectConfigManager` to keep the datafile up to date.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import {
+  createInstance,
+  createStaticProjectConfigManager,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  OptimizelyProvider,
+  OptimizelyDecideOption,
+  useDecide,
+} from '@optimizely/react-sdk';
+
+export default function Page({ datafile, userId }) {
   const isServerSide = typeof window === 'undefined';
+
   const [optimizely] = useState(() =>
     createInstance({
-      datafile,
-      sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
-      datafileOptions: { autoUpdate: !isServerSide },
+      projectConfigManager: isServerSide
+        ? createStaticProjectConfigManager({ datafile })
+        : createPollingProjectConfigManager({
+            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+            datafile,
+          }),
+      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
       defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
-      odpOptions: {
-        disabled: isServerSide,
-      },
+      disposable: isServerSide,
     })
+  );
+
+  return (
+    <OptimizelyProvider client={optimizely} user={{ id: userId }}>
+      <MyComponent />
+    </OptimizelyProvider>
   );
 }
 
 function MyComponent() {
-  const [decision] = useDecision('flag1');
+  const { decision, isLoading } = useDecide('flag1');
+  if (isLoading) return null;
+  return decision.enabled ? <p>Feature enabled</p> : <p>Feature disabled</p>;
+}
+```
+
+#### Module-level client
+
+For a long-lived server process, create a singleton client at the module level with `createPollingProjectConfigManager`. The client fetches and polls for datafile updates in the background.
+
+Provide a datafile for immediate readiness. Without one, the server may render decisions once the initial fetch completes, but the client will not have the datafile yet (fetch still in-flight) and will render a loading or default state — causing a hydration mismatch.
+
+If an `eventProcessor` is configured on the server, use `DISABLE_DECISION_EVENT` to avoid firing duplicate decision events (the client will fire them after hydration).
+
+```jsx
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  OptimizelyProvider,
+  OptimizelyDecideOption,
+  useDecide,
+} from '@optimizely/react-sdk';
+
+const optimizely = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY,
+    datafile: preloadedDatafile,
+  }),
+  eventProcessor: createBatchEventProcessor(),
+  defaultDecideOptions: [OptimizelyDecideOption.DISABLE_DECISION_EVENT],
+});
+
+function MyComponent() {
+  const { decision, isLoading } = useDecide('flag1');
+  if (isLoading) return null;
   return decision.enabled ? <p>Feature enabled</p> : <p>Feature disabled</p>;
 }
 
-<OptimizelyProvider optimizely={optimizelyClient} user={{ id: 'user1' }} isServerSide={isServerSide}>
-  <MyComponent />
-</OptimizelyProvider>;
+function App() {
+  return (
+    <OptimizelyProvider client={optimizely} user={{ id: 'user1' }}>
+      <MyComponent />
+    </OptimizelyProvider>
+  );
+}
 ```
-
-| Option                       | Server value               | Why                                                                                              |
-| ---------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
-| `datafile`                   | Pre-fetched datafile JSON  | Provides the datafile directly so the SDK is ready synchronously to make decisions                |
-| `datafileOptions.autoUpdate` | `false`                    | No need to poll for datafile updates on a per-request instance                                   |
-| `defaultDecideOptions`       | `[DISABLE_DECISION_EVENT]` | avoids duplicate decision events if the client will also fire them after hydration  |
-| `odpOptions.disabled`        | `true`                     | Disables ODP event manager processing during SSR — avoids unnecessary event batching, API calls, and VUID tracking overhead |
-
-> **ODP audience segments during SSR:** Disabling ODP prevents automatic segment fetching, but you can still make audience-segment-based decisions by passing pre-fetched segments via the `qualifiedSegments` prop on `OptimizelyProvider`.
 
 ### `getQualifiedSegments`
 
@@ -459,41 +658,51 @@ A standalone async utility that fetches qualified ODP audience segments for a us
 ```ts
 import { getQualifiedSegments } from '@optimizely/react-sdk';
 
-const segments = await getQualifiedSegments(userId, datafile);
+const { segments, error } = await getQualifiedSegments(userId, datafile);
 ```
 
-| Argument   | Type                              | Description                                      |
-| ---------- | --------------------------------- | ------------------------------------------------ |
-| `userId`   | `string`                          | The user ID to fetch qualified segments for       |
-| `datafile` | `string \| Record<string, any>`   | The Optimizely datafile (JSON object or string)   |
+| Argument | Type | Description |
+| --- | --- | --- |
+| `userId` | `string` | The user ID to fetch qualified segments for |
+| `datafile` | `string \| Record<string, any>` | The Optimizely datafile (JSON object or string) |
 
-**Returns:** `Promise<string[] | null>` 
+**Returns:** `Promise<QualifiedSegmentsResult>` — `{ segments: string[], error: Error | null }`
 
 > **Caching recommendation:** The ODP segment fetch adds latency to server rendering. Consider caching the result per user to avoid re-fetching on every request.
 
-### React Server Components (v3.4.0+)
+Pass the pre-fetched segments to the Provider:
 
-Since version 3.4.0, the SDK can be used directly in React Server Components without `OptimizelyProvider`. Create an instance, set the user, wait for readiness, and make decisions — all within an `async` server component:
+```jsx
+<OptimizelyProvider
+  client={optimizely}
+  user={{ id: 'user-123' }}
+  qualifiedSegments={segments}
+  skipSegments={isServerSide}
+>
+  <App />
+</OptimizelyProvider>
+```
+
+### React Server Components
+
+The SDK provides a server-safe entry point via the `react-server` export condition. Frameworks that support this condition (e.g., Next.js App Router) automatically resolve `@optimizely/react-sdk` to the server entry point when importing from a Server Component. This entry point excludes hooks and Provider (which use client-only React APIs).
 
 ```tsx
-import { createInstance } from '@optimizely/react-sdk';
+import { createInstance, createStaticProjectConfigManager } from '@optimizely/react-sdk';
 
-export default async function ServerExperiment() {
+export default async function ServerComponent() {
   const client = createInstance({
-    sdkKey: process.env.OPTIMIZELY_SDK_KEY || '',
-  });
-
-  client.setUser({
-    id: 'user-123',
+    projectConfigManager: createStaticProjectConfigManager({ datafile }),
   });
 
   await client.onReady();
 
-  const decision = client.decide('flag-1');
+  const userContext = client.createUserContext('user-123');
+  const decision = userContext.decide('flag-key');
 
   client.close();
 
-  return decision.enabled ? <h1>Experiment Variation</h1> : <h1>Control</h1>;
+  return decision.enabled ? <NewFeature /> : <Default />;
 }
 ```
 
@@ -504,111 +713,84 @@ For detailed Next.js examples covering both App Router and Pages Router patterns
 ### Limitations
 
 - **Datafile required** — SSR requires a pre-fetched datafile. Using `sdkKey` alone falls back to a failed decision.
-- **User Promise not supported** — User `Promise` is not supported during SSR.
-- **ODP segments** — ODP audience segments require async I/O and are not available during server rendering. Use [`getQualifiedSegments`](#getqualifiedsegments) to pre-fetch segments server-side and pass them via the `qualifiedSegments` prop on `OptimizelyProvider` to enable synchronous ODP-based decisions. Without it, consider deferring the decision to the client using the fallback pattern.
+- **ODP segments** — ODP audience segments require async I/O and are not available during server rendering. Use [`getQualifiedSegments`](#getqualifiedsegments) to pre-fetch segments server-side and pass them via the `qualifiedSegments` prop on `OptimizelyProvider`.
 
 For more details and workarounds, see the [Next.js Integration Guide — Limitations](docs/nextjs-integration.md#limitations).
 
-## Disabled event dispatcher
+## Migrating from v3
 
-To disable sending all events to Optimizely's results backend, use the `logOnlyEventDispatcher` when creating a client:
+For a comprehensive migration guide covering all breaking changes, see [MIGRATION.md](./MIGRATION.md).
 
-```js
-import { createInstance, logOnlyEventDispatcher } from '@optimizely/react-sdk';
+## Rollout or Experiment a Feature User-by-User
 
-const optimizely = createInstance({
-  datafile: window.optimizelyDatafile,
-  eventDispatcher: logOnlyEventDispatcher,
-});
-```
+To rollout or experiment on a feature by user rather than by random percentage, you will use Attributes and Audiences. To do this, follow the documentation on how to [run a beta](https://docs.developers.optimizely.com/feature-experimentation/docs/run-a-beta) using the React code samples.
 
-### Additional code
+## Additional Code
 
 This repository includes the following third party open source code:
 
-[**hoist-non-react-statics**](https://github.com/mridgway/hoist-non-react-statics)
-Copyright &copy; 2015 Yahoo!, Inc.
-License: [BSD](https://github.com/mridgway/hoist-non-react-statics/blob/master/LICENSE.md)
+[**decompress-response**](https://github.com/sindresorhus/decompress-response)
+Copyright &copy; Sindre Sorhus
+License: [MIT](https://github.com/sindresorhus/decompress-response/blob/main/license)
 
 [**js-tokens**](https://github.com/lydell/js-tokens)
-Copyright &copy; 2014, 2015, 2016, 2017, 2018, 2019 Simon Lydell
+Copyright &copy; Simon Lydell
 License: [MIT](https://github.com/lydell/js-tokens/blob/master/LICENSE)
 
 [**json-schema**](https://github.com/kriszyp/json-schema)
-Copyright &copy; 2005-2015, The Dojo Foundation
-License: [BSD](https://github.com/kriszyp/json-schema/blob/master/LICENSE)
-
-[**lodash**](https://github.com/lodash/lodash/)
-Copyright &copy; JS Foundation and other contributors
-License: [MIT](https://github.com/lodash/lodash/blob/master/LICENSE)
+Copyright &copy; Kris Zyp
+License: [AFL-2.1 OR BSD-3-Clause](https://github.com/kriszyp/json-schema/blob/master/LICENSE)
 
 [**loose-envify**](https://github.com/zertosh/loose-envify)
-Copyright &copy; 2015 Andres Suarez <zertosh@gmail.com>
+Copyright &copy; Andres Suarez
 License: [MIT](https://github.com/zertosh/loose-envify/blob/master/LICENSE)
 
-[**node-murmurhash**](https://github.com/perezd/node-murmurhash)
-Copyright &copy; 2012 Gary Court, Derek Perez
+[**mimic-response**](https://github.com/sindresorhus/mimic-response)
+Copyright &copy; Sindre Sorhus
+License: [MIT](https://github.com/sindresorhus/mimic-response/blob/main/license)
+
+[**murmurhash**](https://github.com/perezd/node-murmurhash)
 License: [MIT](https://github.com/perezd/node-murmurhash/blob/master/README.md)
 
-[**object-assign**](https://github.com/sindresorhus/object-assign)
-Copyright &copy; Sindre Sorhus (sindresorhus.com)
-License: [MIT](https://github.com/sindresorhus/object-assign/blob/master/license)
-
-[**promise-polyfill**](https://github.com/taylorhakes/promise-polyfill)
-Copyright &copy; 2014 Taylor Hakes
-Copyright &copy; 2014 Forbes Lindesay
-License: [MIT](https://github.com/taylorhakes/promise-polyfill/blob/master/LICENSE)
-
-[**react-is**](https://github.com/facebook/react)
-Copyright &copy; Facebook, Inc. and its affiliates.
-License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
-
 [**react**](https://github.com/facebook/react)
-Copyright &copy; Facebook, Inc. and its affiliates.
-License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
+Copyright &copy; Meta Platforms, Inc. and affiliates.
+License: [MIT](https://github.com/facebook/react/blob/main/LICENSE)
 
-[**scheduler**](https://github.com/facebook/react)
-Copyright &copy; Facebook, Inc. and its affiliates.
-License: [MIT](https://github.com/facebook/react/blob/master/LICENSE)
+[**tslib**](https://github.com/Microsoft/tslib)
+Copyright &copy; Microsoft Corp.
+License: [0BSD](https://github.com/nicolo-ribaudo/tslib/blob/main/LICENSE.txt)
 
-[**node-uuid**](https://github.com/kelektiv/node-uuid)
-Copyright &copy; 2010-2016 Robert Kieffer and other contributors
-License: [MIT](https://github.com/kelektiv/node-uuid/blob/master/LICENSE.md)
+[**use-sync-external-store**](https://github.com/facebook/react)
+Copyright &copy; Meta Platforms, Inc. and affiliates.
+License: [MIT](https://github.com/facebook/react/blob/main/LICENSE)
 
-To regenerate the dependencies use by this package, run the following command:
+[**uuid**](https://github.com/uuidjs/uuid)
+License: [MIT](https://github.com/uuidjs/uuid/blob/main/LICENSE.md)
+
+To regenerate the dependencies used by this package, run the following command:
 
 ```sh
 npx license-checker --production --json | jq 'map_values({ licenses, publisher, repository }) | del(.[][] | nulls)'
 ```
 
-### Contributing
+## Contributing
 
 Please see [CONTRIBUTING](./CONTRIBUTING.md) for more information.
 
-### Credits
+## Credits
 
 First-party code subject to copyrights held by Optimizely, Inc. and its contributors and licensed to you under the terms of the Apache 2.0 license.
 
-### Other Optimizely SDKs
+## Other Optimizely SDKs
 
 - Agent - https://github.com/optimizely/agent
-
 - Android - https://github.com/optimizely/android-sdk
-
 - C# - https://github.com/optimizely/csharp-sdk
-
 - Flutter - https://github.com/optimizely/optimizely-flutter-sdk
-
 - Go - https://github.com/optimizely/go-sdk
-
 - Java - https://github.com/optimizely/java-sdk
-
 - JavaScript - https://github.com/optimizely/javascript-sdk
-
 - PHP - https://github.com/optimizely/php-sdk
-
 - Python - https://github.com/optimizely/python-sdk
-
 - Ruby - https://github.com/optimizely/ruby-sdk
-
 - Swift - https://github.com/optimizely/swift-sdk
