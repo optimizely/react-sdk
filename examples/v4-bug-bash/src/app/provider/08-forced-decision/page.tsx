@@ -3,19 +3,20 @@
 import { useState } from 'react';
 import { OptimizelyProvider, useDecide, useOptimizelyUserContext } from '@optimizely/react-sdk';
 import { createBasicStaticClient } from '@/lib/clients';
-import { BASIC_DATAFILE } from '@/lib/datafiles';
-import { BASIC_FLAGS } from '@/lib/config';
+import { ODP_DATAFILE } from '@/lib/datafiles';
+import { ODP_FLAGS } from '@/lib/config';
 import { DecisionDisplay } from '@/components/DecisionDisplay';
 import { ScenarioLayout } from '@/components/ScenarioLayout';
 
-const FLAG_KEY = BASIC_FLAGS.flag1;
+const FLAG_KEY = ODP_FLAGS.flag1;
+const FORCED_VARIATION = 'variation_a';
 
 function ForcedDecisionControls() {
   const { decision, isLoading, error } = useDecide(FLAG_KEY);
   const { userContext } = useOptimizelyUserContext();
 
   const handleSetForced = () => {
-    userContext?.setForcedDecision({ flagKey: FLAG_KEY }, { variationKey: 'forced_var' });
+    userContext?.setForcedDecision({ flagKey: FLAG_KEY }, { variationKey: FORCED_VARIATION });
   };
 
   const handleRemoveForced = () => {
@@ -45,12 +46,12 @@ function ForcedDecisionControls() {
 }
 
 export default function Page() {
-  const [client] = useState(() => createBasicStaticClient(BASIC_DATAFILE));
+  const [client] = useState(() => createBasicStaticClient(ODP_DATAFILE));
 
   return (
     <ScenarioLayout
       title="08 — Forced Decisions"
-      description="Interactive forced decision testing. Use buttons to set/remove forced decisions and watch the decision update reactively."
+      description="Interactive forced decision testing. Uses ODP flag1 (has variation_a and variation_b). Buttons set/remove forced decisions reactively."
     >
       <OptimizelyProvider client={client} user={{ id: 'user-08' }}>
         <ForcedDecisionControls />

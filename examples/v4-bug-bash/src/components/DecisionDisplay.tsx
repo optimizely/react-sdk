@@ -1,5 +1,6 @@
 'use client';
 
+import { useRef } from 'react';
 import type { OptimizelyDecision } from '@optimizely/react-sdk';
 
 interface DecisionDisplayProps {
@@ -9,9 +10,23 @@ interface DecisionDisplayProps {
   error: Error | null;
 }
 
+const isStrictMode = process.env.NEXT_PUBLIC_STRICT_MODE === 'true';
+
 export function DecisionDisplay({ prefix, decision, isLoading, error }: DecisionDisplayProps) {
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
   return (
     <div className="decision-display">
+      {isStrictMode ? (
+        <div data-testid={`${prefix}-render-count`} suppressHydrationWarning>
+          <strong>Render Count:</strong> {renderCount.current} (StrictMode — counts doubled)
+        </div>
+      ) : (
+        <div data-testid={`${prefix}-render-count`}>
+          <strong>Render Count:</strong> {renderCount.current}
+        </div>
+      )}
       <div data-testid={`${prefix}-loading`}>
         <strong>Loading:</strong> {String(isLoading)}
       </div>
