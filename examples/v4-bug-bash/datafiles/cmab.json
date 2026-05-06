@@ -1,10 +1,12 @@
 {
   "accountId": "5935064",
-  "projectId": "6284249284739072",
-  "revision": "13",
+  "projectId": "6340528984293376",
+  "revision": "5",
   "attributes": [
-    { "id": "5546322279792640", "key": "hello" },
-    { "id": "5774061125500928", "key": "world" }
+    {
+      "id": "5590093809844224",
+      "key": "hello"
+    }
   ],
   "audiences": [
     {
@@ -14,7 +16,13 @@
     }
   ],
   "version": "4",
-  "events": [{ "id": "5877955092545536", "experimentIds": [], "key": "cmab_event" }],
+  "events": [
+    {
+      "id": "4747705935724544",
+      "experimentIds": ["9300003150780"],
+      "key": "cmab_event"
+    }
+  ],
   "integrations": [],
   "holdouts": [],
   "anonymizeIP": false,
@@ -22,49 +30,76 @@
   "typedAudiences": [],
   "variables": [],
   "environmentKey": "production",
-  "sdkKey": "M2FtWzpByUB8aQE7jos8w",
+  "sdkKey": "HCW7G8mLmQBQq9wZNdiwL",
   "featureFlags": [
     {
-      "id": "482845",
+      "id": "547166",
       "key": "cmab_test",
-      "rolloutId": "rollout-482845-421760959159346",
-      "experimentIds": ["9300002824535"],
+      "rolloutId": "rollout-547166-381778091544692",
+      "experimentIds": ["9300003150780"],
       "variables": []
     }
   ],
   "rollouts": [
     {
-      "id": "rollout-482845-421760959159346",
+      "id": "rollout-547166-381778091544692",
       "experiments": [
         {
-          "id": "default-rollout-482845-421760959159346",
-          "key": "default-rollout-482845-421760959159346",
+          "id": "default-rollout-547166-381778091544692",
+          "key": "default-rollout-547166-381778091544692",
           "status": "Running",
-          "layerId": "rollout-482845-421760959159346",
-          "variations": [{ "id": "1532762", "key": "off", "featureEnabled": false, "variables": [] }],
-          "trafficAllocation": [{ "entityId": "1532762", "endOfRange": 10000 }],
+          "layerId": "rollout-547166-381778091544692",
+          "variations": [
+            {
+              "id": "1728969",
+              "key": "off",
+              "featureEnabled": false,
+              "variables": []
+            }
+          ],
+          "trafficAllocation": [
+            {
+              "entityId": "1728969",
+              "endOfRange": 10000
+            }
+          ],
           "forcedVariations": {},
           "audienceIds": [],
-          "audienceConditions": []
+          "audienceConditions": [],
+          "type": "td"
         }
       ]
     }
   ],
   "experiments": [
     {
-      "id": "9300002824535",
-      "key": "cmab_rule_4",
+      "id": "9300003150780",
+      "key": "cmab_rule_1",
       "status": "Running",
-      "layerId": "9300002078821",
+      "layerId": "9300002402518",
       "variations": [
-        { "id": "1532762", "key": "off", "featureEnabled": false, "variables": [] },
-        { "id": "1532763", "key": "on", "featureEnabled": true, "variables": [] }
+        {
+          "id": "1728970",
+          "key": "on",
+          "featureEnabled": true,
+          "variables": []
+        },
+        {
+          "id": "1728969",
+          "key": "off",
+          "featureEnabled": false,
+          "variables": []
+        }
       ],
       "trafficAllocation": [],
       "forcedVariations": {},
       "audienceIds": [],
       "audienceConditions": [],
-      "cmab": { "attributeIds": ["5546322279792640", "5774061125500928"], "trafficAllocation": 10000 }
+      "type": "cmab",
+      "cmab": {
+        "attributeIds": ["5590093809844224"],
+        "trafficAllocation": 10000
+      }
     }
   ],
   "groups": [],

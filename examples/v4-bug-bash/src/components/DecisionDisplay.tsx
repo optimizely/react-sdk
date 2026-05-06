@@ -57,14 +57,14 @@ export function DecisionDisplay({ prefix, decision, isLoading, error }: Decision
             <strong>Variables:</strong> <pre>{JSON.stringify(decision.variables, null, 2)}</pre>
           </div>
 
-          <div data-testid={`${prefix}-reasons`}>
-            <strong>Reasons:</strong>
+          <details data-testid={`${prefix}-reasons`}>
+            <summary><strong>Reasons ({decision.reasons.length})</strong></summary>
             <ul>
               {decision.reasons.map((reason, i) => (
                 <li key={i}>{reason}</li>
               ))}
             </ul>
-          </div>
+          </details>
         </>
       )}
     </div>

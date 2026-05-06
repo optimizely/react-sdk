@@ -9,7 +9,7 @@ import { DecisionDisplay } from '@/components/DecisionDisplay';
 import { ScenarioLayout } from '@/components/ScenarioLayout';
 
 function Decision() {
-  const { decision, isLoading, error } = useDecideAsync(CMAB_FLAGS.cmabTest);
+  const { decision, isLoading, error } = useDecideAsync('cmab_test');
   return <DecisionDisplay prefix="decision" decision={decision} isLoading={isLoading} error={error} />;
 }
 

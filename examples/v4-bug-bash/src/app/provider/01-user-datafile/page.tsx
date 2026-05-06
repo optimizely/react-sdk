@@ -10,7 +10,6 @@ import { ScenarioLayout } from '@/components/ScenarioLayout';
 
 function Decision() {
   const { decision, isLoading, error } = useDecide(BASIC_FLAGS.flag1);
-  console.log('[REACTTTT render check', { decision, isLoading, error });
   return <DecisionDisplay prefix="decision" decision={decision} isLoading={isLoading} error={error} />;
 }
 

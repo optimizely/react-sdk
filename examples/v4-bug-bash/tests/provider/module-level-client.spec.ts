@@ -19,4 +19,14 @@ test.describe('09 — Module-Level Client', () => {
       await expect(page.getByTestId('decision-render-count')).toContainText('Render Count: 1');
     }
   });
+
+  test('module-level client persists across navigations', async ({ page }) => {
+    await page.goto('/provider/09-module-level-client');
+
+    await expect(page.getByTestId('module-create-count')).toContainText('Module Create Count: 1');
+
+    // Navigate away to a different page
+    await page.goto('/provider/10-component-level-client');
+    await expect(page.getByTestId('decision-enabled')).toBeVisible();
+  });
 });
