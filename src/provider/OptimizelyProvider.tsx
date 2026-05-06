@@ -38,6 +38,7 @@ export function OptimizelyProvider({
   const storeRef = useRef<ProviderStateStore | null>(null);
   const userManagerRef = useRef<UserContextManager | null>(null);
   const prevClientRef = useRef<Client>();
+  const hadConfigAtRender = useMemo(() => !!client?.getOptimizelyConfig(), [client]);
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
@@ -98,7 +99,7 @@ export function OptimizelyProvider({
     client
       .onReady({ timeout })
       .then(() => {
-        if (!isMounted || configReceived) return;
+        if (!isMounted || configReceived || hadConfigAtRender) return;
         store.refresh();
       })
       .catch((error) => {
@@ -111,7 +112,7 @@ export function OptimizelyProvider({
       isMounted = false;
       client.notificationCenter.removeNotificationListener(listenerId);
     };
-  }, [client, timeout, store]);
+  }, [client, timeout, store, hadConfigAtRender]);
 
   return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
 }
