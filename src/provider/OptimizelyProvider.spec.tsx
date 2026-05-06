@@ -228,7 +228,7 @@ describe('OptimizelyProvider', () => {
   });
 
   describe('cleanup', () => {
-    it('should not reset store on unmount (store is GCd with component tree)', async () => {
+    it('should not reset store on unmount (store becomes unreachable to React tree)', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -246,10 +246,11 @@ describe('OptimizelyProvider', () => {
 
       unmount();
 
-      // Store state is preserved — on real unmount, the store is
-      // garbage collected with the component tree. Eagerly resetting
-      // breaks React 18+ StrictMode (effect cleanup destroys state
-      // that the render body set, and no re-render restores it).
+      // Store state is preserved — on real unmount, the store becomes
+      // unreachable to the React tree. Eagerly resetting breaks React
+      // 18+ StrictMode (effect cleanup destroys state that the render
+      // body set, and no re-render restores it).
+      expect(store.getState().userContext).not.toBeNull();
       expect(store.getState().error).toBeNull();
     });
   });
@@ -409,7 +410,7 @@ describe('OptimizelyProvider', () => {
       unmount();
 
       // Store state is preserved after unmount — no eager reset.
-      // The store is garbage collected with the component tree.
+      // The store becomes unreachable to the React tree.
       expect(capturedContext!.store.getState().userContext).not.toBeNull();
     });
 
