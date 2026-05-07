@@ -21,23 +21,7 @@ export default async function Page() {
     <ScenarioLayout
       title="React Server Component"
       description="Pure async server component — decision is made entirely on the server. No client-side React JS needed for this component. Imports resolve via the react-server export condition."
-      code={`// Pure server component — no client JS needed
-export default async function Page() {
-  const client = createInstance({
-    projectConfigManager: createStaticProjectConfigManager({ datafile }),
-    disposable: true,
-    defaultDecideOptions: [OptimizelyDecideOption.DISABLE_DECISION_EVENT],
-  });
-
-  await client.onReady();
-
-  const userContext = client.createUserContext('user-rsc');
-  const decision = userContext.decide('flag_1');
-
-  await client.close();
-
-  return <div>{String(decision.enabled)}</div>;
-}`}
+      code={CODE_SNIPPET}
     >
       <div>
         <div data-testid="decision-enabled">
@@ -68,3 +52,21 @@ export default async function Page() {
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Pure server component — no client JS needed
+export default async function Page() {
+  const client = createInstance({
+    projectConfigManager: createStaticProjectConfigManager({ datafile }),
+    disposable: true,
+    defaultDecideOptions: [OptimizelyDecideOption.DISABLE_DECISION_EVENT],
+  });
+
+  await client.onReady();
+
+  const userContext = client.createUserContext('user-rsc');
+  const decision = userContext.decide('flag_1');
+
+  await client.close();
+
+  return <div>{String(decision.enabled)}</div>;
+}`;

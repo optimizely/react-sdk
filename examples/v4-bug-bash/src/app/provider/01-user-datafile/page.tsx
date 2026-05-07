@@ -17,9 +17,18 @@ export default function Page() {
   const [client] = useState(() => createBasicStaticClient(BASIC_DATAFILE));
   return (
     <ScenarioLayout
-      title="01 — User + Datafile"
+      title="01 — Datafile"
       description="Static datafile, no SDK key. Decision should be available immediately with no loading state."
-      code={`// Client creation
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-01' }}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Client creation
 const client = createInstance({
   projectConfigManager: createStaticProjectConfigManager({ datafile }),
   defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
@@ -28,11 +37,4 @@ const client = createInstance({
 // Provider + decision
 <OptimizelyProvider client={client} user={{ id: 'user-01' }}>
   <Decision />  // uses useDecide('flag_1')
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-01' }}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

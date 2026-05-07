@@ -21,7 +21,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideForKeysAsync"
       description="Async multi-flag decision with CMAB project. Shows loading then resolves with a decisions map for the specified flag keys."
-      code={`// Hook usage — async multi-flag decision
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-hook-for-keys-async' }}>
+        <Decisions />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Hook usage — async multi-flag decision
 const flagKeys = ['cmab_test'];
 const { decisions, isLoading, error } = useDecideForKeysAsync(flagKeys);
 
@@ -31,11 +40,4 @@ const client = createInstance({
   eventProcessor: createBatchEventProcessor(),
   cmab: { cacheSize: 100, cacheTtl: 600 },
   defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
-});`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-hook-for-keys-async' }}>
-        <Decisions />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+});`;

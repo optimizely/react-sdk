@@ -66,9 +66,9 @@ Playwright auto-starts the dev server on port 3111 before running tests.
 
 | # | Scenario | Key Behavior |
 |---|----------|-------------|
-| 01 | User + Datafile | Static datafile, immediate decision |
-| 02 | User + Datafile + SDK Key | Polling with pre-loaded datafile |
-| 03 | User + SDK Key Only | Loading state, then decision after fetch |
+| 01 | Datafile | Static datafile, immediate decision |
+| 02 | Datafile + SDK Key | Polling with pre-loaded datafile |
+| 03 | SDK Key + Holdout | Loading state, then decision after fetch |
 | 04 | ODP Skip Segments | ODP with `skipSegments=true` |
 | 05 | ODP Qualified Segments | Pre-provided `qualifiedSegments` |
 | 06 | ODP Fetch Segments | ODP segment fetch with loading state |

@@ -20,15 +20,7 @@ export default function Page() {
     <ScenarioLayout
       title="10 — Component-Level Client"
       description="Client created inside the component via useState initializer. Verifies that component-scoped clients work correctly and survive re-renders."
-      code={`// Client created inside component — stable across re-renders
-const [client] = useState(() => createInstance({
-  projectConfigManager: createStaticProjectConfigManager({ datafile }),
-  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
-}));
-
-<OptimizelyProvider client={client} user={{ id: 'user-10' }}>
-  <Decision />  // uses useDecide('flag_1')
-</OptimizelyProvider>`}
+      code={CODE_SNIPPET}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-10' }}>
         <Decision />
@@ -36,3 +28,13 @@ const [client] = useState(() => createInstance({
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Client created inside component — stable across re-renders
+const [client] = useState(() => createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+}));
+
+<OptimizelyProvider client={client} user={{ id: 'user-10' }}>
+  <Decision />  // uses useDecide('flag_1')
+</OptimizelyProvider>`;

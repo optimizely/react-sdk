@@ -55,15 +55,7 @@ export default function Page() {
     <ScenarioLayout
       title="useOptimizelyUserContext"
       description="Returns the current OptimizelyUserContext. Displays user ID and attributes. Button calls trackEvent to verify event dispatch."
-      code={`// Hook usage — get user context
-const { userContext, isLoading, error } = useOptimizelyUserContext();
-
-// Access user properties
-userContext.getUserId()
-userContext.getAttributes()
-
-// Track events
-userContext.trackEvent('event_1', { value: 42 });`}
+      code={CODE_SNIPPET}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-context', attributes: { plan: 'premium' } }}>
         <UserContextInfo />
@@ -71,3 +63,13 @@ userContext.trackEvent('event_1', { value: 42 });`}
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Hook usage — get user context
+const { userContext, isLoading, error } = useOptimizelyUserContext();
+
+// Access user properties
+userContext.getUserId()
+userContext.getAttributes()
+
+// Track events
+userContext.trackEvent('event_1', { value: 42 });`;

@@ -19,7 +19,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideAsync (CMAB)"
       description="Async decision with Contextual Multi-Armed Bandit. Shows loading while the CMAB prediction is fetched, then renders the decision."
-      code={`// Hook usage — async decision
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-hook-cmab' }}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Hook usage — async decision
 const { decision, isLoading, error } = useDecideAsync('cmab_test');
 
 // Client — CMAB enabled
@@ -28,11 +37,4 @@ const client = createInstance({
   eventProcessor: createBatchEventProcessor(),
   cmab: { cacheSize: 100, cacheTtl: 600 },
   defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
-});`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-hook-cmab' }}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+});`;

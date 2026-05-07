@@ -19,14 +19,7 @@ export default function Page() {
     <ScenarioLayout
       title="useDecide (Holdout)"
       description="Tests useDecide with a flag that is part of a holdout group. The decision should reflect holdout exclusion when applicable."
-      code={`// Hook usage — flag_2 is in a holdout group
-const { decision, isLoading, error } = useDecide('flag_2');
-
-// Client — static datafile
-const client = createInstance({
-  projectConfigManager: createStaticProjectConfigManager({ datafile }),
-  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
-});`}
+      code={CODE_SNIPPET}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-holdout' }}>
         <Decision />
@@ -34,3 +27,12 @@ const client = createInstance({
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Hook usage — flag_2 is in a holdout group
+const { decision, isLoading, error } = useDecide('flag_2');
+
+// Client — static datafile
+const client = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});`;

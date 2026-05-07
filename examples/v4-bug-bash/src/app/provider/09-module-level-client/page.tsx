@@ -27,7 +27,16 @@ export default function Page() {
     <ScenarioLayout
       title="09 — Module-Level Client"
       description="Client created at module scope (top-level const). Verifies that module-scoped clients work with the provider and persist across navigations."
-      code={`// Client created at module scope (outside component)
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-09' }}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Client created at module scope (outside component)
 const client = createInstance({
   projectConfigManager: createStaticProjectConfigManager({ datafile }),
   defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
@@ -36,11 +45,4 @@ const client = createInstance({
 // Provider uses the module-level client
 <OptimizelyProvider client={client} user={{ id: 'user-09' }}>
   <Decision />  // uses useDecide('flag_1')
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-09' }}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

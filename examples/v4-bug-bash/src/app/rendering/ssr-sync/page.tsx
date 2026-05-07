@@ -7,7 +7,14 @@ export default function Page() {
     <ScenarioLayout
       title="SSR Sync"
       description="Server component passes pre-fetched datafile to client component. Decision is available immediately during SSR — no loading state in server HTML. Disable JS in browser to verify."
-      code={`// Server component passes datafile to client component
+      code={CODE_SNIPPET}
+    >
+      <SsrSyncClient datafile={BASIC_DATAFILE} />
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Server component passes datafile to client component
 export default function Page() {
   return <SsrSyncClient datafile={BASIC_DATAFILE} />;
 }
@@ -24,9 +31,4 @@ function SsrSyncClient({ datafile }) {
       <Decision />  // uses useDecide('flag_1')
     </OptimizelyProvider>
   );
-}`}
-    >
-      <SsrSyncClient datafile={BASIC_DATAFILE} />
-    </ScenarioLayout>
-  );
-}
+}`;

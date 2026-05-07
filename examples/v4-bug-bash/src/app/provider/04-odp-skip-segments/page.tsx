@@ -20,7 +20,16 @@ export default function Page() {
     <ScenarioLayout
       title="04 — ODP Skip Segments"
       description="ODP client with skipSegments=true. Decision should be available immediately without waiting for segment fetch."
-      code={`// Client creation — ODP enabled
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-04' }} skipSegments={true}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Client creation — ODP enabled
 const client = createInstance({
   projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
   eventProcessor: createBatchEventProcessor(),
@@ -31,11 +40,4 @@ const client = createInstance({
 // Provider with skipSegments — no ODP segment fetch
 <OptimizelyProvider client={client} user={{ id: 'user-04' }} skipSegments={true}>
   <Decision />  // uses useDecide('flag1')
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-04' }} skipSegments={true}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

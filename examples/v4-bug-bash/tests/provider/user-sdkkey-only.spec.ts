@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const isStrictMode = process.env.NEXT_PUBLIC_STRICT_MODE === 'true';
 
-test.describe('03 — User + SDK Key Only', () => {
+test.describe('03 — SDK Key + Holdout', () => {
   test('shows loading then resolves to decision after datafile fetch', async ({ page }) => {
     await page.goto('/provider/03-user-sdkkey-only');
 

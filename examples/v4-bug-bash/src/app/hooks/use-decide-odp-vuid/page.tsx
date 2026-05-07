@@ -19,7 +19,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecide (ODP + VUID)"
       description="ODP with VUID enabled and no user ID. The SDK generates a VUID for anonymous identification and uses it for the decision."
-      code={`// Hook usage
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Hook usage
 const { decision, isLoading, error } = useDecide('flag1');
 
 // Client — ODP with VUID enabled
@@ -34,11 +43,4 @@ const client = createInstance({
 // No user prop — SDK uses VUID for anonymous identification
 <OptimizelyProvider client={client}>
   <Decision />
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

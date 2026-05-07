@@ -19,7 +19,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecide (ODP, no VUID)"
       description="ODP without VUID. User ID is provided, segments are fetched from ODP. Shows loading then decision after segment fetch completes."
-      code={`// Hook usage
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'user-hook-odp-no-vuid' }}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Hook usage
 const { decision, isLoading, error } = useDecide('flag1');
 
 // Client — ODP without VUID
@@ -33,11 +42,4 @@ const client = createInstance({
 // User ID provided — segments fetched from ODP
 <OptimizelyProvider client={client} user={{ id: 'user-hook-odp-no-vuid' }}>
   <Decision />
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'user-hook-odp-no-vuid' }}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

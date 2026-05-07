@@ -21,13 +21,7 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideForKeys"
       description="Decides multiple flags by key. Returns { decisions, isLoading, error } where decisions is a Record<string, OptimizelyDecision>."
-      code={`// Hook usage — multiple flag keys
-const flagKeys = ['flag_1', 'flag_2'];
-const { decisions, isLoading, error } = useDecideForKeys(flagKeys);
-
-// decisions is Record<string, OptimizelyDecision>
-// decisions['flag_1'].enabled
-// decisions['flag_2'].variationKey`}
+      code={CODE_SNIPPET}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-for-keys' }}>
         <Decisions />
@@ -35,3 +29,11 @@ const { decisions, isLoading, error } = useDecideForKeys(flagKeys);
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Hook usage — multiple flag keys
+const flagKeys = ['flag_1', 'flag_2'];
+const { decisions, isLoading, error } = useDecideForKeys(flagKeys);
+
+// decisions is Record<string, OptimizelyDecision>
+// decisions['flag_1'].enabled
+// decisions['flag_2'].variationKey`;

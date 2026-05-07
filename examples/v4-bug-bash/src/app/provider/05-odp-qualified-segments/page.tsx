@@ -22,7 +22,16 @@ export default function Page() {
     <ScenarioLayout
       title="05 — ODP Qualified Segments"
       description="ODP client with pre-provided qualifiedSegments. Decision should be available immediately since segments are pre-provided."
-      code={`// Client creation — ODP enabled
+      code={CODE_SNIPPET}
+    >
+      <OptimizelyProvider client={client} user={{ id: 'fs-user-id' }} qualifiedSegments={[]}>
+        <Decision />
+      </OptimizelyProvider>
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Client creation — ODP enabled
 const client = createInstance({
   projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
   eventProcessor: createBatchEventProcessor(),
@@ -33,11 +42,4 @@ const client = createInstance({
 // Provider with pre-provided qualifiedSegments — skips ODP fetch
 <OptimizelyProvider client={client} user={{ id: 'fs-user-id' }} qualifiedSegments={[]}>
   <Decision />  // uses useDecide('flag1')
-</OptimizelyProvider>`}
-    >
-      <OptimizelyProvider client={client} user={{ id: 'fs-user-id' }} qualifiedSegments={[]}>
-        <Decision />
-      </OptimizelyProvider>
-    </ScenarioLayout>
-  );
-}
+</OptimizelyProvider>`;

@@ -20,21 +20,7 @@ export default function Page() {
     <ScenarioLayout
       title="07 — Multiple Providers"
       description="Two OptimizelyProvider wrappers sharing the same client. Provider A gets normal rollout, Provider B is held out."
-      code={`// Same client shared by both providers
-const client = createInstance({
-  projectConfigManager: createStaticProjectConfigManager({ datafile }),
-  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
-});
-
-// Provider A — normal user gets rollout
-<OptimizelyProvider client={client} user={{ id: 'user-07-a' }}>
-  <Decision />  // useDecide('flag_1') → var_1, enabled
-</OptimizelyProvider>
-
-// Provider B — holdout user is held out
-<OptimizelyProvider client={client} user={{ id: 'user-12', attributes: { ho: 4 } }}>
-  <Decision />  // useDecide('flag_1') → off, disabled
-</OptimizelyProvider>`}
+      code={CODE_SNIPPET}
     >
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div>
@@ -53,3 +39,19 @@ const client = createInstance({
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Same client shared by both providers
+const client = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// Provider A — normal user gets rollout
+<OptimizelyProvider client={client} user={{ id: 'user-07-a' }}>
+  <Decision />  // useDecide('flag_1') → var_1, enabled
+</OptimizelyProvider>
+
+// Provider B — holdout user is held out
+<OptimizelyProvider client={client} user={{ id: 'user-12', attributes: { ho: 4 } }}>
+  <Decision />  // useDecide('flag_1') → off, disabled
+</OptimizelyProvider>`;

@@ -6,7 +6,14 @@ export default function Page() {
     <ScenarioLayout
       title="SSR Async"
       description="Client component with sdkKey only — no datafile at SSR time. Server HTML shows loading state; client hydrates and replaces with real decision after datafile is fetched."
-      code={`// Client component — no datafile, fetches via sdkKey
+      code={CODE_SNIPPET}
+    >
+      <SsrAsyncClient />
+    </ScenarioLayout>
+  );
+}
+
+const CODE_SNIPPET = `// Client component — no datafile, fetches via sdkKey
 function SsrAsyncClient() {
   const [client] = useState(() => createInstance({
     projectConfigManager: createPollingProjectConfigManager({ sdkKey }),
@@ -20,9 +27,4 @@ function SsrAsyncClient() {
     </OptimizelyProvider>
   );
 }
-// Server HTML shows loading → hydration fetches datafile → decision renders`}
-    >
-      <SsrAsyncClient />
-    </ScenarioLayout>
-  );
-}
+// Server HTML shows loading → hydration fetches datafile → decision renders`;

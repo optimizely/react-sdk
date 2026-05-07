@@ -45,14 +45,7 @@ export default function Page() {
     <ScenarioLayout
       title="useOptimizelyClient"
       description="Returns the Optimizely Client instance from the nearest provider. Displays getOptimizelyConfig() result including revision, SDK key, and feature map."
-      code={`// Hook usage — get client instance
-const client = useOptimizelyClient();
-const config = client.getOptimizelyConfig();
-
-// Access config properties
-config.revision
-config.sdkKey
-config.featuresMap  // Record<string, FeatureVariable[]>`}
+      code={CODE_SNIPPET}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-client' }}>
         <ClientInfo />
@@ -60,3 +53,12 @@ config.featuresMap  // Record<string, FeatureVariable[]>`}
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Hook usage — get client instance
+const client = useOptimizelyClient();
+const config = client.getOptimizelyConfig();
+
+// Access config properties
+config.revision
+config.sdkKey
+config.featuresMap  // Record<string, FeatureVariable[]>`;

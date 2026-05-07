@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 const isStrictMode = process.env.NEXT_PUBLIC_STRICT_MODE === 'true';
 
-test.describe('01 — User + Datafile', () => {
+test.describe('01 — Datafile', () => {
   test('decision renders immediately with no loading state', async ({ page }) => {
     await page.goto('/provider/01-user-datafile');
 

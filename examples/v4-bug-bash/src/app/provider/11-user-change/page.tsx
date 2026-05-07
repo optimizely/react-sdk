@@ -26,18 +26,7 @@ export default function Page() {
     <ScenarioLayout
       title="11 — User Change"
       description="Single provider where the active user changes via button click. Normal user gets rollout, holdout user is held out."
-      code={`// Toggle between two users via state
-const [activeUser, setActiveUser] = useState('normal');
-
-const USERS = {
-  normal: { id: 'user-07-a' },
-  holdout: { id: 'user-12', attributes: { ho: 4 } },
-};
-
-// Provider re-evaluates decision when user prop changes
-<OptimizelyProvider client={client} user={USERS[activeUser]}>
-  <Decision />  // uses useDecide('flag_1')
-</OptimizelyProvider>`}
+      code={CODE_SNIPPET}
     >
       <div data-testid="active-user">
         <strong>Active User:</strong> {USERS[activeUser].id}
@@ -64,3 +53,16 @@ const USERS = {
     </ScenarioLayout>
   );
 }
+
+const CODE_SNIPPET = `// Toggle between two users via state
+const [activeUser, setActiveUser] = useState('normal');
+
+const USERS = {
+  normal: { id: 'user-07-a' },
+  holdout: { id: 'user-12', attributes: { ho: 4 } },
+};
+
+// Provider re-evaluates decision when user prop changes
+<OptimizelyProvider client={client} user={USERS[activeUser]}>
+  <Decision />  // uses useDecide('flag_1')
+</OptimizelyProvider>`;
