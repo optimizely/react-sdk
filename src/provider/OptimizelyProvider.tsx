@@ -38,7 +38,7 @@ export function OptimizelyProvider({
   const storeRef = useRef<ProviderStateStore | null>(null);
   const userManagerRef = useRef<UserContextManager | null>(null);
   const prevClientRef = useRef<Client>();
-  const hadConfigAtRender = useMemo(() => !!client?.getOptimizelyConfig(), [client]);
+  const revisionAtRender = useMemo(() => client?.getOptimizelyConfig()?.revision, [client]);
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
@@ -81,26 +81,22 @@ export function OptimizelyProvider({
     }
 
     let isMounted = true;
-    // When the datafile response is cached (e.g. browser HTTP cache),
-    // CONFIG_UPDATE may fire before this effect subscribes. In that case
-    // onReady resolves but CONFIG_UPDATE is never re-emitted (config
-    // didn't change). The flag lets onReady act as a fallback without
-    // causing a double-refresh when both fire.
-    let configReceived = false;
-
-    const listenerId = client.notificationCenter.addNotificationListener(
-      NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
-      () => {
-        configReceived = true;
-        store.refresh();
-      }
-    );
+    let listenerId: number | undefined;
 
     client
       .onReady({ timeout })
       .then(() => {
-        if (!isMounted || configReceived || hadConfigAtRender) return;
-        store.refresh();
+        if (!isMounted) return;
+
+        const currentRevision = client.getOptimizelyConfig()?.revision;
+        if (currentRevision !== revisionAtRender) {
+          store.refresh();
+        }
+
+        listenerId = client.notificationCenter.addNotificationListener(
+          NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
+          () => store.refresh()
+        );
       })
       .catch((error) => {
         if (!isMounted) return;
@@ -110,9 +106,11 @@ export function OptimizelyProvider({
 
     return () => {
       isMounted = false;
-      client.notificationCenter.removeNotificationListener(listenerId);
+      if (listenerId !== undefined) {
+        client.notificationCenter.removeNotificationListener(listenerId);
+      }
     };
-  }, [client, timeout, store, hadConfigAtRender]);
+  }, [client, timeout, store, revisionAtRender]);
 
   return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
 }
