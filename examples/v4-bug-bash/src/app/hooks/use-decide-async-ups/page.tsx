@@ -23,6 +23,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideAsync (UPS)"
       description="Async decision with async UserProfileService (500ms delay). Shows loading while UPS lookup completes, then renders the decision."
+      code={`// Hook usage — async decision
+const { decision, isLoading, error } = useDecideAsync('flag_1');
+
+// Client — with async UserProfileService (500ms delay)
+const ups = new AsyncUserProfileService(500);
+const client = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  userProfileServiceAsync: ups,
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-ups' }}>
         <Decision />

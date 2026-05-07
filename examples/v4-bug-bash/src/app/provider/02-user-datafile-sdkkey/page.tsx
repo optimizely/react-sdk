@@ -20,6 +20,17 @@ export default function Page() {
     <ScenarioLayout
       title="02 — User + Datafile + SDK Key"
       description="Polling config manager with both SDK key and datafile. Decision should be available immediately (datafile pre-loaded), with live polling in background."
+      code={`// Client creation — polling with pre-loaded datafile
+const client = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
+  eventProcessor: createBatchEventProcessor(),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// Provider + decision
+<OptimizelyProvider client={client} user={{ id: 'user-02' }}>
+  <Decision />  // uses useDecide('flag_1')
+</OptimizelyProvider>`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-02' }}>
         <Decision />

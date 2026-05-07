@@ -18,6 +18,11 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideAll"
       description="Decides all active flags. Returns { decisions, isLoading, error } with every flag decision in the project."
+      code={`// Hook usage — all active flags
+const { decisions, isLoading, error } = useDecideAll();
+
+// decisions is Record<string, OptimizelyDecision>
+// Contains every active flag in the project`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-all' }}>
         <AllDecisions />

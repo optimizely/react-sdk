@@ -19,6 +19,16 @@ export default function Page() {
     <ScenarioLayout
       title="useDecideAllAsync"
       description="Async all-flags decision with CMAB project. Shows loading then resolves with decisions for every active flag."
+      code={`// Hook usage — async all-flags decision
+const { decisions, isLoading, error } = useDecideAllAsync();
+
+// Client — CMAB enabled
+const client = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
+  eventProcessor: createBatchEventProcessor(),
+  cmab: { cacheSize: 100, cacheTtl: 600 },
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-all-async' }}>
         <AllDecisions />

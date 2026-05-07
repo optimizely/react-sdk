@@ -19,6 +19,16 @@ export default function Page() {
     <ScenarioLayout
       title="01 — User + Datafile"
       description="Static datafile, no SDK key. Decision should be available immediately with no loading state."
+      code={`// Client creation
+const client = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// Provider + decision
+<OptimizelyProvider client={client} user={{ id: 'user-01' }}>
+  <Decision />  // uses useDecide('flag_1')
+</OptimizelyProvider>`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-01' }}>
         <Decision />

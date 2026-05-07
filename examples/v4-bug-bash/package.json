@@ -6,7 +6,7 @@
     "build": "next build",
     "start": "next start --port 3111",
     "test": "playwright test",
-    "test:ui": "playwright test --ui"
+    "test:strict": "NEXT_PUBLIC_STRICT_MODE=true playwright test"
   },
   "dependencies": {
     "next": "^15.3.0",

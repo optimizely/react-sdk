@@ -1,3 +1,4 @@
 .next/
 .env.local
 .env
+test-results/

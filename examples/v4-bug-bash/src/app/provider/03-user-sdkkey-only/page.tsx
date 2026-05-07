@@ -19,6 +19,17 @@ export default function Page() {
     <ScenarioLayout
       title="03 — User + SDK Key Only (Holdout)"
       description="Polling config manager with SDK key only, no datafile. First render shows loading, then decision after datafile is fetched from CDN."
+      code={`// Client creation — polling, no pre-loaded datafile
+const client = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey }),
+  eventProcessor: createBatchEventProcessor(),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// Provider with holdout attributes
+<OptimizelyProvider client={client} user={{ id: 'user-03', attributes: { ho: 4 } }}>
+  <Decision />  // uses useDecide('flag_1')
+</OptimizelyProvider>`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-03', attributes: { ho: 4 } }}>
         <Decision />

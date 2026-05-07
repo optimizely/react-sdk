@@ -19,6 +19,21 @@ export default function Page() {
     <ScenarioLayout
       title="useDecide (ODP, no VUID)"
       description="ODP without VUID. User ID is provided, segments are fetched from ODP. Shows loading then decision after segment fetch completes."
+      code={`// Hook usage
+const { decision, isLoading, error } = useDecide('flag1');
+
+// Client — ODP without VUID
+const client = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
+  eventProcessor: createBatchEventProcessor(),
+  odpManager: createOdpManager(),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// User ID provided — segments fetched from ODP
+<OptimizelyProvider client={client} user={{ id: 'user-hook-odp-no-vuid' }}>
+  <Decision />
+</OptimizelyProvider>`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-odp-no-vuid' }}>
         <Decision />

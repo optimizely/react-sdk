@@ -17,6 +17,7 @@ const SECTIONS = [
       { href: '/provider/08-forced-decision', label: '08 Forced Decisions' },
       { href: '/provider/09-module-level-client', label: '09 Module-Level Client' },
       { href: '/provider/10-component-level-client', label: '10 Component-Level Client' },
+      { href: '/provider/11-user-change', label: '11 User Change' },
     ],
   },
   {

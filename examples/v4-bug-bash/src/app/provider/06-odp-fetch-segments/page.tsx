@@ -20,6 +20,18 @@ export default function Page() {
     <ScenarioLayout
       title="06 — ODP Fetch Segments"
       description="ODP client with no qualifiedSegments and skipSegments=false. First render shows loading, then decision after segments are fetched from ODP."
+      code={`// Client creation — ODP enabled
+const client = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({ sdkKey, datafile }),
+  eventProcessor: createBatchEventProcessor(),
+  odpManager: createOdpManager(),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});
+
+// Provider with skipSegments=false — fetches segments from ODP
+<OptimizelyProvider client={client} user={{ id: 'user-06' }} skipSegments={false}>
+  <Decision />  // uses useDecide('flag1')
+</OptimizelyProvider>`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-06' }} skipSegments={false}>
         <Decision />

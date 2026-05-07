@@ -52,6 +52,20 @@ export default function Page() {
     <ScenarioLayout
       title="08 — Forced Decisions"
       description="Interactive forced decision testing. Uses ODP flag1 (has variation_a and variation_b). Buttons set/remove forced decisions reactively."
+      code={`// Inside component — get user context and set forced decisions
+const { userContext } = useOptimizelyUserContext();
+
+// Set forced decision
+userContext?.setForcedDecision(
+  { flagKey: 'flag1' },
+  { variationKey: 'variation_a' }
+);
+
+// Remove forced decision
+userContext?.removeForcedDecision({ flagKey: 'flag1' });
+
+// Remove all forced decisions
+userContext?.removeAllForcedDecisions();`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-08' }}>
         <ForcedDecisionControls />

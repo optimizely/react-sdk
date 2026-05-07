@@ -19,6 +19,14 @@ export default function Page() {
     <ScenarioLayout
       title="useDecide"
       description="Basic useDecide hook — returns { decision, isLoading, error } for a single flag key. Uses static datafile so decision is immediate."
+      code={`// Hook usage
+const { decision, isLoading, error } = useDecide('flag_1');
+
+// Client — static datafile
+const client = createInstance({
+  projectConfigManager: createStaticProjectConfigManager({ datafile }),
+  defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
+});`}
     >
       <OptimizelyProvider client={client} user={{ id: 'user-hook-decide' }}>
         <Decision />

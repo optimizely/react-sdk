@@ -168,6 +168,33 @@ body {
   background: #fff;
 }
 
+.scenario-code {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.scenario-code summary {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  background: var(--bg);
+  font-size: 0.85rem;
+}
+
+.scenario-code pre {
+  margin: 0;
+  padding: 1rem;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-size: 0.8rem;
+  overflow-x: auto;
+}
+
+.code-keyword { color: #569cd6; }
+.code-string { color: #ce9178; }
+.code-comment { color: #6a9955; font-style: italic; }
+
 /* Decision display */
 .decision-display {
   font-size: 0.88rem;
