@@ -38,6 +38,7 @@ export function OptimizelyProvider({
   const storeRef = useRef<ProviderStateStore | null>(null);
   const userManagerRef = useRef<UserContextManager | null>(null);
   const prevClientRef = useRef<Client>();
+  const revisionAtRender = useMemo(() => client?.getOptimizelyConfig()?.revision, [client]);
 
   if (storeRef.current === null) {
     storeRef.current = new ProviderStateStore();
@@ -70,8 +71,8 @@ export function OptimizelyProvider({
     userManagerRef.current.resolveUserContext(user, qualifiedSegments, skipSegments);
   }
 
-  // Effect: Client onReady — only needed for error handling.
-  // Readiness is derived from userContext + getOptimizelyConfig() by hooks.
+  // Effect: Client readiness + config update subscription.
+  // Handles both initial datafile fetch and subsequent polling updates.
   useEffect(() => {
     if (!client) {
       console.error('[OPTIMIZELY - REACT] OptimizelyProvider must be passed an Optimizely client instance');
@@ -80,42 +81,36 @@ export function OptimizelyProvider({
     }
 
     let isMounted = true;
+    let listenerId: number | undefined;
 
-    client.onReady({ timeout }).catch((error) => {
-      if (!isMounted) return;
-      const err = error instanceof Error ? error : new Error(String(error));
-      store.setError(err);
-    });
+    client
+      .onReady({ timeout })
+      .then(() => {
+        if (!isMounted) return;
+
+        const currentRevision = client.getOptimizelyConfig()?.revision;
+        if (currentRevision !== revisionAtRender) {
+          store.refresh();
+        }
+
+        listenerId = client.notificationCenter.addNotificationListener(
+          NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
+          () => store.refresh()
+        );
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        const err = error instanceof Error ? error : new Error(String(error));
+        store.setError(err);
+      });
 
     return () => {
       isMounted = false;
-    };
-  }, [client, timeout, store]);
-
-  // Effect: Subscribe to config/datafile updates (e.g., polling)
-  useEffect(() => {
-    if (!client) return;
-
-    const listenerId = client.notificationCenter.addNotificationListener(
-      NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
-      () => {
-        store.refresh();
+      if (listenerId !== undefined) {
+        client.notificationCenter.removeNotificationListener(listenerId);
       }
-    );
-
-    return () => {
-      client.notificationCenter.removeNotificationListener(listenerId);
     };
-  }, [client, store]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      userManagerRef.current?.dispose();
-      userManagerRef.current = null;
-      store.reset();
-    };
-  }, [store]);
+  }, [client, timeout, store, revisionAtRender]);
 
   return <OptimizelyContext.Provider value={contextValue}>{children}</OptimizelyContext.Provider>;
 }
