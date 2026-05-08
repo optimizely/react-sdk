@@ -228,7 +228,7 @@ describe('OptimizelyProvider', () => {
   });
 
   describe('cleanup', () => {
-    it('should reset store on unmount', async () => {
+    it('should not reset store on unmount (store becomes unreachable to React tree)', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -246,8 +246,11 @@ describe('OptimizelyProvider', () => {
 
       unmount();
 
-      // Store should be reset
-      expect(store.getState().userContext).toBeNull();
+      // Store state is preserved — on real unmount, the store becomes
+      // unreachable to the React tree. Eagerly resetting breaks React
+      // 18+ StrictMode (effect cleanup destroys state that the render
+      // body set, and no re-render restores it).
+      expect(store.getState().userContext).not.toBeNull();
       expect(store.getState().error).toBeNull();
     });
   });
@@ -391,7 +394,7 @@ describe('OptimizelyProvider', () => {
       expect(mockClient2.createUserContext).toHaveBeenCalledWith('user-1', undefined);
     });
 
-    it('should dispose manager on unmount', async () => {
+    it('should preserve store state on unmount (no eager reset)', async () => {
       const mockClient = createMockClient();
       let capturedContext: OptimizelyContextValue | null = null;
 
@@ -406,8 +409,9 @@ describe('OptimizelyProvider', () => {
 
       unmount();
 
-      // Store should be reset after unmount
-      expect(capturedContext!.store.getState().userContext).toBeNull();
+      // Store state is preserved after unmount — no eager reset.
+      // The store becomes unreachable to the React tree.
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
     });
 
     it('should recreate user context when only attributes change (same id)', async () => {
@@ -634,7 +638,7 @@ describe('OptimizelyProvider', () => {
   });
 
   describe('config update subscription', () => {
-    it('should subscribe to OPTIMIZELY_CONFIG_UPDATE on mount', () => {
+    it('should subscribe to OPTIMIZELY_CONFIG_UPDATE after onReady', async () => {
       const mockClient = createMockClient();
 
       render(
@@ -643,13 +647,15 @@ describe('OptimizelyProvider', () => {
         </OptimizelyProvider>
       );
 
-      expect(mockClient.notificationCenter.addNotificationListener).toHaveBeenCalledWith(
-        'OPTIMIZELY_CONFIG_UPDATE',
-        expect.any(Function)
-      );
+      await waitFor(() => {
+        expect(mockClient.notificationCenter.addNotificationListener).toHaveBeenCalledWith(
+          'OPTIMIZELY_CONFIG_UPDATE',
+          expect.any(Function)
+        );
+      });
     });
 
-    it('should remove notification listener on unmount', () => {
+    it('should remove notification listener on unmount', async () => {
       const mockClient = createMockClient();
 
       const { unmount } = render(
@@ -657,6 +663,10 @@ describe('OptimizelyProvider', () => {
           <div>Child</div>
         </OptimizelyProvider>
       );
+
+      await waitFor(() => {
+        expect(mockClient.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+      });
 
       unmount();
 
@@ -675,6 +685,7 @@ describe('OptimizelyProvider', () => {
 
       await waitFor(() => {
         expect(capturedContext).not.toBeNull();
+        expect(mockClient.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
       });
 
       const stateBefore = capturedContext!.store.getState();
@@ -694,7 +705,7 @@ describe('OptimizelyProvider', () => {
       expect(stateBefore).not.toBe(stateAfter);
     });
 
-    it('should re-subscribe when client changes', () => {
+    it('should re-subscribe when client changes', async () => {
       const mockClient1 = createMockClient();
       const mockClient2 = createMockClient();
 
@@ -704,7 +715,9 @@ describe('OptimizelyProvider', () => {
         </OptimizelyProvider>
       );
 
-      expect(mockClient1.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockClient1.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+      });
 
       rerender(
         <OptimizelyProvider client={mockClient2}>
@@ -712,9 +725,71 @@ describe('OptimizelyProvider', () => {
         </OptimizelyProvider>
       );
 
-      // Old listener cleaned up, new one registered
+      await waitFor(() => {
+        expect(mockClient2.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+      });
+
+      // Old listener cleaned up
       expect(mockClient1.notificationCenter.removeNotificationListener).toHaveBeenCalledWith(1);
-      expect(mockClient2.notificationCenter.addNotificationListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('config revision race condition', () => {
+    it('should refresh when config revision changes between render and onReady', async () => {
+      let resolveOnReady: () => void;
+      const onReadyPromise = new Promise<void>((resolve) => {
+        resolveOnReady = resolve;
+      });
+
+      const mockClient = createMockClient({
+        getOptimizelyConfig: vi.fn().mockReturnValue({ revision: '1' }),
+        onReady: vi.fn().mockReturnValue(onReadyPromise),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext).not.toBeNull();
+      const stateBefore = capturedContext!.store.getState();
+
+      // Config updates to v2 before onReady resolves
+      (mockClient.getOptimizelyConfig as ReturnType<typeof vi.fn>).mockReturnValue({ revision: '2' });
+
+      await act(async () => {
+        resolveOnReady!();
+      });
+
+      const stateAfter = capturedContext!.store.getState();
+      expect(stateBefore).not.toBe(stateAfter);
+    });
+
+    it('should not refresh when config revision is unchanged at onReady', async () => {
+      const mockClient = createMockClient({
+        getOptimizelyConfig: vi.fn().mockReturnValue({ revision: '1' }),
+      });
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      await waitFor(() => {
+        expect(capturedContext).not.toBeNull();
+      });
+
+      const stateBefore = capturedContext!.store.getState();
+
+      // Flush onReady microtask — revision is still '1'
+      await act(async () => {});
+
+      const stateAfter = capturedContext!.store.getState();
+      expect(stateBefore).toBe(stateAfter);
     });
   });
 
