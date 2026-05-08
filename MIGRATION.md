@@ -36,7 +36,7 @@ v4 is a ground-up rewrite with a fundamentally different architecture:
 | Datafile updates | `autoUpdate` option per hook | Automatic via SDK polling; hooks re-evaluate on config changes |
 | User overrides | Per-hook `overrideUserId` / `overrideAttributes` | Removed; use separate `<OptimizelyProvider>` instances |
 | Components | `OptimizelyExperiment`, `OptimizelyFeature`, `OptimizelyVariation` | Removed; use hooks |
-| HOC | `withOptimizely` | Removed; use hooks |
+| HOC | `withOptimizely` | Removed; use `useOptimizelyClient` hook |
 
 ---
 
@@ -242,7 +242,7 @@ const optimizely = createInstance({
 
 | v3 Prop | v4 Prop | Notes |
 |---------|---------|-------|
-| `optimizely` | `client` | Renamed. Now accepts a JS SDK `Client` (from `createInstance`). |
+| `optimizely` | `client` | Renamed. Accepts the client returned by React SDK's `createInstance`. |
 | `user` | `user` | Same shape `{ id, attributes }`. **No longer accepts a `Promise`**. |
 | `timeout` | `timeout` | Default changed from `5000` ms to `30000` ms. |
 | `isServerSide` | _(removed)_ | No longer needed. v4 hooks return decisions synchronously whenever both user context and config are available, regardless of environment. |
