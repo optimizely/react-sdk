@@ -2,6 +2,24 @@
 
 This guide covers how to use the Optimizely React SDK with Next.js for server-side rendering (SSR), static site generation (SSG), and React Server Components.
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [SSR with Pre-fetched Datafile](#ssr-with-pre-fetched-datafile)
+- [Next.js App Router](#nextjs-app-router)
+  - [Create a datafile fetcher](#1-create-a-datafile-fetcher)
+  - [Create a client-side provider](#2-create-a-client-side-provider)
+    - [Module-level alternative](#module-level-alternative)
+  - [Wire it up in your root layout](#3-wire-it-up-in-your-root-layout)
+    - [Pre-fetching ODP audience segments](#pre-fetching-odp-audience-segments)
+- [Next.js Pages Router](#nextjs-pages-router)
+- [Using Feature Flags in Client Components](#using-feature-flags-in-client-components)
+- [Static Site Generation (SSG)](#static-site-generation-ssg)
+- [Limitations](#limitations)
+  - [Datafile required for SSR](#datafile-required-for-ssr)
+  - [User Promise not supported](#user-promise-not-supported)
+  - [ODP audience segments](#odp-audience-segments)
+
 ## Prerequisites
 
 Install the React SDK:
@@ -26,24 +44,23 @@ In the App Router, fetch the datafile in an async server component (e.g., your r
 
 **Option A: Using the SDK's built-in datafile fetching (Recommended)**
 
-Create a module-level SDK instance with your `sdkKey` and use a notification listener to detect when the datafile is ready. This approach benefits from the SDK's built-in polling and caching, making it suitable when you want automatic datafile updates across requests.
+Create a module-level SDK instance with a polling config manager and use a notification listener to detect when the datafile is ready. This approach benefits from the SDK's built-in polling and caching, making it suitable when you want automatic datafile updates across requests.
 
 ```ts
 // src/data/getDatafile.ts
-import { createInstance } from '@optimizely/react-sdk';
+import { createInstance, createPollingProjectConfigManager, NOTIFICATION_TYPES } from '@optimizely/react-sdk';
 
 const pollingInstance = createInstance({
-  sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || "",
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+  }),
 });
 
-const pollingInstance = createInstane();
-
 const configReady = new Promise<void>((resolve) => {
-  pollingInstance.notificationCenter.addNotificationListener(
-    enums.NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE,
-    () => resolve();
+  pollingInstance.notificationCenter.addNotificationListener(NOTIFICATION_TYPES.OPTIMIZELY_CONFIG_UPDATE, () =>
+    resolve()
   );
-}
+});
 
 export function getDatafile(): Promise<string | undefined> {
   return configReady.then(() => pollingInstance.getOptimizelyConfig()?.getDatafile());
@@ -77,35 +94,152 @@ Since `OptimizelyProvider` uses React Context (a client-side feature), it must b
 // src/providers/OptimizelyProvider.tsx
 'use client';
 
-import { OptimizelyProvider, createInstance, OptimizelyDecideOption } from '@optimizely/react-sdk';
+import {
+  OptimizelyProvider,
+  createInstance,
+  createStaticProjectConfigManager,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  OptimizelyDecideOption,
+} from '@optimizely/react-sdk';
 import { ReactNode, useState } from 'react';
 
 export function OptimizelyClientProvider({ children, datafile }: { children: ReactNode; datafile: object }) {
-    const isServerSide = typeof window === 'undefined';
+  const isServerSide = typeof window === 'undefined';
 
-    const [optimizely] = useState(() =>
+  const [optimizely] = useState(() =>
     createInstance({
-      datafile,
-      sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
-      datafileOptions: { autoUpdate: !isServerSide },
+      projectConfigManager: isServerSide
+        ? createStaticProjectConfigManager({ datafile })
+        : createPollingProjectConfigManager({
+            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+            datafile,
+          }),
+      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
       defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
-      odpOptions: {
-        disabled: isServerSide,
-      },
+      disposable: isServerSide,
     })
   );
 
   return (
-    <OptimizelyProvider optimizely={optimizely} user={{ id: 'user123', attributes: { plan_type: 'premium' } }} isServerSide={isServerSide}>
+    <OptimizelyProvider client={optimizely} user={{ id: 'user123', attributes: { plan_type: 'premium' } }}>
       {children}
     </OptimizelyProvider>
   );
 }
 ```
 
-> See [Configuring the instance for server use](../README.md#configuring-the-instance-for-server-use) in the README for an explanation of each option.
+#### Module-level alternative
+
+You can also create the client at module level to avoid recreating the instance on re-renders. The trade-off is that the datafile must be resolved before the provider module is evaluated. One approach is to use `globalThis` to bridge the datafile between server and client: the server fetches the datafile, sets it on `globalThis` for server rendering, and injects a `<script>` tag so the client has it at module evaluation time.
+
+> **Note:** This is one approach to module-level client creation. Other strategies are also possible depending on your setup.
+
+Both examples below reuse the `getDatafile` helper from [Option A](#1-create-a-datafile-fetcher) or [Option B](#1-create-a-datafile-fetcher) above.
+
+**App Router (`layout.tsx`)**
+
+The layout fetches the datafile, sets `globalThis` for the server render, and injects a `<script>` tag for the client.
+
+```tsx
+// src/app/layout.tsx
+import { getDatafile } from '@/data/getDatafile';
+
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const datafile = await getDatafile();
+  const serialized = JSON.stringify(datafile ?? '');
+  // Set on globalThis so the provider module can read it during server rendering
+  globalThis.__OPTIMIZELY_DATAFILE__ = datafile ?? '';
+
+  return (
+    <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${serialized};`,
+          }}
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+**Pages Router (`_document.tsx`)**
+
+In the Pages Router, use `_document.tsx` for the same purpose — fetch the datafile in `getInitialProps`, set `globalThis` for the server render, and inject the `<script>` tag.
+
+```tsx
+// pages/_document.tsx
+import Document, { Html, Head, Main, NextScript } from 'next/document';
+import { getDatafile } from '@/data/getDatafile';
+
+export default function MyDocument({ datafile }: { datafile: string }) {
+  const serialized = JSON.stringify(datafile ?? '');
+  return (
+    <Html>
+      <Head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `globalThis.__OPTIMIZELY_DATAFILE__ = ${serialized};`,
+          }}
+        />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
+
+MyDocument.getInitialProps = async (ctx) => {
+  const initialProps = await Document.getInitialProps(ctx);
+  const datafile = await getDatafile();
+  globalThis.__OPTIMIZELY_DATAFILE__ = datafile;
+  return { ...initialProps, datafile };
+};
+```
+
+**Provider (module-level)**
+
+With `globalThis.__OPTIMIZELY_DATAFILE__` available, the provider can create the client at module level with immediate datafile readiness:
+
+```tsx
+// src/providers/OptimizelyProvider.tsx
+'use client';
+
+import {
+  OptimizelyProvider,
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+} from '@optimizely/react-sdk';
+import { ReactNode } from 'react';
+
+const optimizely = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+    datafile: globalThis.__OPTIMIZELY_DATAFILE__,
+  }),
+  eventProcessor: createBatchEventProcessor(),
+});
+
+export function OptimizelyClientProvider({ children }: { children: ReactNode }) {
+  return (
+    <OptimizelyProvider client={optimizely} user={{ id: 'user123', attributes: { plan_type: 'premium' } }}>
+      {children}
+    </OptimizelyProvider>
+  );
+}
+```
+
+> See [Server-Side Rendering](../README.md#server-side-rendering) in the README for an explanation of each option.
 
 ### 3. Wire it up in your root layout
+
+> If you are using the [module-level alternative](#module-level-alternative), the layout already handles datafile injection — just wrap `{children}` with `<OptimizelyClientProvider>` (no `datafile` prop needed).
 
 ```tsx
 // src/app/layout.tsx
@@ -127,7 +261,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 #### Pre-fetching ODP audience segments
 
-If your project uses ODP audience segments, you can pre-fetch them server-side using `getQualifiedSegments` and pass them to the provider via the `qualifiedSegments` prop. 
+If your project uses ODP audience segments, you can pre-fetch them server-side using `getQualifiedSegments` and pass them to the provider via the `qualifiedSegments` prop.
 
 ```tsx
 // src/app/layout.tsx
@@ -135,7 +269,7 @@ import { getQualifiedSegments } from '@optimizely/react-sdk';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const datafile = await getDatafile();
-  const segments = await getQualifiedSegments('user-123', datafile);
+  const { segments } = await getQualifiedSegments('user-123', datafile);
 
   return (
     <html lang="en">
@@ -188,19 +322,18 @@ App.getInitialProps = async (appContext: AppContext) => {
 };
 ```
 
-Similar to App Router example, if you have ODP enabled and want to pre-fetch segments, you can do following -
+Similar to the App Router example, if you have ODP enabled and want to pre-fetch segments, you can do the following:
 
 ```tsx
-import { getQualifiedSegments } from "@optimizely/react-sdk";
+import { getQualifiedSegments } from '@optimizely/react-sdk';
 
 App.getInitialProps = async (appContext: AppContext) => {
   const appProps = await App.getInitialProps(appContext);
   const datafile = await getDatafile();
-  const segments = await getQualifiedSegments('user-123', datafile);
+  const { segments } = await getQualifiedSegments('user-123', datafile);
   return { ...appProps, pageProps: { ...appProps.pageProps, datafile, segments } };
 };
 ```
-
 
 #### Option B: `getServerSideProps` — per-page setup
 
@@ -233,16 +366,18 @@ export async function getStaticProps() {
 
 ## Using Feature Flags in Client Components
 
-Once the provider is set up, use the `useDecision` hook in any client component:
+Once the provider is set up, use the `useDecide` hook in any client component:
 
 ```tsx
 'use client';
 
-import { useDecision } from '@optimizely/react-sdk';
+import { useDecide } from '@optimizely/react-sdk';
 
 export default function FeatureBanner() {
-  const [decision] = useDecision('banner-flag');
-  
+  const { decision, isLoading } = useDecide('banner-flag');
+
+  if (isLoading) return <h1>Loading...</h1>;
+
   return decision.enabled ? <h1>New Banner</h1> : <h1>Default Banner</h1>;
 }
 ```
@@ -253,25 +388,34 @@ For statically generated pages, the SDK cannot make decisions during the build b
 
 ```tsx
 'use client';
-
-import { OptimizelyProvider, createInstance, useDecision } from '@optimizely/react-sdk';
-
-const optimizely = createInstance({ sdkKey: 'YOUR_SDK_KEY' });
+import { useState } from 'react';
+import {
+  OptimizelyProvider,
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  useDecide,
+} from '@optimizely/react-sdk';
 
 export function App() {
+  const [client] = useState(() =>
+    createInstance({
+      projectConfigManager: createPollingProjectConfigManager({ sdkKey: 'YOUR_SDK_KEY' }),
+      eventProcessor: createBatchEventProcessor(),
+    })
+  );
+
   return (
-    <OptimizelyProvider optimizely={optimizely} user={{ id: 'user123' }}>
+    <OptimizelyProvider client={client} user={{ id: 'user123' }}>
       <FeatureBanner />
     </OptimizelyProvider>
   );
 }
 
 function FeatureBanner() {
-  const [decision, isClientReady, didTimeout] = useDecision('banner-flag');
+  const { decision, isLoading } = useDecide('banner-flag');
 
-  if (!isClientReady && !didTimeout) {
-    return <h1>Loading...</h1>;
-  }
+  if (isLoading) return <h1>Loading...</h1>;
 
   return decision.enabled ? <h1>New Banner</h1> : <h1>Default Banner</h1>;
 }
@@ -288,14 +432,12 @@ To handle this gracefully, render a loading state and let the client hydrate wit
 ```tsx
 'use client';
 
-import { useDecision } from '@optimizely/react-sdk';
+import { useDecide } from '@optimizely/react-sdk';
 
 export default function MyFeature() {
-  const [decision, isClientReady, didTimeout] = useDecision('flag-1');
+  const { decision, isLoading } = useDecide('flag-1');
 
-  if (!didTimeout && !isClientReady) {
-    return <h1>Loading...</h1>;
-  }
+  if (isLoading) return <h1>Loading...</h1>;
 
   return decision.enabled ? <h1>Feature Enabled</h1> : <h1>Feature Disabled</h1>;
 }
@@ -303,14 +445,14 @@ export default function MyFeature() {
 
 ### User Promise not supported
 
-User `Promise` is not supported during SSR. You must provide a static user object to `OptimizelyProvider`:
+User `Promise` is not supported. You must provide a resolved user object to `OptimizelyProvider`. If user information must be fetched asynchronously, resolve the promise before rendering the Provider:
 
 ```tsx
 // Supported
-<OptimizelyProvider user={{ id: 'user123', attributes: { plan: 'premium' } }} ... />
+<OptimizelyProvider client={optimizely} user={{ id: 'user123', attributes: { plan: 'premium' } }} />
 
-// NOT supported during SSR
-<OptimizelyProvider user={fetchUserPromise} ... />
+// NOT supported
+<OptimizelyProvider client={optimizely} user={fetchUserPromise} />
 ```
 
 ### ODP audience segments
@@ -319,13 +461,13 @@ ODP (Optimizely Data Platform) audience segments require fetching segment data v
 
 ```tsx
 <OptimizelyProvider
-  optimizely={optimizely}
+  client={optimizely}
   user={{ id: 'user123' }}
   qualifiedSegments={['segment1', 'segment2']}
-  isServerSide={isServerSide}
+  skipSegments={true}
 >
   {children}
 </OptimizelyProvider>
 ```
 
-This enables synchronous ODP-based decisions during server rendering. If `qualifiedSegments` is not provided, decisions will be made without audience segment data — in that case, consider deferring the decision to the client using the loading state fallback pattern described above, where ODP segments are fetched automatically when ODP is enabled.
+This enables synchronous ODP-based decisions during server rendering. If `qualifiedSegments` is not provided, decisions will be made without audience segment data — in that case, consider deferring the decision to the client using the loading state fallback pattern described above, where ODP segments are fetched automatically when ODP is enabled via `createOdpManager`.
