@@ -562,25 +562,37 @@ The React SDK supports server-side rendering (SSR). A pre-fetched datafile is re
 
 #### Per-request client
 
-Create a client inside the component with `createStaticProjectConfigManager` and a pre-fetched datafile. Use `useMemo` to avoid recreating the instance on re-renders, and `disposable: true` so the instance can be garbage collected without explicitly calling `close()`.
+Create a client inside the component with a pre-fetched datafile. Use `useState` with a lazy initializer to create the instance once. On the server, use `createStaticProjectConfigManager` with `disposable: true` so the instance can be garbage collected without explicitly calling `close()`. On the client, use `createPollingProjectConfigManager` to keep the datafile up to date.
 
-```jsx
-import { useMemo } from 'react';
+```tsx
+'use client';
+
+import { useState } from 'react';
 import {
   createInstance,
   createStaticProjectConfigManager,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
   OptimizelyProvider,
+  OptimizelyDecideOption,
   useDecide,
 } from '@optimizely/react-sdk';
 
 export default function Page({ datafile, userId }) {
-  const optimizely = useMemo(
-    () =>
-      createInstance({
-        projectConfigManager: createStaticProjectConfigManager({ datafile }),
-        disposable: true,
-      }),
-    [datafile]
+  const isServerSide = typeof window === 'undefined';
+
+  const [optimizely] = useState(() =>
+    createInstance({
+      projectConfigManager: isServerSide
+        ? createStaticProjectConfigManager({ datafile })
+        : createPollingProjectConfigManager({
+            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+            datafile,
+          }),
+      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
+      defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+      disposable: isServerSide,
+    })
   );
 
   return (

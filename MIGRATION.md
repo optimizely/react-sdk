@@ -36,7 +36,7 @@ v4 is a ground-up rewrite with a fundamentally different architecture:
 | Datafile updates | `autoUpdate` option per hook | Automatic via SDK polling; hooks re-evaluate on config changes |
 | User overrides | Per-hook `overrideUserId` / `overrideAttributes` | Removed; use separate `<OptimizelyProvider>` instances |
 | Components | `OptimizelyExperiment`, `OptimizelyFeature`, `OptimizelyVariation` | Removed; use hooks |
-| HOC | `withOptimizely` | Removed; use hooks |
+| HOC | `withOptimizely` | Removed; use `useOptimizelyClient` hook |
 
 ---
 
@@ -242,7 +242,7 @@ const optimizely = createInstance({
 
 | v3 Prop | v4 Prop | Notes |
 |---------|---------|-------|
-| `optimizely` | `client` | Renamed. Now accepts a JS SDK `Client` (from `createInstance`). |
+| `optimizely` | `client` | Renamed. Accepts the client returned by React SDK's `createInstance`. |
 | `user` | `user` | Same shape `{ id, attributes }`. **No longer accepts a `Promise`**. |
 | `timeout` | `timeout` | Default changed from `5000` ms to `30000` ms. |
 | `isServerSide` | _(removed)_ | No longer needed. v4 hooks return decisions synchronously whenever both user context and config are available, regardless of environment. |
@@ -571,33 +571,42 @@ Logging is **disabled by default** in v4. You must pass a `logger` to `createIns
 
 The `isServerSide` prop is removed. Instead, configure the client for SSR use:
 
-```jsx
+```tsx
+'use client';
+
+import { useState } from 'react';
 import {
   createInstance,
   createStaticProjectConfigManager,
   createPollingProjectConfigManager,
+  createBatchEventProcessor,
   OptimizelyProvider,
   OptimizelyDecideOption,
 } from '@optimizely/react-sdk';
 
-const isServerSide = typeof window === 'undefined';
+function ExampleProvider({ children, datafile }) {
+  const isServerSide = typeof window === 'undefined';
 
-const optimizely = createInstance({
-  projectConfigManager: isServerSide
-    ? createStaticProjectConfigManager({ datafile }) // pre-fetched datafile, no polling
-    : createPollingProjectConfigManager({
-        sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY,
-        datafile, // optional: use as initial datafile while polling
-      }),
-  defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
-});
+  const [optimizely] = useState(() =>
+    createInstance({
+      projectConfigManager: isServerSide
+        ? createStaticProjectConfigManager({ datafile })
+        : createPollingProjectConfigManager({
+            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY,
+            datafile,
+          }),
+      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
+      defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
+      disposable: isServerSide,
+    })
+  );
 
-<OptimizelyProvider
-  client={optimizely}
-  user={{ id: 'user-123' }}
->
-  <App />
-</OptimizelyProvider>
+  return (
+    <OptimizelyProvider client={optimizely} user={{ id: 'user-123' }}>
+      {children}
+    </OptimizelyProvider>
+  );
+}
 ```
 
 ### ODP segments during SSR
