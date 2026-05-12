@@ -1,7 +1,7 @@
 {
   "accountId": "12133785640",
   "projectId": "22575900370",
-  "revision": "16762",
+  "revision": "16763",
   "attributes": [
     {
       "id": "22572230316",
@@ -69,7 +69,7 @@
   "events": [
     {
       "id": "22584140467",
-      "experimentIds": ["9300000140310", "9300000514713", "9300000408660", "9300000386811"],
+      "experimentIds": ["9300000514713", "9300000386811", "9300000408660", "9300000140310"],
       "key": "myevent"
     }
   ],
@@ -313,7 +313,8 @@
           ],
           "forcedVariations": {},
           "audienceIds": [],
-          "audienceConditions": []
+          "audienceConditions": [],
+          "type": "td"
         }
       ]
     },
@@ -341,7 +342,8 @@
           ],
           "forcedVariations": {},
           "audienceIds": [],
-          "audienceConditions": []
+          "audienceConditions": [],
+          "type": "td"
         }
       ]
     },
@@ -374,7 +376,8 @@
           ],
           "forcedVariations": {},
           "audienceIds": ["$opt_dummy_audience"],
-          "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]]
+          "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]],
+          "type": "td"
         },
         {
           "id": "default-rollout-106654-22583870382",
@@ -402,7 +405,8 @@
           ],
           "forcedVariations": {},
           "audienceIds": [],
-          "audienceConditions": []
+          "audienceConditions": [],
+          "type": "td"
         }
       ]
     },
@@ -430,7 +434,8 @@
           ],
           "forcedVariations": {},
           "audienceIds": [],
-          "audienceConditions": []
+          "audienceConditions": [],
+          "type": "td"
         }
       ]
     }
@@ -545,7 +550,8 @@
       ],
       "forcedVariations": {},
       "audienceIds": ["22725221898", "25253570323", "25238050405"],
-      "audienceConditions": ["or", "22725221898", "25253570323", "25238050405"]
+      "audienceConditions": ["or", "22725221898", "25253570323", "25238050405"],
+      "type": "ab"
     },
     {
       "id": "9300000386811",
@@ -1596,7 +1602,8 @@
       ],
       "forcedVariations": {},
       "audienceIds": ["$opt_dummy_audience"],
-      "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]]
+      "audienceConditions": ["or", "25253570323", ["and", "25238050405", "25253680454", ["not", "22725221898"]]],
+      "type": "mab"
     },
     {
       "id": "9300000408660",
@@ -1644,7 +1651,8 @@
         "25253570323",
         "25365210387",
         ["and", "25238050405", "25253680454", ["not", "22725221898"]]
-      ]
+      ],
+      "type": "ab"
     },
     {
       "id": "9300000514713",
@@ -1677,7 +1685,8 @@
       ],
       "forcedVariations": {},
       "audienceIds": ["23905180126"],
-      "audienceConditions": ["or", "23905180126"]
+      "audienceConditions": ["or", "23905180126"],
+      "type": "ab"
     }
   ],
   "groups": [],
