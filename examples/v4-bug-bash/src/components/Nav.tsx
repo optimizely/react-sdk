@@ -18,6 +18,8 @@ const SECTIONS = [
       { href: '/provider/09-module-level-client', label: '09 Module-Level Client' },
       { href: '/provider/10-component-level-client', label: '10 Component-Level Client' },
       { href: '/provider/11-user-change', label: '11 User Change' },
+      { href: '/provider/12-null-user', label: '12 Null User' },
+      { href: '/provider/13-null-user-transition', label: '13 Null User Transition' },
     ],
   },
   {

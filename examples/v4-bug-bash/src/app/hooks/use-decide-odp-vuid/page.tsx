@@ -21,7 +21,7 @@ export default function Page() {
       description="ODP with VUID enabled and no user ID. The SDK generates a VUID for anonymous identification and uses it for the decision."
       code={CODE_SNIPPET}
     >
-      <OptimizelyProvider client={client}>
+      <OptimizelyProvider client={client} user={{}}>
         <Decision />
       </OptimizelyProvider>
     </ScenarioLayout>
@@ -40,7 +40,7 @@ const client = createInstance({
   defaultDecideOptions: [OptimizelyDecideOption.INCLUDE_REASONS],
 });
 
-// No user prop — SDK uses VUID for anonymous identification
-<OptimizelyProvider client={client}>
+// Empty user object — SDK uses VUID for anonymous identification
+<OptimizelyProvider client={client} user={{}}>
   <Decision />
 </OptimizelyProvider>`;
