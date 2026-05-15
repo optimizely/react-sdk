@@ -22,7 +22,7 @@ import { areSegmentsEqual, areUsersEqual } from './helpers';
 
 export interface UserContextManagerConfig {
   client: Client;
-  onUserContextReady: (ctx: OptimizelyUserContext) => void;
+  onUserContextChange: (ctx: OptimizelyUserContext | null) => void;
   onError: (error: Error) => void;
 }
 
@@ -38,7 +38,7 @@ export interface UserContextManagerConfig {
  */
 export class UserContextManager {
   private readonly client: Client;
-  private readonly onUserContextReady: (ctx: OptimizelyUserContext) => void;
+  private readonly onUserContextChange: (ctx: OptimizelyUserContext | null) => void;
   private readonly onError: (error: Error) => void;
   private readonly meta: ReactClientMeta;
 
@@ -46,12 +46,12 @@ export class UserContextManager {
   private disposed = false;
   private initialized = false;
   private skipSegments = false;
-  private prevUser?: UserInfo;
+  private prevUser?: UserInfo | null;
   private prevSegments?: string[];
 
   constructor(config: UserContextManagerConfig) {
     this.client = config.client;
-    this.onUserContextReady = config.onUserContextReady;
+    this.onUserContextChange = config.onUserContextChange;
     this.onError = config.onError;
 
     this.meta = (this.client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META];
@@ -66,7 +66,7 @@ export class UserContextManager {
    * @param qualifiedSegments - Optional pre-fetched segments. When provided,
    * @param skipSegments - Whether to skip ODP segment fetching (default: false)
    */
-  resolveUserContext(user?: UserInfo, qualifiedSegments?: string[], skipSegments = false): void {
+  resolveUserContext(user?: UserInfo | null, qualifiedSegments?: string[], skipSegments = false): void {
     if (
       this.initialized &&
       this.skipSegments === skipSegments &&
@@ -82,6 +82,11 @@ export class UserContextManager {
     this.prevSegments = qualifiedSegments;
 
     const requestId = ++this.requestId;
+
+    if (!user) {
+      this.onUserContextChange(null);
+      return;
+    }
 
     this.createUserContext(requestId, user, qualifiedSegments).catch((error: unknown) => {
       if (this.isStale(requestId)) return;
@@ -107,7 +112,7 @@ export class UserContextManager {
     if (qualifiedSegments !== undefined) {
       ctx.qualifiedSegments = qualifiedSegments;
 
-      this.onUserContextReady(ctx); // immediate callback for sync decision with pre-set segments
+      this.onUserContextChange(ctx); // immediate callback for sync decision with pre-set segments
 
       if (this.skipSegments) return;
 
@@ -126,7 +131,7 @@ export class UserContextManager {
 
           // update only if different
           if (!areSegmentsEqual(snapshot, ctx.qualifiedSegments)) {
-            this.onUserContextReady(ctx);
+            this.onUserContextChange(ctx);
           }
         }
       }
@@ -144,7 +149,7 @@ export class UserContextManager {
       }
     }
 
-    this.onUserContextReady(ctx);
+    this.onUserContextChange(ctx);
   }
 
   private isStale(requestId: number): boolean {
