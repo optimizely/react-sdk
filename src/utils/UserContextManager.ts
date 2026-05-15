@@ -22,7 +22,7 @@ import { areSegmentsEqual, areUsersEqual } from './helpers';
 
 export interface UserContextManagerConfig {
   client: Client;
-  onUserContextReady: (ctx: OptimizelyUserContext | null) => void;
+  onUserContextChange: (ctx: OptimizelyUserContext | null) => void;
   onError: (error: Error) => void;
 }
 
@@ -38,7 +38,7 @@ export interface UserContextManagerConfig {
  */
 export class UserContextManager {
   private readonly client: Client;
-  private readonly onUserContextReady: (ctx: OptimizelyUserContext | null) => void;
+  private readonly onUserContextChange: (ctx: OptimizelyUserContext | null) => void;
   private readonly onError: (error: Error) => void;
   private readonly meta: ReactClientMeta;
 
@@ -51,7 +51,7 @@ export class UserContextManager {
 
   constructor(config: UserContextManagerConfig) {
     this.client = config.client;
-    this.onUserContextReady = config.onUserContextReady;
+    this.onUserContextChange = config.onUserContextChange;
     this.onError = config.onError;
 
     this.meta = (this.client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META];
@@ -84,7 +84,7 @@ export class UserContextManager {
     const requestId = ++this.requestId;
 
     if (!user) {
-      this.onUserContextReady(null);
+      this.onUserContextChange(null);
       return;
     }
 
@@ -112,7 +112,7 @@ export class UserContextManager {
     if (qualifiedSegments !== undefined) {
       ctx.qualifiedSegments = qualifiedSegments;
 
-      this.onUserContextReady(ctx); // immediate callback for sync decision with pre-set segments
+      this.onUserContextChange(ctx); // immediate callback for sync decision with pre-set segments
 
       if (this.skipSegments) return;
 
@@ -131,7 +131,7 @@ export class UserContextManager {
 
           // update only if different
           if (!areSegmentsEqual(snapshot, ctx.qualifiedSegments)) {
-            this.onUserContextReady(ctx);
+            this.onUserContextChange(ctx);
           }
         }
       }
@@ -149,7 +149,7 @@ export class UserContextManager {
       }
     }
 
-    this.onUserContextReady(ctx);
+    this.onUserContextChange(ctx);
   }
 
   private isStale(requestId: number): boolean {

@@ -72,11 +72,11 @@ function createMockClient(opts: MockClientOptions = {}) {
 }
 
 function createManagerConfig(client: Client) {
-  const onUserContextReady = vi.fn();
+  const onUserContextChange = vi.fn();
   const onError = vi.fn();
   return {
     client,
-    onUserContextReady,
+    onUserContextChange,
     onError,
   };
 }
@@ -98,7 +98,7 @@ describe('UserContextManager', () => {
   // ============================================================
   describe('ODP not enabled', () => {
     describe('userId present', () => {
-      it('should create context synchronously and call onUserContextReady immediately', async () => {
+      it('should create context synchronously and call onUserContextChange immediately', async () => {
         const { client, mockUserContext } = createMockClient({
           hasOdpManager: false,
           hasVuidManager: false,
@@ -110,7 +110,7 @@ describe('UserContextManager', () => {
 
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', { plan: 'premium' });
         expect(client.onReady).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -131,14 +131,14 @@ describe('UserContextManager', () => {
 
         // Should be waiting on onReady
         expect(client.onReady).toHaveBeenCalled();
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
 
         // Resolve onReady (VUID init complete)
         onReadyDeferred.resolve(undefined);
         await flushPromises();
 
         expect(client.createUserContext).toHaveBeenCalledWith(undefined, undefined);
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -162,7 +162,7 @@ describe('UserContextManager', () => {
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
         expect(config.onError).toHaveBeenCalledWith(sdkError);
 
         manager.dispose();
@@ -192,7 +192,7 @@ describe('UserContextManager', () => {
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
         // Should be waiting on onReady for ODP config
         expect(client.onReady).toHaveBeenCalled();
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
 
         // Resolve onReady
         onReadyDeferred.resolve(undefined);
@@ -200,7 +200,7 @@ describe('UserContextManager', () => {
 
         expect(client.isOdpIntegrated).toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -223,7 +223,7 @@ describe('UserContextManager', () => {
 
         expect(client.isOdpIntegrated).toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
 
         manager.dispose();
       });
@@ -244,7 +244,7 @@ describe('UserContextManager', () => {
 
         // Waiting on onReady for VUID
         expect(client.onReady).toHaveBeenCalledTimes(1);
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
 
         // Resolve onReady (both VUID and ODP ready)
         onReadyDeferred.resolve(undefined);
@@ -255,7 +255,7 @@ describe('UserContextManager', () => {
         expect(client.onReady).toHaveBeenCalledTimes(2);
         expect(client.isOdpIntegrated).toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -263,7 +263,7 @@ describe('UserContextManager', () => {
     });
 
     describe('userId + skipSegments=true', () => {
-      it('should create context synchronously and call onUserContextReady immediately', async () => {
+      it('should create context synchronously and call onUserContextChange immediately', async () => {
         const { client, mockUserContext } = createMockClient({
           hasOdpManager: true,
           hasVuidManager: false,
@@ -276,7 +276,7 @@ describe('UserContextManager', () => {
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
         expect(client.onReady).not.toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -297,7 +297,7 @@ describe('UserContextManager', () => {
         await flushPromises();
 
         expect(client.onReady).toHaveBeenCalledTimes(1);
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
 
         onReadyDeferred.resolve(undefined);
         await flushPromises();
@@ -306,7 +306,7 @@ describe('UserContextManager', () => {
         // Only one onReady call (for VUID), no segment fetch
         expect(client.onReady).toHaveBeenCalledTimes(1);
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(config.onError).not.toHaveBeenCalled();
 
         manager.dispose();
@@ -330,7 +330,7 @@ describe('UserContextManager', () => {
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).not.toHaveBeenCalled();
+        expect(config.onUserContextChange).not.toHaveBeenCalled();
         expect(config.onError).toHaveBeenCalledWith(sdkError);
 
         manager.dispose();
@@ -343,7 +343,7 @@ describe('UserContextManager', () => {
   // ============================================================
   describe('pre-set qualified segments', () => {
     describe('qualifiedSegments + skipSegments=true', () => {
-      it('should set ctx.qualifiedSegments, fire onUserContextReady once, no background fetch', async () => {
+      it('should set ctx.qualifiedSegments, fire onUserContextChange once, no background fetch', async () => {
         const { client, mockUserContext } = createMockClient({
           hasOdpManager: true,
           hasVuidManager: false,
@@ -355,8 +355,8 @@ describe('UserContextManager', () => {
 
         expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
-        expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
         expect(client.onReady).not.toHaveBeenCalled();
 
@@ -383,7 +383,7 @@ describe('UserContextManager', () => {
 
         // Immediate callback with pre-set segments
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         // Background fetch waiting on onReady
         expect(client.onReady).toHaveBeenCalled();
@@ -393,7 +393,7 @@ describe('UserContextManager', () => {
 
         // Background fetch returned matching segments — no second callback
         expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         manager.dispose();
       });
@@ -417,14 +417,14 @@ describe('UserContextManager', () => {
         manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
 
         // Immediate callback with pre-set segments
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         onReadyDeferred.resolve(undefined);
         await flushPromises();
 
         // Background fetch returned different segments — second callback fires
         expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
 
         manager.dispose();
       });
@@ -444,7 +444,7 @@ describe('UserContextManager', () => {
 
         // Immediate callback with pre-set segments
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a']);
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         onReadyDeferred.resolve(undefined);
         await flushPromises();
@@ -452,7 +452,7 @@ describe('UserContextManager', () => {
         // ODP not integrated — no background fetch, no second callback
         expect(client.isOdpIntegrated).toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         manager.dispose();
       });
@@ -472,7 +472,7 @@ describe('UserContextManager', () => {
 
         // Immediate callback with pre-set segments only — no ODP manager, no background fetch
         expect(mockUserContext.qualifiedSegments).toEqual(['seg-a', 'seg-b']);
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
         expect(client.onReady).not.toHaveBeenCalled();
         expect(mockUserContext.fetchQualifiedSegments).not.toHaveBeenCalled();
 
@@ -499,14 +499,14 @@ describe('UserContextManager', () => {
 
         // Immediate callback with empty segments
         expect(mockUserContext.qualifiedSegments).toEqual([]);
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
         onReadyDeferred.resolve(undefined);
         await flushPromises();
 
         // Background fetch returned different segments — second callback fires
         expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-        expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+        expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
 
         manager.dispose();
       });
@@ -545,8 +545,8 @@ describe('UserContextManager', () => {
 
       // Only the second request's context should have been reported
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledWith(expectedCtx);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(expectedCtx);
 
       manager.dispose();
     });
@@ -573,8 +573,8 @@ describe('UserContextManager', () => {
       manager.resolveUserContext({ id: 'user-1' });
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledWith(syncCtx);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(syncCtx);
 
       // Now resolve onReady — first request should be stale
       onReadyDeferred.resolve(undefined);
@@ -582,7 +582,7 @@ describe('UserContextManager', () => {
 
       // Still only one callback (stale request was abandoned)
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       manager.dispose();
     });
@@ -603,7 +603,7 @@ describe('UserContextManager', () => {
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a']);
 
       // Pre-set segments callback of first request fired
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       // Resolve onReady so background fetch starts
       onReadyDeferred.resolve(undefined);
@@ -621,7 +621,7 @@ describe('UserContextManager', () => {
       manager.resolveUserContext({ id: 'user-2' });
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
 
       // First request's background fetch completes — callback should be suppressed (stale)
       (mockUserContext as unknown as { qualifiedSegments: string[] }).qualifiedSegments = ['seg-a', 'seg-new'];
@@ -630,7 +630,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       // Still only 2 calls — background fetch callback of stale request was suppressed
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
 
       manager.dispose();
     });
@@ -658,7 +658,7 @@ describe('UserContextManager', () => {
       onReadyDeferred.resolve(undefined);
       await flushPromises();
 
-      expect(config.onUserContextReady).not.toHaveBeenCalled();
+      expect(config.onUserContextChange).not.toHaveBeenCalled();
       expect(config.onError).not.toHaveBeenCalled();
     });
 
@@ -681,7 +681,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(mockUserContext.fetchQualifiedSegments).toHaveBeenCalled();
-      expect(config.onUserContextReady).not.toHaveBeenCalled();
+      expect(config.onUserContextChange).not.toHaveBeenCalled();
 
       // Dispose while segments are being fetched
       manager.dispose();
@@ -690,7 +690,7 @@ describe('UserContextManager', () => {
       segmentDeferred.resolve(true);
       await flushPromises();
 
-      expect(config.onUserContextReady).not.toHaveBeenCalled();
+      expect(config.onUserContextChange).not.toHaveBeenCalled();
     });
 
     it('should suppress error callbacks after dispose', async () => {
@@ -711,7 +711,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(config.onError).not.toHaveBeenCalled();
-      expect(config.onUserContextReady).not.toHaveBeenCalled();
+      expect(config.onUserContextChange).not.toHaveBeenCalled();
     });
   });
 
@@ -734,7 +734,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(config.onError).toHaveBeenCalledWith(expect.objectContaining({ message: 'SDK init failed' }));
-      expect(config.onUserContextReady).not.toHaveBeenCalled();
+      expect(config.onUserContextChange).not.toHaveBeenCalled();
 
       manager.dispose();
     });
@@ -774,13 +774,13 @@ describe('UserContextManager', () => {
       manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'pro' } });
 
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       // Call again with value-equal user — should be a no-op
       manager.resolveUserContext({ id: 'user-1', attributes: { plan: 'pro' } });
 
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       manager.dispose();
     });
@@ -835,10 +835,10 @@ describe('UserContextManager', () => {
       const manager = new UserContextManager(config);
 
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a']);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
 
       manager.dispose();
     });
@@ -859,11 +859,11 @@ describe('UserContextManager', () => {
       const manager = new UserContextManager(config);
 
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       // New array reference, same values
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a', 'seg-b']);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       manager.dispose();
     });
@@ -919,7 +919,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(client.createUserContext).not.toHaveBeenCalled();
-      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(null);
       expect(config.onError).not.toHaveBeenCalled();
 
       manager.dispose();
@@ -937,13 +937,13 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(client.createUserContext).not.toHaveBeenCalled();
-      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(null);
       expect(config.onError).not.toHaveBeenCalled();
 
       manager.dispose();
     });
 
-    it('should call onUserContextReady(null) when user transitions from valid to null', async () => {
+    it('should call onUserContextChange(null) when user transitions from valid to null', async () => {
       const { client } = createMockClient({
         hasOdpManager: false,
         hasVuidManager: false,
@@ -952,14 +952,14 @@ describe('UserContextManager', () => {
       const manager = new UserContextManager(config);
 
       manager.resolveUserContext({ id: 'user-1' });
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
 
       manager.resolveUserContext(null);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
-      expect(config.onUserContextReady).toHaveBeenLastCalledWith(null);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextChange).toHaveBeenLastCalledWith(null);
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
 
       manager.dispose();
@@ -982,14 +982,14 @@ describe('UserContextManager', () => {
       manager.resolveUserContext(null);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(null);
 
       // onReady resolves — stale request should not fire callback
       onReadyDeferred.resolve(undefined);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
       expect(client.createUserContext).not.toHaveBeenCalled();
 
       manager.dispose();
@@ -1006,14 +1006,14 @@ describe('UserContextManager', () => {
       manager.resolveUserContext(null);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
-      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(null);
 
       manager.resolveUserContext({ id: 'user-1' });
 
       expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
-      expect(config.onUserContextReady).toHaveBeenLastCalledWith(mockUserContext);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextChange).toHaveBeenLastCalledWith(mockUserContext);
 
       manager.dispose();
     });
@@ -1029,13 +1029,13 @@ describe('UserContextManager', () => {
       manager.resolveUserContext(null);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
 
       // Call again with null — should short-circuit
       manager.resolveUserContext(null);
       await flushPromises();
 
-      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextChange).toHaveBeenCalledTimes(1);
       expect(client.createUserContext).not.toHaveBeenCalled();
 
       manager.dispose();
@@ -1058,7 +1058,7 @@ describe('UserContextManager', () => {
       await flushPromises();
 
       expect(client.createUserContext).toHaveBeenCalledWith(undefined, undefined);
-      expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
+      expect(config.onUserContextChange).toHaveBeenCalledWith(mockUserContext);
 
       manager.dispose();
     });

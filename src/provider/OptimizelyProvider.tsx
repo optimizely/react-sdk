@@ -60,7 +60,7 @@ export function OptimizelyProvider({
 
       userManagerRef.current = new UserContextManager({
         client,
-        onUserContextReady: (ctx) => store.setUserContext(ctx),
+        onUserContextChange: (ctx) => store.setUserContext(ctx),
         onError: (error) => store.setError(error),
       });
 
