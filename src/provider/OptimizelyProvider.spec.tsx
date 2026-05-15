@@ -233,7 +233,7 @@ describe('OptimizelyProvider', () => {
       let capturedContext: OptimizelyContextValue | null = null;
 
       const { unmount } = render(
-        <OptimizelyProvider client={mockClient}>
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
           <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
         </OptimizelyProvider>
       );
@@ -488,7 +488,7 @@ describe('OptimizelyProvider', () => {
       expect(mockClient.createUserContext).toHaveBeenCalledTimes(1);
     });
 
-    it('should create user context without userId when user prop is not provided', async () => {
+    it('should not create user context when user prop is not provided', async () => {
       const mockClient = createMockClient();
 
       render(
@@ -497,7 +497,7 @@ describe('OptimizelyProvider', () => {
         </OptimizelyProvider>
       );
 
-      expect(mockClient.createUserContext).toHaveBeenCalledWith(undefined, undefined);
+      expect(mockClient.createUserContext).not.toHaveBeenCalled();
     });
   });
 
@@ -790,6 +790,56 @@ describe('OptimizelyProvider', () => {
 
       const stateAfter = capturedContext!.store.getState();
       expect(stateBefore).toBe(stateAfter);
+    });
+  });
+
+  describe('null user', () => {
+    it('should not create user context when user is null', async () => {
+      const mockClient = createMockClient();
+
+      render(
+        <OptimizelyProvider client={mockClient} user={null}>
+          <div>Child</div>
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).not.toHaveBeenCalled();
+    });
+
+    it('should have null userContext in store when user is null', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      render(
+        <OptimizelyProvider client={mockClient} user={null}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext).not.toBeNull();
+      expect(capturedContext!.store.getState().userContext).toBeNull();
+    });
+
+    it('should create context when user changes from null to valid', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={null}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).not.toHaveBeenCalled();
+      expect(capturedContext!.store.getState().userContext).toBeNull();
+
+      rerender(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', undefined);
     });
   });
 

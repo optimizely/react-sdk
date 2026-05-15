@@ -126,7 +126,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.resolveUserContext(); // no user
+        manager.resolveUserContext({}); // empty object = VUID mode
         await flushPromises();
 
         // Should be waiting on onReady
@@ -158,7 +158,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.resolveUserContext();
+        manager.resolveUserContext({});
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
@@ -239,7 +239,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.resolveUserContext(); // no user
+        manager.resolveUserContext({}); // empty object = VUID mode
         await flushPromises();
 
         // Waiting on onReady for VUID
@@ -293,7 +293,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.resolveUserContext(undefined, undefined, true); // no user, skipSegments
+        manager.resolveUserContext({}, undefined, true); // empty object = VUID, skipSegments
         await flushPromises();
 
         expect(client.onReady).toHaveBeenCalledTimes(1);
@@ -326,7 +326,7 @@ describe('UserContextManager', () => {
         const config = createManagerConfig(client);
         const manager = new UserContextManager(config);
 
-        manager.resolveUserContext(undefined, undefined, true); // no user, no VUID, skipSegments
+        manager.resolveUserContext({}, undefined, true); // empty object, no VUID, skipSegments
         await flushPromises();
 
         expect(client.onReady).not.toHaveBeenCalled();
@@ -531,12 +531,12 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      // First call — no userId, will wait for onReady
-      manager.resolveUserContext();
+      // First call — empty object (VUID), will wait for onReady
+      manager.resolveUserContext({});
       await flushPromises();
 
-      // Second call — also no userId, should invalidate first
-      manager.resolveUserContext();
+      // Second call — also empty object, should invalidate first
+      manager.resolveUserContext({});
       await flushPromises();
 
       // Resolve onReady — both resume, but first is stale
@@ -564,8 +564,8 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      // First call — no userId, will wait for onReady
-      manager.resolveUserContext();
+      // First call — empty object (VUID), will wait for onReady
+      manager.resolveUserContext({});
       await flushPromises();
       expect(client.onReady).toHaveBeenCalled();
 
@@ -648,7 +648,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.resolveUserContext(); // no userId, will await onReady
+      manager.resolveUserContext({}); // empty object (VUID), will await onReady
       await flushPromises();
 
       // Dispose before onReady resolves
@@ -701,7 +701,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.resolveUserContext(); // no userId, will await onReady
+      manager.resolveUserContext({}); // empty object (VUID), will await onReady
       await flushPromises();
 
       manager.dispose();
@@ -727,7 +727,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.resolveUserContext();
+      manager.resolveUserContext({});
       await flushPromises();
 
       onReadyDeferred.reject(new Error('SDK init failed'));
@@ -747,7 +747,7 @@ describe('UserContextManager', () => {
       const config = createManagerConfig(client);
       const manager = new UserContextManager(config);
 
-      manager.resolveUserContext();
+      manager.resolveUserContext({});
       await flushPromises();
 
       onReadyDeferred.reject('string error');
@@ -898,6 +898,167 @@ describe('UserContextManager', () => {
 
       manager.resolveUserContext({ id: 'user-1' }, ['seg-a'], true);
       expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.dispose();
+    });
+  });
+
+  // ============================================================
+  // Null / undefined user (no-context guard)
+  // ============================================================
+  describe('null / undefined user (no-context guard)', () => {
+    it('should not call createUserContext when user is undefined', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext(undefined);
+      await flushPromises();
+
+      expect(client.createUserContext).not.toHaveBeenCalled();
+      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onError).not.toHaveBeenCalled();
+
+      manager.dispose();
+    });
+
+    it('should not call createUserContext when user is null', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(client.createUserContext).not.toHaveBeenCalled();
+      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+      expect(config.onError).not.toHaveBeenCalled();
+
+      manager.dispose();
+    });
+
+    it('should call onUserContextReady(null) when user transitions from valid to null', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({ id: 'user-1' });
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextReady).toHaveBeenLastCalledWith(null);
+      expect(client.createUserContext).toHaveBeenCalledTimes(1);
+
+      manager.dispose();
+    });
+
+    it('should cancel in-flight async work when user becomes null', async () => {
+      const { client, onReadyDeferred } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: true,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      // Start with empty object (VUID flow) — async, waiting on onReady
+      manager.resolveUserContext({});
+      await flushPromises();
+      expect(client.onReady).toHaveBeenCalled();
+
+      // User becomes null before onReady resolves
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+
+      // onReady resolves — stale request should not fire callback
+      onReadyDeferred.resolve(undefined);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(client.createUserContext).not.toHaveBeenCalled();
+
+      manager.dispose();
+    });
+
+    it('should create context when user transitions from null to valid', async () => {
+      const { client, mockUserContext } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(config.onUserContextReady).toHaveBeenCalledWith(null);
+
+      manager.resolveUserContext({ id: 'user-1' });
+
+      expect(client.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(2);
+      expect(config.onUserContextReady).toHaveBeenLastCalledWith(mockUserContext);
+
+      manager.dispose();
+    });
+
+    it('should short-circuit when user stays null', async () => {
+      const { client } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: false,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+
+      // Call again with null — should short-circuit
+      manager.resolveUserContext(null);
+      await flushPromises();
+
+      expect(config.onUserContextReady).toHaveBeenCalledTimes(1);
+      expect(client.createUserContext).not.toHaveBeenCalled();
+
+      manager.dispose();
+    });
+
+    it('should trigger VUID flow when user is empty object', async () => {
+      const { client, mockUserContext, onReadyDeferred } = createMockClient({
+        hasOdpManager: false,
+        hasVuidManager: true,
+      });
+      const config = createManagerConfig(client);
+      const manager = new UserContextManager(config);
+
+      manager.resolveUserContext({});
+      await flushPromises();
+
+      expect(client.onReady).toHaveBeenCalled();
+
+      onReadyDeferred.resolve(undefined);
+      await flushPromises();
+
+      expect(client.createUserContext).toHaveBeenCalledWith(undefined, undefined);
+      expect(config.onUserContextReady).toHaveBeenCalledWith(mockUserContext);
 
       manager.dispose();
     });

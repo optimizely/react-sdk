@@ -38,7 +38,7 @@ export interface OptimizelyProviderProps {
   /**
    * User information for decisions.
    */
-  user?: UserInfo;
+  user?: UserInfo | null;
 
   /**
    * Timeout in milliseconds to wait for the client to become ready.

@@ -445,11 +445,14 @@ export default function MyFeature() {
 
 ### User Promise not supported
 
-User `Promise` is not supported. You must provide a resolved user object to `OptimizelyProvider`. If user information must be fetched asynchronously, resolve the promise before rendering the Provider:
+User `Promise` is not supported. You can pass `null`, `undefined`, or omit the `user` prop while user information is being fetched — hooks will return `{ isLoading: true }` until a resolved user object is provided. For VUID-only mode (no user ID), pass `user={{}}`.
 
 ```tsx
 // Supported
 <OptimizelyProvider client={optimizely} user={{ id: 'user123', attributes: { plan: 'premium' } }} />
+
+// Supported — hooks return { isLoading: true } until user is provided
+<OptimizelyProvider client={optimizely} user={null} />
 
 // NOT supported
 <OptimizelyProvider client={optimizely} user={fetchUserPromise} />

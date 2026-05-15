@@ -35,8 +35,9 @@ export function areSegmentsEqual(a?: string[], b?: string[]): boolean {
  * Used to prevent redundant user context creation when the user prop
  * is referentially different but value-equal.
  */
-export function areUsersEqual(user1?: UserInfo, user2?: UserInfo): boolean {
+export function areUsersEqual(user1?: UserInfo | null, user2?: UserInfo | null): boolean {
   if (user1 === user2) return true;
+  if (!user1 && !user2) return true;
   if (!user1 || !user2) return false;
   if (user1.id !== user2.id) return false;
 

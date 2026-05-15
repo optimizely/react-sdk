@@ -15,6 +15,35 @@
  */
 import { describe, it, afterEach, expect, vi } from 'vitest';
 import * as utils from './helpers';
+import { areUsersEqual } from './helpers';
+
+describe('areUsersEqual', () => {
+  it('should return true when one is null and other is undefined', () => {
+    expect(areUsersEqual(null, undefined)).toBe(true);
+    expect(areUsersEqual(undefined, null)).toBe(true);
+  });
+
+  it('should return false when one is null and other is a valid user', () => {
+    expect(areUsersEqual(null, { id: 'user-1' })).toBe(false);
+    expect(areUsersEqual({ id: 'user-1' }, null)).toBe(false);
+  });
+
+  it('should return true when users have same id and same attributes', () => {
+    expect(
+      areUsersEqual({ id: 'user-1', attributes: { plan: 'pro' } }, { id: 'user-1', attributes: { plan: 'pro' } })
+    ).toBe(true);
+  });
+
+  it('should return false when users have different ids', () => {
+    expect(areUsersEqual({ id: 'user-1' }, { id: 'user-2' })).toBe(false);
+  });
+
+  it('should return false when users have different attributes', () => {
+    expect(
+      areUsersEqual({ id: 'user-1', attributes: { plan: 'free' } }, { id: 'user-1', attributes: { plan: 'pro' } })
+    ).toBe(false);
+  });
+});
 
 describe('getQualifiedSegments', () => {
   const odpIntegration = {
