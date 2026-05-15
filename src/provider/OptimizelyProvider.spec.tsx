@@ -840,6 +840,28 @@ describe('OptimizelyProvider', () => {
       );
 
       expect(mockClient.createUserContext).toHaveBeenCalledWith('user-1', undefined);
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
+    });
+
+    it('should set store userContext to null when user changes from valid to null', async () => {
+      const mockClient = createMockClient();
+      let capturedContext: OptimizelyContextValue | null = null;
+
+      const { rerender } = render(
+        <OptimizelyProvider client={mockClient} user={{ id: 'user-1' }}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext!.store.getState().userContext).not.toBeNull();
+
+      rerender(
+        <OptimizelyProvider client={mockClient} user={null}>
+          <ContextConsumer onContext={(ctx) => (capturedContext = ctx)} />
+        </OptimizelyProvider>
+      );
+
+      expect(capturedContext!.store.getState().userContext).toBeNull();
     });
   });
 
