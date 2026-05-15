@@ -216,12 +216,44 @@ _props_
 | Prop | Type | Required | Description |
 | --- | --- | --- | --- |
 | `client` | `Client` | Yes | Instance created from `createInstance`. |
-| `user` | `{ id?: string; attributes?: UserAttributes }` | No | User info object — `id` and `attributes` will be used to create the user context for all decisions and event tracking. |
+| `user` | `{ id?: string; attributes?: UserAttributes } \| null` | No | User info object — `id` and `attributes` will be used to create the user context for all decisions and event tracking. Pass `null`, `undefined`, or omit while user info is being fetched — hooks will return `{ isLoading: true }` until a resolved user is provided. For VUID-only mode (no user ID), pass `user={{}}`. |
 | `timeout` | `number` | No | Maximum time (in milliseconds) to wait for the SDK to become ready before hooks resolve with a loading state. Default: `30000`. |
 | `qualifiedSegments` | `string[]` | No | Pre-fetched ODP audience segments for the user. Use [`getQualifiedSegments`](#getqualifiedsegments) to obtain these segments server-side. |
 | `skipSegments` | `boolean` | No | When `true`, skips background ODP segment fetching. Default: `false`. |
 
-> **Note:** Unless VUID is enabled, `<OptimizelyProvider>` requires user data. If user information must be fetched asynchronously, resolve the promise before rendering the Provider.
+> **Note:** If user information is not yet available, you can render `<OptimizelyProvider>` without it — hooks will return `{ isLoading: true }` until a resolved user is provided. For VUID-only mode (no user ID), pass `user={{}}`.
+
+#### VUID-only example
+
+```jsx
+import {
+  createInstance,
+  createPollingProjectConfigManager,
+  createBatchEventProcessor,
+  createOdpManager,
+  createVuidManager,
+  OptimizelyProvider,
+} from '@optimizely/react-sdk';
+
+const optimizely = createInstance({
+  projectConfigManager: createPollingProjectConfigManager({
+    sdkKey: 'your-optimizely-sdk-key',
+  }),
+  eventProcessor: createBatchEventProcessor(),
+  odpManager: createOdpManager(),
+  vuidManager: createVuidManager({
+    enableVuid: true,
+  }),
+});
+
+function App() {
+  return (
+    <OptimizelyProvider client={optimizely} user={{}}>
+      <MyComponent />
+    </OptimizelyProvider>
+  );
+}
+```
 
 ### Readiness
 
