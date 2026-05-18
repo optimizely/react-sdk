@@ -1,5 +1,58 @@
 # Changelog
 
+## [4.0.0] - May 18, 2026
+
+v4 is a ground-up rewrite of the React SDK. For a detailed upgrade guide, see [MIGRATION.md](MIGRATION.md). For the official documentation, see the [React SDK Developer Docs](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-sdk).
+
+### New Features
+
+- **New hook API** — `useDecide`, `useDecideForKeys`, `useDecideAll` replace the old `useDecision`, `useExperiment`, and `useFeature` hooks. Return type changed from positional tuples (`[decision, clientReady, didTimeout]`) to discriminated union objects (`{ decision, isLoading, error }`).
+- **Async decision hooks** — `useDecideAsync`, `useDecideForKeysAsync`, `useDecideAllAsync` for use with CMAB (Contextual Multi-Armed Bandit) experiments and async User Profile Service lookups.
+- **`useOptimizelyClient` hook** — Access the Optimizely `Client` instance directly (replaces `withOptimizely` HOC).
+- **`useOptimizelyUserContext` hook** — Access the current `OptimizelyUserContext`, with `{ userContext, isLoading, error }` return type. Use for event tracking and forced decisions.
+- **Modular client configuration** — `createInstance` now accepts dedicated factory-created components (`createPollingProjectConfigManager`, `createStaticProjectConfigManager`, `createBatchEventProcessor`, `createForwardingEventProcessor`, `createOdpManager`, `createVuidManager`, `createErrorNotifier`, `createLogger`) for granular control and smaller bundles.
+- **CMAB support** — Contextual Multi-Armed Bandit experiments via async decide hooks (`useDecideAsync`). New decide options: `IGNORE_CMAB_CACHE`, `RESET_CMAB_CACHE`, `INVALIDATE_USER_CMAB_CACHE`.
+- **Holdouts support** — Holdouts Feature Experimentation capability.
+- **Feature Rollouts** — A new experiment type combining Targeted Delivery simplicity with A/B test measurement capabilities, including full impact analytics and metric tracking.
+- **Async User Profile Service** — Support for asynchronous user profile service lookups.
+- **`getSendBeaconEventDispatcher` export** — New event dispatcher using the Beacon API for reliable event delivery on page unload.
+
+### Breaking Changes
+
+- **Underlying JS SDK upgraded from v5 to v6** — See the [JavaScript SDK v6 Migration Guide](https://github.com/optimizely/javascript-sdk/blob/master/MIGRATION.md) for details.
+- **ESM only** — No CommonJS entry point. Projects using `require()` must switch to ESM imports or configure their bundler.
+- **Node.js >=18.0.0 required** (was >=14.0.0).
+- **Provider prop renamed** — `optimizely` → `client`.
+- **Provider `user` prop no longer accepts a `Promise`** — Resolve the user before rendering.
+- **Removed Provider props** — `isServerSide`, `userId`, `userAttributes`.
+- **Default `timeout` changed** — From `5000` ms to `30000` ms.
+- **`onReady()` behavior changed** — Resolves on success, rejects on failure (no longer returns `{ success, reason }`).
+- **`createInstance` throws on invalid config** (previously returned `null`).
+- **Event processing, ODP, VUID, and logging are opt-in** — Must be explicitly enabled via factory functions.
+- **Removed components** — `OptimizelyExperiment`, `OptimizelyFeature`, `OptimizelyVariation`.
+- **Removed HOC** — `withOptimizely`.
+- **Removed hooks** — `useDecision` (renamed to `useDecide`), `useExperiment`, `useFeature`, `useTrackEvent`.
+- **Removed per-hook `autoUpdate` option** — Hooks now automatically re-evaluate on datafile polling updates. No opt-in needed.
+- **Removed per-hook `overrideUserId` / `overrideAttributes`** — Use separate `<OptimizelyProvider>` instances for different users instead.
+- **Removed exports** — `ReactSDKClient`, `OptimizelyContext`, `setLogger`, `setLogLevel`, `logOnlyEventDispatcher`, `enums`, `logging`, `errorHandler`.
+- **`createLogger` replaces `setLogger`/`setLogLevel`** — Logging disabled by default; pass `createLogger({ logLevel })` to `createInstance`.
+- **`getQualifiedSegments` return type changed** — Now returns `{ segments, error }` instead of `string[] | null`.
+
+### Changed
+
+- **Null/undefined user behavior** — Provider now accepts `user={null}` in addition to `undefined`. When no user is provided, hooks return `{ isLoading: true }` instead of attempting to create a user context.
+
+## [3.4.0] - Mar 9, 2026 
+
+### New Features
+- Add a server-safe bundle that is automatically resolved when imported in React Server Components, excluding client-only React APIs ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Add `qualifiedSegments` prop to `OptimizelyProvider` for passing pre-fetched ODP segments, enabling synchronous ODP-based decisions during SSR ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Add `getQualifiedSegments` utility for fetching ODP audience segments server-side ([#318](https://github.com/optimizely/react-sdk/pull/318))
+
+### Enhancements
+- Improve `useExperiment`, `useFeature`, and `useDecision` hooks to compute decisions when config and user context (including segments) are available, without waiting for `onReady` ([#318](https://github.com/optimizely/react-sdk/pull/318))
+- Add comprehensive server-side rendering integration guide covering SSR, SSG, and App Router patterns ([#318](https://github.com/optimizely/react-sdk/pull/318))
+
 ## [3.3.1] - Dec 8, 2025 
 
 ### Changed
