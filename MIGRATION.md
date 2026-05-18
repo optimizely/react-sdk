@@ -569,7 +569,7 @@ Logging is **disabled by default** in v4. You must pass a `logger` to `createIns
 
 ### v4
 
-The `isServerSide` prop is removed. Instead, configure the client for SSR use:
+The `isServerSide` prop is removed. Instead, configure the client for SSR use. Pass the datafile for immediate readiness during server rendering, and set `disposable: true` on the server so the instance can be garbage collected without explicitly calling `close()`:
 
 ```tsx
 'use client';
@@ -577,7 +577,6 @@ The `isServerSide` prop is removed. Instead, configure the client for SSR use:
 import { useState } from 'react';
 import {
   createInstance,
-  createStaticProjectConfigManager,
   createPollingProjectConfigManager,
   createBatchEventProcessor,
   OptimizelyProvider,
@@ -589,13 +588,11 @@ function ExampleProvider({ children, datafile }) {
 
   const [optimizely] = useState(() =>
     createInstance({
-      projectConfigManager: isServerSide
-        ? createStaticProjectConfigManager({ datafile })
-        : createPollingProjectConfigManager({
-            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY,
-            datafile,
-          }),
-      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
+      projectConfigManager: createPollingProjectConfigManager({
+        sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY,
+        datafile,
+      }),
+      eventProcessor: createBatchEventProcessor(),
       defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
       disposable: isServerSide,
     })
