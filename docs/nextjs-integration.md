@@ -97,7 +97,6 @@ Since `OptimizelyProvider` uses React Context (a client-side feature), it must b
 import {
   OptimizelyProvider,
   createInstance,
-  createStaticProjectConfigManager,
   createPollingProjectConfigManager,
   createBatchEventProcessor,
   OptimizelyDecideOption,
@@ -109,13 +108,11 @@ export function OptimizelyClientProvider({ children, datafile }: { children: Rea
 
   const [optimizely] = useState(() =>
     createInstance({
-      projectConfigManager: isServerSide
-        ? createStaticProjectConfigManager({ datafile })
-        : createPollingProjectConfigManager({
-            sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
-            datafile,
-          }),
-      eventProcessor: isServerSide ? undefined : createBatchEventProcessor(),
+      projectConfigManager: createPollingProjectConfigManager({
+        sdkKey: process.env.NEXT_PUBLIC_OPTIMIZELY_SDK_KEY || '',
+        datafile,
+      }),
+      eventProcessor: createBatchEventProcessor(),
       defaultDecideOptions: isServerSide ? [OptimizelyDecideOption.DISABLE_DECISION_EVENT] : [],
       disposable: isServerSide,
     })
