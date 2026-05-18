@@ -2,7 +2,7 @@
 
 ## [4.0.0] - May 18, 2026
 
-v4 is a ground-up rewrite of the React SDK. For a detailed upgrade guide, see [MIGRATION.md](MIGRATION.md).
+v4 is a ground-up rewrite of the React SDK. For a detailed upgrade guide, see [MIGRATION.md](MIGRATION.md). For the official documentation, see the [React SDK Developer Docs](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-sdk).
 
 ### New Features
 
