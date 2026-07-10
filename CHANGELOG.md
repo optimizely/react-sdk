@@ -1,5 +1,21 @@
 # Changelog
 
+## [4.1.0] - July 10, 2026
+
+### New Features
+- **Local Holdouts**: Added support for Local Holdouts, enabling holdout experiments
+to be scoped to specific feature flag rules rather than applied globally.
+Local Holdouts let you measure the true incremental impact of individual features
+by holding out a subset of users from specific rollouts while still serving them other experiences.
+See [Holdouts docs](https://support.optimizely.com/hc/en-us/articles/38941939408269-Global-holdouts) for more information.
+
+### Changed
+- Don't send ODP identify event for single identifier
+
+### Bug Fixes
+- Use attribute id instead of key for CMAB prediction requests
+- Normalize decision event campaign_id, variation_id, and entity_id
+
 ## [4.0.0] - May 18, 2026
 
 v4 is a ground-up rewrite of the React SDK. For a detailed upgrade guide, see [MIGRATION.md](MIGRATION.md). For the official documentation, see the [React SDK Developer Docs](https://docs.developers.optimizely.com/feature-experimentation/docs/javascript-react-sdk).
