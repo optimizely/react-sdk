@@ -1,11 +1,11 @@
-name: Publish React SDK to NPM
+name: Publish React SDK
 
 on:
   release:
     types: [ published ]
 
 jobs:
-  publish:
+  publish-npm:
     name: Publish to NPM
     runs-on: ubuntu-latest
     steps:
@@ -19,27 +19,47 @@ jobs:
         registry-url: "https://registry.npmjs.org/"
         always-auth: "true"
         cache: 'npm'
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
 
     - name: Install dependencies
       run: npm ci
 
-    - id: npm-tag
-      name: Determine NPM tag
-      run: |
-        version=$(jq -r '.version' package.json)
-        if [[ "$version" == *"-beta"* ]]; then
-          echo "npm-tag=beta" >> "$GITHUB_OUTPUT"
-        elif [[ "$version" == *"-alpha"* ]]; then
-          echo "npm-tag=alpha" >> "$GITHUB_OUTPUT"
-        elif [[ "$version" == *"-rc"* ]]; then
-          echo "npm-tag=rc" >> "$GITHUB_OUTPUT"
-        else
-          echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
-        fi
-
-    - name: Test, build, then publish
+    - name: Publish to NPM
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
-      run: npm publish --tag ${{ steps.npm-tag.outputs['npm-tag'] }}
+      run: scripts/publish.sh "https://registry.npmjs.org"
+
+  publish-ghr:
+    name: Publish to GitHub Package Registry
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v4
+
+    # Install from the public npm registry so scoped dependencies
+    # (e.g. @optimizely/optimizely-sdk) resolve normally. We do NOT route the
+    # @optimizely scope to GHR here, otherwise `npm ci` would look for
+    # dependencies on GHR instead of npm.
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        registry-url: "https://registry.npmjs.org/"
+        always-auth: "true"
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    # Add GHR auth for the publish only. npm expands ${NODE_AUTH_TOKEN} at
+    # runtime, and scripts/publish.sh passes --registry explicitly, so the
+    # default registry stays on npm.
+    - name: Configure GHR auth
+      run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
+
+    - name: Publish to GHR
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: scripts/publish.sh "https://npm.pkg.github.com"
