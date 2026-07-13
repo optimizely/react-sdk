@@ -30,6 +30,8 @@ jobs:
     steps:
     - name: Checkout branch
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Node
       uses: actions/setup-node@v4
@@ -48,12 +50,13 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         DRY_RUN: ${{ github.event.inputs.dry_run }}
+        INPUT_VERSION: ${{ github.event.inputs.version }}
       run: |
         set -euo pipefail
         pkg="@optimizely/react-sdk"
 
-        if [[ -n "${{ github.event.inputs.version }}" ]]; then
-          versions="${{ github.event.inputs.version }}"
+        if [[ -n "$INPUT_VERSION" ]]; then
+          versions="$INPUT_VERSION"
         else
           versions=$(npm view "$pkg" versions --json --registry https://registry.npmjs.org | jq -r '.[]')
         fi

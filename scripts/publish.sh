@@ -12,9 +12,13 @@
 #                 of the current working directory (used by the GHR backfill).
 #
 # Env:
-#   NODE_AUTH_TOKEN  Auth token for the target registry. The caller is expected
-#                    to have configured .npmrc (e.g. via actions/setup-node) so
-#                    that @optimizely resolves to <registry-url> with this token.
+#   NODE_AUTH_TOKEN  Auth token for the target registry. The caller must have an
+#                    .npmrc entry supplying auth for <registry-url>'s host, e.g.
+#                    `//<host>/:_authToken=${NODE_AUTH_TOKEN}` (setup-node writes
+#                    this). This script passes --registry explicitly, so no
+#                    scope-to-registry routing is required (and the GHR job
+#                    intentionally does NOT route @optimizely to GHR, so that
+#                    `npm ci` still installs dependencies from npm).
 #   DRY_RUN          When "true", report what would happen (publish vs. skip)
 #                    without actually publishing.
 #
