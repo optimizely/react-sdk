@@ -63,7 +63,10 @@ jobs:
 
         for v in $versions; do
           echo "::group::${pkg}@${v}"
-          tarball=$(npm pack "${pkg}@${v}" --registry https://registry.npmjs.org 2>/dev/null | tail -n1)
+          # npm pack writes the tarball filename to stdout and notices/errors to
+          # stderr; keep stderr visible so pack failures (auth/404/network) show
+          # in the logs. pipefail (set above) makes a failed pack abort the job.
+          tarball=$(npm pack "${pkg}@${v}" --registry https://registry.npmjs.org | tail -n1)
           scripts/publish.sh "https://npm.pkg.github.com" "$tarball"
           rm -f "$tarball"
           echo "::endgroup::"
