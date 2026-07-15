@@ -17,9 +17,6 @@ jobs:
       with:
         persist-credentials: false
 
-    # Install/build against the public npm registry so scoped dependencies
-    # (e.g. @optimizely/optimizely-sdk) resolve from npm. We do NOT route the
-    # @optimizely scope to GHR; scripts/publish.sh passes --registry explicitly.
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
@@ -28,17 +25,12 @@ jobs:
         always-auth: "true"
         cache: 'npm'
 
-    # Add GHR auth for the GHR publish. npm expands ${NODE_AUTH_TOKEN} at runtime
-    # per-step, so each publish uses the right token for its registry.
     - name: Configure GHR auth
       run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
 
-    # Deps only; we build explicitly below so the package is built exactly once.
     - name: Install dependencies
       run: npm ci --ignore-scripts
 
-    # Test, build, and pack a single tarball. Both registries publish this same
-    # artifact, guaranteeing npm and GHR receive byte-identical bytes.
     - name: Test, build, and pack
       id: pack
       run: |

@@ -27,6 +27,9 @@
 #     re-running a release or the backfill is always a safe no-op.
 #   - Computes the dist-tag from the version string (beta/alpha/rc/latest) so a
 #     pre-release never moves the `latest` pointer.
+#   - For a stable release whose major is older than the registry's current
+#     `latest` (e.g. a 5.x patch shipped after 6.x), tags it `v<major>-latest`
+#     instead of `latest`, so `latest` never moves backwards onto an old major.
 set -euo pipefail
 
 dry_run="${DRY_RUN:-false}"
@@ -55,6 +58,20 @@ esac
 if npm view "${pkg}@${version}" version --registry "$registry" >/dev/null 2>&1; then
   echo "Version ${pkg}@${version} already on ${registry}, skipping."
   exit 0
+fi
+
+# Don't let a stable release move `latest` backwards onto an older major. If the
+# registry's current `latest` is already a newer major than this version, publish
+# under `v<major>-latest` instead. (Only reached when actually publishing, so the
+# extra lookup is skipped for no-op re-runs above.)
+if [[ "$tag" == "latest" ]]; then
+  current_latest=$(npm view "${pkg}" version --registry "$registry" 2>/dev/null || true)
+  our_major=${version%%.*}
+  latest_major=${current_latest%%.*}
+  if [[ "$our_major" =~ ^[0-9]+$ && "$latest_major" =~ ^[0-9]+$ ]] && (( our_major < latest_major )); then
+    tag="v${our_major}-latest"
+    echo "Current latest is ${current_latest} (major ${latest_major}); tagging ${version} as ${tag} to preserve latest."
+  fi
 fi
 
 if [[ "$dry_run" == "true" ]]; then

@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Single version to backfill (e.g. 4.0.0). Leave blank to backfill all missing versions."
+        description: "Single version to backfill (e.g. 4.0.0). Leave blank to process all published npm versions (versions already on GHR are skipped)."
         required: false
         default: ""
       dry_run:
@@ -37,20 +37,15 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 18
-        registry-url: "https://registry.npmjs.org/"
-        always-auth: "true"
 
-    # Add GHR auth for publishing. npm expands ${NODE_AUTH_TOKEN} at runtime, and
-    # scripts/publish.sh passes --registry explicitly, so the default registry
-    # stays on npm (backfill reads tarballs from npm, writes them to GHR).
     - name: Configure GHR auth
       run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
 
     - name: Backfill
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        DRY_RUN: ${{ github.event.inputs.dry_run }}
-        INPUT_VERSION: ${{ github.event.inputs.version }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        INPUT_VERSION: ${{ inputs.version }}
       run: |
         set -euo pipefail
         pkg="@optimizely/react-sdk"
