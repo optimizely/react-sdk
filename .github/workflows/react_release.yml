@@ -1,4 +1,4 @@
-name: Publish React SDK to NPM
+name: Publish React SDK
 
 on:
   release:
@@ -6,11 +6,16 @@ on:
 
 jobs:
   publish:
-    name: Publish to NPM
+    name: Publish to NPM and GitHub Package Registry
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - name: Checkout branch
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Set up Node
       uses: actions/setup-node@v4
@@ -19,27 +24,29 @@ jobs:
         registry-url: "https://registry.npmjs.org/"
         always-auth: "true"
         cache: 'npm'
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
+
+    - name: Configure GHR auth
+      run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --ignore-scripts
 
-    - id: npm-tag
-      name: Determine NPM tag
+    - name: Test, build, and pack
+      id: pack
       run: |
-        version=$(jq -r '.version' package.json)
-        if [[ "$version" == *"-beta"* ]]; then
-          echo "npm-tag=beta" >> "$GITHUB_OUTPUT"
-        elif [[ "$version" == *"-alpha"* ]]; then
-          echo "npm-tag=alpha" >> "$GITHUB_OUTPUT"
-        elif [[ "$version" == *"-rc"* ]]; then
-          echo "npm-tag=rc" >> "$GITHUB_OUTPUT"
-        else
-          echo "npm-tag=latest" >> "$GITHUB_OUTPUT"
-        fi
+        npm run test
+        npm run build
+        tarball=$(npm pack --ignore-scripts | tail -n1)
+        echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
 
-    - name: Test, build, then publish
+    - name: Publish to NPM
       env:
         NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
-      run: npm publish --tag ${{ steps.npm-tag.outputs['npm-tag'] }}
+        TARBALL: ${{ steps.pack.outputs.tarball }}
+      run: scripts/publish.sh "https://registry.npmjs.org" "$TARBALL"
+
+    - name: Publish to GitHub Package Registry
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TARBALL: ${{ steps.pack.outputs.tarball }}
+      run: scripts/publish.sh "https://npm.pkg.github.com" "$TARBALL"

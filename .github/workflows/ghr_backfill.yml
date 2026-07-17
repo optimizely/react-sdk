@@ -1,0 +1,68 @@
+name: Backfill GitHub Package Registry
+
+# Manually triggered. Copies versions already published on npm into the GitHub
+# Package Registry so GHR mirrors npm. Re-publishing the npm tarball guarantees
+# the GHR copy is byte-identical to what npm consumers received (no rebuild).
+#
+# Idempotent: scripts/publish.sh skips any version already present on GHR, so
+# this can be re-run safely.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Single version to backfill (e.g. 4.0.0). Leave blank to process all published npm versions (versions already on GHR are skipped)."
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run: report what would be published to GHR without publishing."
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  backfill:
+    name: Backfill npm versions to GHR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Configure GHR auth
+      run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
+
+    - name: Backfill
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        DRY_RUN: ${{ inputs.dry_run }}
+        INPUT_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        pkg="@optimizely/react-sdk"
+
+        if [[ -n "$INPUT_VERSION" ]]; then
+          versions="$INPUT_VERSION"
+        else
+          versions=$(npm view "$pkg" versions --json --registry https://registry.npmjs.org | jq -r '.[]')
+        fi
+
+        for v in $versions; do
+          echo "::group::${pkg}@${v}"
+          # npm pack writes the tarball filename to stdout and notices/errors to
+          # stderr; keep stderr visible so pack failures (auth/404/network) show
+          # in the logs. pipefail (set above) makes a failed pack abort the job.
+          tarball=$(npm pack "${pkg}@${v}" --registry https://registry.npmjs.org | tail -n1)
+          scripts/publish.sh "https://npm.pkg.github.com" "$tarball"
+          rm -f "$tarball"
+          echo "::endgroup::"
+        done
