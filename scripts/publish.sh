@@ -35,10 +35,14 @@
 #       * pre-releases (beta/alpha/rc) get their own tag, never `latest`.
 #       * a stable release gets `latest` ONLY when it is strictly greater (by
 #         semver) than the registry's current `latest`. Otherwise it is tagged
-#         `v<major>.<minor>-latest` (its own release line), so `latest` never
-#         moves backwards onto an older release — this covers both an older
-#         major (5.x shipped after 6.x) and an older minor of the current major
-#         (6.4.1 shipped while latest is 6.5.0).
+#         `v<major>-last-published`, so `latest` never moves backwards onto an
+#         older release — this covers both an older major (5.x shipped after
+#         6.x) and an older minor of the current major (6.4.1 shipped while
+#         latest is 6.5.0). This tag is per-major and always points at the most
+#         recent non-latest publish on that major line; it is not a stable
+#         pointer to a specific version, so publishing another older version on
+#         the same major (e.g. 6.3.5 after 6.4.1, both below latest 6.5.0) moves
+#         the tag to the newer publish.
 set -euo pipefail
 
 dry_run="${DRY_RUN:-false}"
@@ -120,9 +124,7 @@ case "$version" in
       tag=latest
     else
       major=${version%%.*}
-      rest=${version#*.}
-      minor=${rest%%.*}
-      tag="v${major}.${minor}-latest"
+      tag="v${major}-last-published"
       echo "Current latest is ${current_latest}; ${version} is not newer, tagging as ${tag} to preserve latest."
     fi
     ;;
