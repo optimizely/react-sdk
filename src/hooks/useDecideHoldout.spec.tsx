@@ -52,7 +52,8 @@ describe('useDecide – holdout exclusion behavior', () => {
       enabled: true,
       ruleKey: 'targeted_delivery_rule',
       reasons: [
-        'User excluded from holdout "global_holdout" for targeted delivery rule.',
+        'User meets audience conditions for holdout "global_holdout".',
+        "Holdout 'global_holdout' has excludeTargetedDeliveries enabled, continuing to rollout evaluation.",
         'User meets audience conditions for targeted delivery.',
       ],
     });
@@ -70,8 +71,59 @@ describe('useDecide – holdout exclusion behavior', () => {
     expect(result.current.decision?.enabled).toBe(true);
     expect(result.current.decision?.ruleKey).toBe('targeted_delivery_rule');
     expect(result.current.decision?.reasons).toContain(
-      'User excluded from holdout "global_holdout" for targeted delivery rule.'
+      "Holdout 'global_holdout' has excludeTargetedDeliveries enabled, continuing to rollout evaluation."
     );
+    expect(result.current.decision?.reasons).toContain('User meets audience conditions for targeted delivery.');
+  });
+
+  it('should include bypass reason between audience evaluation and rollout evaluation', () => {
+    const bypassDecision = createHoldoutDecision({
+      variationKey: 'rollout_variation',
+      enabled: true,
+      ruleKey: 'rollout_rule',
+      reasons: [
+        'User meets audience conditions for holdout "test_holdout".',
+        "Holdout 'test_holdout' has excludeTargetedDeliveries enabled, continuing to rollout evaluation.",
+        'User bucketed into rollout rule.',
+      ],
+    });
+
+    const mockUserContext = createMockUserContext({
+      decide: vi.fn().mockReturnValue(bypassDecision),
+    });
+    store.setUserContext(mockUserContext);
+
+    const wrapper = createWrapper(store, mockClient);
+    const { result } = renderHook(() => useDecide('flag_with_holdout'), { wrapper });
+
+    const reasons = result.current.decision?.reasons ?? [];
+    const audienceIdx = reasons.findIndex((r: string) => r.includes('meets audience conditions for holdout'));
+    const bypassIdx = reasons.findIndex((r: string) => r.includes('excludeTargetedDeliveries enabled'));
+    const rolloutIdx = reasons.findIndex((r: string) => r.includes('bucketed into rollout'));
+
+    expect(audienceIdx).toBeGreaterThanOrEqual(0);
+    expect(bypassIdx).toBeGreaterThan(audienceIdx);
+    expect(rolloutIdx).toBeGreaterThan(bypassIdx);
+  });
+
+  it('should surface holdout decision with impression event dispatched', () => {
+    const holdoutDecision = createHoldoutDecision({
+      variationKey: 'holdout_variation',
+      enabled: false,
+      reasons: ['User is in holdout group "global_holdout".', 'Holdout impression event dispatched.'],
+    });
+
+    const mockUserContext = createMockUserContext({
+      decide: vi.fn().mockReturnValue(holdoutDecision),
+    });
+    store.setUserContext(mockUserContext);
+
+    const wrapper = createWrapper(store, mockClient);
+    const { result } = renderHook(() => useDecide('flag_with_holdout'), { wrapper });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.decision?.enabled).toBe(false);
+    expect(result.current.decision?.reasons).toContain('Holdout impression event dispatched.');
   });
 
   it('should surface holdout decision when exclude_targeted_deliveries=false', () => {
