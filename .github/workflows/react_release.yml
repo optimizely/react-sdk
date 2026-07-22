@@ -3,14 +3,19 @@ name: Publish React SDK
 on:
   release:
     types: [ published ]
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+  packages: write
 
 jobs:
   publish:
     name: Publish to NPM and GitHub Package Registry
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    if: ${{ github.event_name == 'workflow_dispatch' || !github.event.release.draft }}
+    environment: npm
     steps:
     - name: Checkout branch
       uses: actions/checkout@v4
@@ -20,10 +25,11 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v4
       with:
-        node-version: 18
-        registry-url: "https://registry.npmjs.org/"
-        always-auth: "true"
+        node-version: 22
         cache: 'npm'
+
+    - name: Upgrade npm for OIDC support
+      run: npm install -g npm@latest
 
     - name: Configure GHR auth
       run: echo "//npm.pkg.github.com/:_authToken=\${NODE_AUTH_TOKEN}" >> ~/.npmrc
@@ -39,14 +45,17 @@ jobs:
         tarball=$(npm pack --ignore-scripts | tail -n1)
         echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
 
+    # npm publish uses OIDC trusted publishing (no token needed).
+    # publish.sh adds --provenance for supply-chain attestations.
     - name: Publish to NPM
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_REACT_TO_NPM_FROM_GITHUB }}
         TARBALL: ${{ steps.pack.outputs.tarball }}
+        DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
       run: scripts/publish.sh "https://registry.npmjs.org" "$TARBALL"
 
     - name: Publish to GitHub Package Registry
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TARBALL: ${{ steps.pack.outputs.tarball }}
+        DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
       run: scripts/publish.sh "https://npm.pkg.github.com" "$TARBALL"

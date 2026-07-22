@@ -88,8 +88,12 @@ trap 'rm -f "$body_file"' EXIT
 # curl -sS (no --fail) returns 0 for any HTTP response, non-zero only on
 # network/protocol errors — so we can cleanly separate "server answered" from
 # "could not reach server".
+auth_header=""
+if [[ -n "${NODE_AUTH_TOKEN:-}" ]]; then
+  auth_header="Authorization: Bearer ${NODE_AUTH_TOKEN}"
+fi
 if ! http_code=$(curl -sS -m 30 -o "$body_file" -w '%{http_code}' \
-      -H "Authorization: Bearer ${NODE_AUTH_TOKEN:-}" "$packument_url"); then
+      ${auth_header:+-H "$auth_header"} "$packument_url"); then
   echo "ERROR: request to ${packument_url} failed (network/timeout); refusing to publish on an ambiguous result." >&2
   exit 1
 fi
@@ -135,11 +139,16 @@ if [[ "$dry_run" == "true" ]]; then
   exit 0
 fi
 
+provenance_flag=""
+if [[ "$registry" == *"registry.npmjs.org"* ]]; then
+  provenance_flag="--provenance"
+fi
+
 echo "Publishing ${pkg}@${version} (tag: ${tag}) to ${registry}"
 if [[ -n "$tarball" ]]; then
   # The tarball is a prebuilt artifact; skip lifecycle scripts (prepublishOnly
   # = test + build) that would otherwise run from the current package.json.
-  npm publish "$tarball" --registry "$registry" --tag "$tag" --ignore-scripts
+  npm publish "$tarball" --registry "$registry" --tag "$tag" --ignore-scripts $provenance_flag
 else
-  npm publish --registry "$registry" --tag "$tag"
+  npm publish --registry "$registry" --tag "$tag" $provenance_flag
 fi
