@@ -20,7 +20,7 @@ import { REACT_LOGGER } from '../logger/createLogger';
 import type { ReactLogger } from '../logger/ReactLogger';
 
 export const CLIENT_ENGINE = 'react-sdk';
-export const CLIENT_VERSION = '4.0.0';
+export const CLIENT_VERSION = '4.2.0';
 
 export const REACT_CLIENT_META = Symbol('react-client-meta');
 
