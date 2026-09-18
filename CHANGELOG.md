@@ -1,6 +1,6 @@
 # Changelog
 
-## [4.2.1] - September 3, 2026
+## [4.2.1] - September 18, 2026
 
 ### Bug Fixes
 - Use an updated datafile cache key so the SDK no longer reads a stale or malformed datafile persisted by an older SDK version.
