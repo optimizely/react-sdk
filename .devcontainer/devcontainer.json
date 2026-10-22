@@ -1,6 +1,11 @@
 {
   "name": "React SDK",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-18-bullseye",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bullseye",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22.23.4"
+    }
+  },
   "postCreateCommand": "npm i -g yarn@1.22.22 && yarn install",
   "customizations": {
     "vscode": {
