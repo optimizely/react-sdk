@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [ '18', '20', '22', '24' ]
+        node: [ '18', '20', '22.23.4', '24' ]
     steps:
     - name: Checkout branch
       uses: actions/checkout@v4
