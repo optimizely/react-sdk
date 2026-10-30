@@ -1,5 +1,17 @@
 # Changelog
 
+## [4.3.0] - October 30, 2026
+
+### Changed
+
+**Local Holdouts: rule evaluation continues after a holdout hit**:
+When a user matches a local holdout on a rule, the SDK now excludes the user from that rule only
+and continues evaluating the remaining rules, instead of returning the holdout variation and skipping
+the rest of the flag. Each local holdout hit sends its own holdout impression event (using the
+existing event format), regardless of `sendFlagDecisions`. Global holdouts are unchanged.
+
+- chore(security): pin dev/CI Node to 22.23.4 (CVE-2026-111497) ([#353](https://github.com/optimizely/react-sdk/pull/353))
+
 ## [4.2.1] - September 18, 2026
 
 ### Bug Fixes
