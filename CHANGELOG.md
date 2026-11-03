@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.3.0] - November 4, 2026
+
+### Changed
+
+**Local Holdouts: rule evaluation continues after a holdout hit**:
+When a user matches a local holdout on a rule, the SDK now excludes the user from that rule only
+and continues evaluating the remaining rules, instead of returning the holdout variation and skipping
+the rest of the flag. Each local holdout hit sends its own holdout impression event (using the
+existing event format), regardless of `sendFlagDecisions`. Global holdouts are unchanged.
+
+- Continue rule evaluation after local holdout hit
+- Skip the default browser event store when localStorage is unavailable
+- Make React Native polyfills optional and isolate optional requires
+- Support AsyncStorage v3 in React Native
+
 ## [4.2.1] - September 18, 2026
 
 ### Bug Fixes
