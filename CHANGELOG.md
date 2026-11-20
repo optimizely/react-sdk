@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.3.1] - November 20, 2026
+
+### Bug Fixes
+
+Upgraded `@optimizely/optimizely-sdk` to 6.7.1, which includes the following fixes:
+
+- Don't fail SDK initialization on the first invalid datafile from the datafile manager; startup now fails only after 3 invalid datafiles arrive before a valid one
+- Settle the `close()` and `onTerminated()` promises after client initialization fails, and clear the `onReady()` timeout so a failed init no longer keeps a Node process alive
+
 ## [4.3.0] - November 4, 2026
 
 ### Changed
