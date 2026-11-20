@@ -22,8 +22,6 @@ import type { ReactLogger } from '../logger/ReactLogger';
 export const CLIENT_ENGINE = 'react-sdk';
 export const CLIENT_VERSION = '4.3.1';
 
-export const REACT_CLIENT_META = Symbol('react-client-meta');
-
 export interface ReactClientMeta {
   hasOdpManager: boolean;
   hasVuidManager: boolean;
@@ -31,13 +29,42 @@ export interface ReactClientMeta {
 }
 
 /**
+ * React-specific metadata, keyed by JS SDK client instance.
+ *
+ * Kept outside the client so the JS SDK instance is returned untouched
+ * (no wrapper, no extra properties). Entries are collected with the client.
+ */
+const reactClientMeta = new WeakMap<Client, ReactClientMeta>();
+
+/**
+ * Returns the React SDK metadata for a client.
+ *
+ * Note: returns undefined at runtime if the client was not created via the
+ * React SDK's createInstance. Typed as non-optional to preserve the existing
+ * behavior of callers, which assume the meta is present.
+ */
+export function getReactClientMeta(client: Client): ReactClientMeta {
+  return reactClientMeta.get(client) as ReactClientMeta;
+}
+
+/**
+ * Associates React SDK metadata with a client. Internal; exported for
+ * createInstance and test setup.
+ */
+export function setReactClientMeta(client: Client, meta: ReactClientMeta): void {
+  reactClientMeta.set(client, meta);
+}
+
+/**
  * Creates an Optimizely client instance for use with React SDK.
  *
- * Uses prototype delegation so the returned object inherits all methods
- * from the JS SDK client while carrying React-specific metadata.
+ * Returns the JS SDK client instance itself. React-specific metadata is
+ * stored separately (see getReactClientMeta) rather than on a wrapper object:
+ * the JS client mutates its own state via `this`, so a prototype-delegating
+ * wrapper would split that state between the wrapper and the real instance.
  *
  * @param config - Configuration object for the Optimizely client
- * @returns An OptimizelyClient instance with React SDK metadata
+ * @returns The JS SDK client instance, registered with React SDK metadata
  */
 export function createInstance(config: Config): Client {
   let reactLogger: ReactLogger | undefined;
@@ -53,13 +80,11 @@ export function createInstance(config: Config): Client {
     clientVersion: CLIENT_VERSION,
   });
 
-  const reactClient = Object.create(jsClient);
-
-  reactClient[REACT_CLIENT_META] = {
+  setReactClientMeta(jsClient, {
     hasOdpManager: !!config.odpManager,
     hasVuidManager: !!config.vuidManager,
     logger: reactLogger,
-  } satisfies ReactClientMeta;
+  });
 
-  return reactClient;
+  return jsClient;
 }

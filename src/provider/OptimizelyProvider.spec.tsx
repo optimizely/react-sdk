@@ -20,7 +20,7 @@ import { render, waitFor, screen } from '@testing-library/react';
 import type { Client as OptimizelyClient, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
 
 import { OptimizelyProvider, OptimizelyContext } from './OptimizelyProvider';
-import { REACT_CLIENT_META } from '../client';
+import { setReactClientMeta } from '../client';
 import type { ReactClientMeta } from '../client';
 import type { OptimizelyContextValue } from './types';
 
@@ -64,10 +64,10 @@ function createMockClient(
     ...overrides,
   } as unknown as OptimizelyClient;
 
-  (client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META] = {
+  setReactClientMeta(client, {
     hasOdpManager: meta.hasOdpManager ?? false,
     hasVuidManager: meta.hasVuidManager ?? false,
-  };
+  });
 
   return client;
 }

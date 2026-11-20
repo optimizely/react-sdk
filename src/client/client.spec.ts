@@ -16,20 +16,19 @@
 
 import { vi, describe, it, expect, beforeEach, type MockedFunction } from 'vitest';
 import { createInstance as jsCreateInstance } from '@optimizely/optimizely-sdk';
-import type { Config } from '@optimizely/optimizely-sdk';
-import { createInstance, CLIENT_ENGINE, CLIENT_VERSION, REACT_CLIENT_META } from './createInstance';
-import type { ReactClientMeta } from './createInstance';
+import type { Config, Client } from '@optimizely/optimizely-sdk';
+import { createInstance, getReactClientMeta, CLIENT_ENGINE, CLIENT_VERSION } from './createInstance';
 
-type ClientWithMeta = Record<symbol, ReactClientMeta>;
-
-const mockJsClient = vi.hoisted(() => ({
-  onReady: vi.fn().mockResolvedValue(undefined),
-  createUserContext: vi.fn(),
-  close: vi.fn(),
-}));
+// Fresh object per call so clients (and their WeakMap entries) don't leak between tests
+const createMockJsClient = () =>
+  ({
+    onReady: vi.fn().mockResolvedValue(undefined),
+    createUserContext: vi.fn(),
+    close: vi.fn(),
+  }) as unknown as Client;
 
 vi.mock('@optimizely/optimizely-sdk', () => ({
-  createInstance: vi.fn().mockReturnValue(mockJsClient),
+  createInstance: vi.fn(),
 }));
 
 const mockedJsCreateInstance = jsCreateInstance as MockedFunction<typeof jsCreateInstance>;
@@ -43,6 +42,7 @@ const createTestConfig = (overrides: Partial<Config> = {}): Config => ({
 describe('createInstance', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedJsCreateInstance.mockImplementation(createMockJsClient);
   });
 
   describe('client engine and version', () => {
@@ -57,50 +57,53 @@ describe('createInstance', () => {
     });
   });
 
-  describe('prototype delegation', () => {
-    it('should return an object that delegates to the JS SDK client', () => {
-      const client = createInstance(createTestConfig());
-      // Methods from the JS client should be accessible via prototype chain
-      expect(client.onReady).toBe(mockJsClient.onReady);
-      expect(client.createUserContext).toBe(mockJsClient.createUserContext);
-      expect(client.close).toBe(mockJsClient.close);
-    });
+  describe('returned client', () => {
+    it('should keep state mutated via `this` on the underlying JS SDK client', () => {
+      const jsClient = {
+        state: 'initial',
+        setState(value: string) {
+          this.state = value;
+        },
+      };
+      mockedJsCreateInstance.mockReturnValueOnce(jsClient as unknown as Client);
 
-    it('should have the JS SDK client as its prototype', () => {
-      const client = createInstance(createTestConfig());
-      expect(Object.getPrototypeOf(client)).toBe(mockJsClient);
+      const client = createInstance(createTestConfig()) as unknown as typeof jsClient;
+      client.setState('updated');
+
+      expect(jsClient.state).toBe('updated');
     });
   });
 
-  describe('REACT_CLIENT_META', () => {
+  describe('react client meta', () => {
     it('should set hasOdpManager to false when odpManager is not provided', () => {
       const client = createInstance(createTestConfig());
-      const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.hasOdpManager).toBe(false);
+      expect(getReactClientMeta(client).hasOdpManager).toBe(false);
     });
 
     it('should set hasOdpManager to true when odpManager is provided', () => {
       const client = createInstance(createTestConfig({ odpManager: {} as Config['odpManager'] }));
-      const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.hasOdpManager).toBe(true);
+      expect(getReactClientMeta(client).hasOdpManager).toBe(true);
     });
 
     it('should set hasVuidManager to false when vuidManager is not provided', () => {
       const client = createInstance(createTestConfig());
-      const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.hasVuidManager).toBe(false);
+      expect(getReactClientMeta(client).hasVuidManager).toBe(false);
     });
 
     it('should set hasVuidManager to true when vuidManager is provided', () => {
       const client = createInstance(createTestConfig({ vuidManager: {} as Config['vuidManager'] }));
-      const meta = (client as unknown as ClientWithMeta)[REACT_CLIENT_META];
-      expect(meta.hasVuidManager).toBe(true);
+      expect(getReactClientMeta(client).hasVuidManager).toBe(true);
     });
 
-    it('should store meta on the react client, not on the prototype', () => {
-      const client = createInstance(createTestConfig());
-      expect(Object.prototype.hasOwnProperty.call(client, REACT_CLIENT_META)).toBe(true);
-      expect(Object.prototype.hasOwnProperty.call(mockJsClient, REACT_CLIENT_META)).toBe(false);
+    it('should keep meta separate per client', () => {
+      const withOdp = createInstance(createTestConfig({ odpManager: {} as Config['odpManager'] }));
+      const withoutOdp = createInstance(createTestConfig());
+      expect(getReactClientMeta(withOdp).hasOdpManager).toBe(true);
+      expect(getReactClientMeta(withoutOdp).hasOdpManager).toBe(false);
+    });
+
+    it('should return undefined for a client not created via createInstance', () => {
+      expect(getReactClientMeta(createMockJsClient())).toBeUndefined();
     });
   });
 });
