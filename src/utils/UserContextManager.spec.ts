@@ -16,8 +16,7 @@
 
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-import { REACT_CLIENT_META } from '../client';
-import type { ReactClientMeta } from '../client';
+import { setReactClientMeta } from '../client';
 import { UserContextManager } from './UserContextManager';
 
 // --- Helpers ---
@@ -61,8 +60,7 @@ function createMockClient(opts: MockClientOptions = {}) {
     isOdpIntegrated: vi.fn().mockReturnValue(isOdpIntegrated),
   } as unknown as Client;
 
-  const meta: ReactClientMeta = { hasOdpManager, hasVuidManager };
-  (client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META] = meta;
+  setReactClientMeta(client, { hasOdpManager, hasVuidManager });
 
   return {
     client,

@@ -15,8 +15,7 @@
  */
 
 import type { Client } from '@optimizely/optimizely-sdk';
-import { REACT_CLIENT_META } from '../client/createInstance';
-import type { ReactClientMeta } from '../client/createInstance';
+import { getReactClientMeta } from '../client/createInstance';
 import type { ReactLogger } from './ReactLogger';
 
 /**
@@ -25,6 +24,5 @@ import type { ReactLogger } from './ReactLogger';
  * React SDK's createLogger wrapper).
  */
 export function getReactLogger(client: Client): ReactLogger | undefined {
-  const meta = (client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META];
-  return meta.logger;
+  return getReactClientMeta(client).logger;
 }

@@ -15,7 +15,7 @@
  */
 
 import type { Client, OptimizelyUserContext } from '@optimizely/optimizely-sdk';
-import { REACT_CLIENT_META } from '../client';
+import { getReactClientMeta } from '../client';
 import type { ReactClientMeta } from '../client';
 import type { UserInfo } from '../provider';
 import { areSegmentsEqual, areUsersEqual } from './helpers';
@@ -54,7 +54,7 @@ export class UserContextManager {
     this.onUserContextChange = config.onUserContextChange;
     this.onError = config.onError;
 
-    this.meta = (this.client as unknown as Record<symbol, ReactClientMeta>)[REACT_CLIENT_META];
+    this.meta = getReactClientMeta(this.client);
   }
 
   /**

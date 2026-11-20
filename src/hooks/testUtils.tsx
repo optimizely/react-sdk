@@ -17,7 +17,7 @@
 import { vi } from 'vitest';
 import React from 'react';
 import { OptimizelyContext, ProviderStateStore, OptimizelyProvider } from '../provider';
-import { REACT_CLIENT_META } from '../client';
+import { setReactClientMeta } from '../client';
 import type { OptimizelyUserContext, OptimizelyDecision, Client } from '@optimizely/optimizely-sdk';
 import type { OptimizelyContextValue } from '../provider';
 
@@ -124,10 +124,10 @@ export function createProviderWrapper(mockUserContext: OptimizelyUserContext) {
     },
   } as unknown as Client;
 
-  (client as unknown as Record<symbol, unknown>)[REACT_CLIENT_META] = {
+  setReactClientMeta(client, {
     hasOdpManager: false,
     hasVuidManager: false,
-  };
+  });
 
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
